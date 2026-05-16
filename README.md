@@ -66,7 +66,7 @@ Variable d'environnement conseillee :
 
 Render fournit automatiquement `PORT`. Le fichier `render.yaml` contient la meme configuration si tu choisis de creer le service via Blueprint.
 
-`requirements-render.txt` exclut volontairement `pygame`, qui sert seulement au prototype local. Render n'a donc pas besoin des bibliotheques systeme SDL.
+`requirements-render.txt` exclut volontairement `pygame`, qui sert seulement au prototype local. Render n'a donc pas besoin des bibliotheques systeme SDL. Il installe `uvicorn[standard]` pour inclure le support WebSocket en production.
 
 ## Prototype local Pygame
 
