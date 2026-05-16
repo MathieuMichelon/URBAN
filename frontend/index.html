@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Urban Duel Online</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>Urban Duel Online</h1>
+        <p class="muted">Serveur autoritaire FastAPI + WebSockets</p>
+      </div>
+      <div class="status-stack">
+        <span id="connection-status">Déconnecté</span>
+        <span id="room-status">Aucune room</span>
+      </div>
+    </header>
+
+    <section id="error-banner" class="panel error-banner hidden"></section>
+
+    <section id="home-view" class="panel view">
+      <h2>Accueil</h2>
+      <div class="controls-grid">
+        <label>
+          Backend WS
+          <input id="ws-url" placeholder="ws://IP_DU_PC_HOTE:8000/ws">
+        </label>
+        <label>
+          Pseudo
+          <input id="player-name" value="Player">
+        </label>
+        <label>
+          Room ID
+          <input id="room-id" placeholder="ABC123">
+        </label>
+      </div>
+      <div class="button-row">
+        <button id="connect-button">Connecter</button>
+        <button id="create-button" disabled>Créer une room</button>
+        <button id="join-button" disabled>Rejoindre</button>
+      </div>
+      <p class="muted">Si une session locale valide existe, une tentative de reprise est faite automatiquement à la connexion.</p>
+    </section>
+
+    <section id="lobby-view" class="panel view hidden">
+      <h2>Lobby</h2>
+      <div class="lobby-grid">
+        <div>
+          <strong>Room ID</strong>
+          <div id="lobby-room-id" class="room-code">-</div>
+        </div>
+        <div>
+          <strong>Statut partie</strong>
+          <div id="lobby-match-state">-</div>
+        </div>
+      </div>
+      <div id="lobby-players" class="player-list"></div>
+      <div class="button-row">
+        <button id="request-state-button" disabled>Resynchroniser l'état</button>
+        <button id="ping-button" disabled>Ping</button>
+      </div>
+    </section>
+
+    <section id="game-view" class="view hidden">
+      <div class="game-grid">
+        <article id="draft-panel" class="panel full-width hidden">
+          <h2>Draft</h2>
+          <div id="draft-status" class="muted">En attente de l'offre de draft.</div>
+          <div class="draft-layout">
+            <div class="draft-column">
+              <h3>Offre partagée</h3>
+              <div id="draft-offer" class="card-grid"></div>
+            </div>
+            <div class="draft-column">
+              <h3>Mon équipe</h3>
+              <div id="draft-team-meta" class="muted"></div>
+              <div id="draft-team-summary" class="team-summary"></div>
+              <div id="draft-team" class="card-grid compact-grid"></div>
+            </div>
+          </div>
+        </article>
+
+        <section id="match-shell" class="match-shell full-width">
+          <article class="panel match-zone opponent-zone">
+            <div class="zone-header">
+              <div id="opponent-identity" class="identity-panel"></div>
+              <div id="opponent-status" class="zone-status-panel"></div>
+            </div>
+            <div id="opponent-hand" class="match-hand-grid"></div>
+          </article>
+
+          <section class="center-zone">
+            <article class="panel round-panel">
+              <div class="round-panel-top">
+                <div class="round-panel-chip">
+                  <span class="round-label">Round</span>
+                  <strong id="round-value">-</strong>
+                </div>
+                <div class="round-panel-chip">
+                  <span class="round-label">Initiative</span>
+                  <strong id="initiative-value">-</strong>
+                </div>
+                <div class="round-panel-chip">
+                  <span class="round-label">Etat</span>
+                  <strong id="match-state-value">-</strong>
+                </div>
+              </div>
+              <p id="game-banner" class="banner-text">En attente de la partie.</p>
+              <div id="summary-content" class="muted"></div>
+            </article>
+
+            <div class="center-main-grid">
+              <article id="selection-stage" class="panel selection-stage">
+                <div id="selection-info" class="muted">Click a card to choose pills.</div>
+                <div id="selection-detail" class="selection-detail-panel"></div>
+                <div id="selection-controls" class="selection-controls hidden">
+                  <div class="selection-controls-header">
+                    <h2>Engager des pills</h2>
+                    <button id="reset-selection-button" type="button" class="secondary-button">Réinitialiser</button>
+                  </div>
+                  <label id="pills-control" class="pill-control">
+                    <span class="muted">Pills à engager</span>
+                    <input id="pills-input" type="range" min="0" max="12" value="0" disabled>
+                  </label>
+                  <div id="pills-value">0</div>
+                  <div class="button-row">
+                    <button id="confirm-button" disabled>Confirmer</button>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <article class="panel match-zone player-zone">
+            <div class="zone-header">
+              <div id="player-identity" class="identity-panel"></div>
+              <div id="player-status" class="zone-status-panel"></div>
+            </div>
+            <div id="local-hand" class="match-hand-grid"></div>
+          </article>
+        </section>
+      </div>
+    </section>
+
+    <section id="end-view" class="panel view hidden">
+      <h2>Fin de partie</h2>
+      <p id="end-banner" class="banner-text">Partie terminée.</p>
+      <div id="end-summary" class="muted"></div>
+      <div class="button-row">
+        <button id="return-home-button">Retour accueil</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Journal</h2>
+      <div id="event-log" class="event-log"></div>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

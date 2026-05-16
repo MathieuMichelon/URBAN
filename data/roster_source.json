@@ -1,0 +1,595 @@
+{
+  "version": "1.0",
+  "format_note": "Positions de grille en lecture gauche->droite, haut->bas. row/col sont en base 1.",
+  "team_rules": {
+    "team_size": 4,
+    "max_total_stars": 8,
+    "clan_bonus_activation": "Le bonus de clan est actif si l'équipe de 4 contient au moins 2 personnages du même clan."
+  },
+  "grid_template": {
+    "rows": 2,
+    "cols": 5,
+    "slots": [
+      {
+        "index": 1,
+        "slot": "A1",
+        "row": 1,
+        "col": 1
+      },
+      {
+        "index": 2,
+        "slot": "A2",
+        "row": 1,
+        "col": 2
+      },
+      {
+        "index": 3,
+        "slot": "A3",
+        "row": 1,
+        "col": 3
+      },
+      {
+        "index": 4,
+        "slot": "A4",
+        "row": 1,
+        "col": 4
+      },
+      {
+        "index": 5,
+        "slot": "A5",
+        "row": 1,
+        "col": 5
+      },
+      {
+        "index": 6,
+        "slot": "B1",
+        "row": 2,
+        "col": 1
+      },
+      {
+        "index": 7,
+        "slot": "B2",
+        "row": 2,
+        "col": 2
+      },
+      {
+        "index": 8,
+        "slot": "B3",
+        "row": 2,
+        "col": 3
+      },
+      {
+        "index": 9,
+        "slot": "B4",
+        "row": 2,
+        "col": 4
+      },
+      {
+        "index": 10,
+        "slot": "B5",
+        "row": 2,
+        "col": 5
+      }
+    ]
+  },
+  "clans": [
+    {
+      "id": "pulse_404",
+      "name": "Pulse 404",
+      "theme": "Cyberpunk glitch / néons violets / agressif, bluff, pression",
+      "bonus": {
+        "text": "+2 Attaque",
+        "type": "attack_modifier",
+        "value": 2,
+        "activation": "Actif à partir de 2 personnages Pulse 404 dans l'équipe."
+      },
+      "characters": [
+        {
+          "id": "glitch",
+          "name": "Glitch",
+          "stars": 1,
+          "power": 6,
+          "damage": 1,
+          "ability_text": "Défaite : +1 pill",
+          "info": "Petit utilitaire de tempo, bon sacrifice intelligent.",
+          "grid_position": {
+            "sheet": "pulse_404",
+            "index": 1,
+            "slot": "A1",
+            "row": 1,
+            "col": 1
+          }
+        },
+        {
+          "id": "pix",
+          "name": "Pix",
+          "stars": 1,
+          "power": 5,
+          "damage": 2,
+          "ability_text": "+2 Attaque",
+          "info": "Mini carte agressive pour arracher un round à faible investissement.",
+          "grid_position": {
+            "sheet": "pulse_404",
+            "index": 2,
+            "slot": "A2",
+            "row": 1,
+            "col": 2
+          }
+        },
+        {
+          "id": "nox",
+          "name": "Nox",
+          "stars": 1,
+          "power": 6,
+          "damage": 1,
+          "ability_text": "Stop Bonus adv.",
+          "info": "Tech défensive contre les clans trop dépendants de leur bonus.",
+          "grid_position": {
+            "sheet": "pulse_404",
+            "index": 3,
+            "slot": "A3",
+            "row": 1,
+            "col": 3
+          }
+        },
+        {
+          "id": "vibe",
+          "name": "Vibe",
+          "stars": 1,
+          "power": 5,
+          "damage": 2,
+          "ability_text": "Courage : +1 Puissance",
+          "info": "Petit opener utile quand tu joues en premier.",
+          "grid_position": {
+            "sheet": "pulse_404",
+            "index": 4,
+            "slot": "A4",
+            "row": 1,
+            "col": 4
+          }
+        },
+        {
+          "id": "kiro",
+          "name": "Kiro",
+          "stars": 2,
+          "power": 7,
+          "damage": 2,
+          "ability_text": "-2 Attaque adv., min. 1",
+          "info": "2 étoiles très propre pour contrôler les petits rounds.",
+          "grid_position": {
+            "sheet": "pulse_404",
+            "index": 5,
+            "slot": "A5",
+            "row": 1,
+            "col": 5
+          }
+        },
+        {
+          "id": "sira",
+          "name": "Sira",
+          "stars": 2,
+          "power": 6,
+          "damage": 3,
+          "ability_text": "Protection : Bonus",
+          "info": "Bonne carte stable qui sécurise l'activation de clan.",
+          "grid_position": {
+            "sheet": "pulse_404",
+            "index": 6,
+            "slot": "B1",
+            "row": 2,
+            "col": 1
+          }
+        },
+        {
+          "id": "hexa",
+          "name": "Hexa",
+          "stars": 2,
+          "power": 7,
+          "damage": 2,
+          "ability_text": "Victoire : +1 Vie",
+          "info": "Carte de tempo positive qui crée un petit écart de vie.",
+          "grid_position": {
+            "sheet": "pulse_404",
+            "index": 7,
+            "slot": "B2",
+            "row": 2,
+            "col": 2
+          }
+        },
+        {
+          "id": "riff",
+          "name": "Riff",
+          "stars": 3,
+          "power": 7,
+          "damage": 3,
+          "ability_text": "+1 Dégât",
+          "info": "Beater offensif simple et efficace.",
+          "grid_position": {
+            "sheet": "pulse_404",
+            "index": 8,
+            "slot": "B3",
+            "row": 2,
+            "col": 3
+          }
+        },
+        {
+          "id": "null",
+          "name": "Null",
+          "stars": 3,
+          "power": 8,
+          "damage": 2,
+          "ability_text": "Stop Pouvoir adv.",
+          "info": "Grosse carte de contrôle, très utile contre les effets clés.",
+          "grid_position": {
+            "sheet": "pulse_404",
+            "index": 9,
+            "slot": "B4",
+            "row": 2,
+            "col": 4
+          }
+        },
+        {
+          "id": "nova_byte",
+          "name": "Nova Byte",
+          "stars": 3,
+          "power": 7,
+          "damage": 4,
+          "ability_text": "Revanche : +2 Attaque",
+          "info": "Finisseur offensif très menaçant après un round perdu.",
+          "grid_position": {
+            "sheet": "pulse_404",
+            "index": 10,
+            "slot": "B5",
+            "row": 2,
+            "col": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "verdelune",
+      "name": "Verdelune",
+      "theme": "Biotech toxique / jungle urbaine / poison, contrôle, sustain",
+      "bonus": {
+        "text": "Victoire : +1 Vie",
+        "type": "life_gain_on_win",
+        "value": 1,
+        "activation": "Actif à partir de 2 personnages Verdelune dans l'équipe."
+      },
+      "characters": [
+        {
+          "id": "brin",
+          "name": "Brin",
+          "stars": 1,
+          "power": 6,
+          "damage": 1,
+          "ability_text": "-1 Dégât adv., min. 1",
+          "info": "Petit mur utilitaire pour amortir un round.",
+          "grid_position": {
+            "sheet": "verdelune",
+            "index": 1,
+            "slot": "A1",
+            "row": 1,
+            "col": 1
+          }
+        },
+        {
+          "id": "mousse",
+          "name": "Mousse",
+          "stars": 1,
+          "power": 5,
+          "damage": 2,
+          "ability_text": "Défaite : +1 Vie",
+          "info": "Carte de sacrifice confortable pour limiter l'écart.",
+          "grid_position": {
+            "sheet": "verdelune",
+            "index": 2,
+            "slot": "A2",
+            "row": 1,
+            "col": 2
+          }
+        },
+        {
+          "id": "rosee",
+          "name": "Rosée",
+          "stars": 1,
+          "power": 6,
+          "damage": 1,
+          "ability_text": "+2 Attaque",
+          "info": "1 étoile propre pour gratter un duel serré.",
+          "grid_position": {
+            "sheet": "verdelune",
+            "index": 3,
+            "slot": "A3",
+            "row": 1,
+            "col": 3
+          }
+        },
+        {
+          "id": "lichen",
+          "name": "Lichen",
+          "stars": 1,
+          "power": 5,
+          "damage": 2,
+          "ability_text": "Victoire : Poison 1, min. 17",
+          "info": "Mini poison pour installer une pression lente dès le début.",
+          "grid_position": {
+            "sheet": "verdelune",
+            "index": 4,
+            "slot": "A4",
+            "row": 1,
+            "col": 4
+          }
+        },
+        {
+          "id": "sylfa",
+          "name": "Sylfa",
+          "stars": 2,
+          "power": 6,
+          "damage": 2,
+          "ability_text": "Protection : Puissance",
+          "info": "Carte solide et stable, peu sensible aux malus adverses.",
+          "grid_position": {
+            "sheet": "verdelune",
+            "index": 5,
+            "slot": "A5",
+            "row": 1,
+            "col": 5
+          }
+        },
+        {
+          "id": "aster",
+          "name": "Aster",
+          "stars": 2,
+          "power": 6,
+          "damage": 2,
+          "ability_text": "Victoire : +1 Vie",
+          "info": "Carte d'écart de vie simple, toujours utile.",
+          "grid_position": {
+            "sheet": "verdelune",
+            "index": 6,
+            "slot": "B1",
+            "row": 2,
+            "col": 1
+          }
+        },
+        {
+          "id": "ronce",
+          "name": "Ronce",
+          "stars": 2,
+          "power": 6,
+          "damage": 3,
+          "ability_text": "-2 Attaque adv., min. 2",
+          "info": "2 étoiles offensif avec un bon contrôle de round.",
+          "grid_position": {
+            "sheet": "verdelune",
+            "index": 7,
+            "slot": "B2",
+            "row": 2,
+            "col": 2
+          }
+        },
+        {
+          "id": "druun",
+          "name": "Druun",
+          "stars": 3,
+          "power": 7,
+          "damage": 3,
+          "ability_text": "Victoire : Poison 1, min. 14",
+          "info": "Poison principal du clan, très fort quand il passe tôt.",
+          "grid_position": {
+            "sheet": "verdelune",
+            "index": 8,
+            "slot": "B3",
+            "row": 2,
+            "col": 3
+          }
+        },
+        {
+          "id": "maelis",
+          "name": "Maelis",
+          "stars": 3,
+          "power": 7,
+          "damage": 3,
+          "ability_text": "Victoire : +2 Vie",
+          "info": "Carte de swing de vie, excellente pour creuser l'écart.",
+          "grid_position": {
+            "sheet": "verdelune",
+            "index": 9,
+            "slot": "B4",
+            "row": 2,
+            "col": 4
+          }
+        },
+        {
+          "id": "chene",
+          "name": "Chêne",
+          "stars": 3,
+          "power": 8,
+          "damage": 2,
+          "ability_text": "-2 Dégâts adv., min. 1",
+          "info": "Grosse pièce défensive, parfaite pour absorber un impact.",
+          "grid_position": {
+            "sheet": "verdelune",
+            "index": 10,
+            "slot": "B5",
+            "row": 2,
+            "col": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "bastion_9",
+      "name": "Bastion-9",
+      "theme": "Cyber tactique / acier blanc et néons bleus / stabilité, anti-tricks",
+      "bonus": {
+        "text": "Protection : Puissance",
+        "type": "protect_power",
+        "activation": "Actif à partir de 2 personnages Bastion-9 dans l'équipe."
+      },
+      "characters": [
+        {
+          "id": "rivet",
+          "name": "Rivet",
+          "stars": 1,
+          "power": 6,
+          "damage": 1,
+          "ability_text": "Défaite : +1 pill",
+          "info": "Petit générateur de tempo pour perdre utile.",
+          "grid_position": {
+            "sheet": "bastion_9",
+            "index": 1,
+            "slot": "A1",
+            "row": 1,
+            "col": 1
+          }
+        },
+        {
+          "id": "boulon",
+          "name": "Boulon",
+          "stars": 1,
+          "power": 5,
+          "damage": 2,
+          "ability_text": "+2 Attaque",
+          "info": "1 étoile agressif pour contester un round à bas coût.",
+          "grid_position": {
+            "sheet": "bastion_9",
+            "index": 2,
+            "slot": "A2",
+            "row": 1,
+            "col": 2
+          }
+        },
+        {
+          "id": "cendre",
+          "name": "Cendre",
+          "stars": 1,
+          "power": 6,
+          "damage": 1,
+          "ability_text": "Stop Bonus adv.",
+          "info": "Petit anti-bonus très pratique contre certains matchups.",
+          "grid_position": {
+            "sheet": "bastion_9",
+            "index": 3,
+            "slot": "A3",
+            "row": 1,
+            "col": 3
+          }
+        },
+        {
+          "id": "nita",
+          "name": "Nita",
+          "stars": 1,
+          "power": 5,
+          "damage": 2,
+          "ability_text": "-1 Dégât adv., min. 1",
+          "info": "Carte souple pour limiter la casse sur les rounds perdus.",
+          "grid_position": {
+            "sheet": "bastion_9",
+            "index": 4,
+            "slot": "A4",
+            "row": 1,
+            "col": 4
+          }
+        },
+        {
+          "id": "torque",
+          "name": "Torque",
+          "stars": 2,
+          "power": 7,
+          "damage": 2,
+          "ability_text": "Stop Pouvoir adv.",
+          "info": "2 étoiles de contrôle très fiable.",
+          "grid_position": {
+            "sheet": "bastion_9",
+            "index": 5,
+            "slot": "A5",
+            "row": 1,
+            "col": 5
+          }
+        },
+        {
+          "id": "magna",
+          "name": "Magna",
+          "stars": 2,
+          "power": 6,
+          "damage": 3,
+          "ability_text": "Protection : Bonus",
+          "info": "Bon profil stable pour conserver l'identité du clan.",
+          "grid_position": {
+            "sheet": "bastion_9",
+            "index": 6,
+            "slot": "B1",
+            "row": 2,
+            "col": 1
+          }
+        },
+        {
+          "id": "weld",
+          "name": "Weld",
+          "stars": 2,
+          "power": 6,
+          "damage": 2,
+          "ability_text": "-1 Puissance adv., min. 5",
+          "info": "Carte utilitaire pour casser les duels de stats.",
+          "grid_position": {
+            "sheet": "bastion_9",
+            "index": 7,
+            "slot": "B2",
+            "row": 2,
+            "col": 2
+          }
+        },
+        {
+          "id": "atlas",
+          "name": "Atlas",
+          "stars": 3,
+          "power": 7,
+          "damage": 3,
+          "ability_text": "+1 Dégât",
+          "info": "Beater offensif net et sans détour.",
+          "grid_position": {
+            "sheet": "bastion_9",
+            "index": 8,
+            "slot": "B3",
+            "row": 2,
+            "col": 3
+          }
+        },
+        {
+          "id": "bast",
+          "name": "Bast",
+          "stars": 3,
+          "power": 6,
+          "damage": 4,
+          "ability_text": "Courage : +2 Attaque",
+          "info": "Carte très menaçante quand elle ouvre le round.",
+          "grid_position": {
+            "sheet": "bastion_9",
+            "index": 9,
+            "slot": "B4",
+            "row": 2,
+            "col": 4
+          }
+        },
+        {
+          "id": "ferrox",
+          "name": "Ferrox",
+          "stars": 3,
+          "power": 7,
+          "damage": 3,
+          "ability_text": "-2 Dégâts adv., min. 1",
+          "info": "Finisseur/régulateur qui reste pénible à passer.",
+          "grid_position": {
+            "sheet": "bastion_9",
+            "index": 10,
+            "slot": "B5",
+            "row": 2,
+            "col": 5
+          }
+        }
+      ]
+    }
+  ]
+}

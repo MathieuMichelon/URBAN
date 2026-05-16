@@ -1,0 +1,456 @@
+{
+  "version": 1,
+  "source_roster": "data/roster_source.json",
+  "entries": [
+    {
+      "card_id": "glitch",
+      "card_name": "Glitch",
+      "clan_id": "pulse_404",
+      "clan_name": "Pulse 404",
+      "source_sheet": "assets/Pulse 404.png",
+      "grid_position": {
+        "sheet": "pulse_404",
+        "index": 1,
+        "slot": "A1",
+        "row": 1,
+        "col": 1
+      },
+      "output_path": "assets/cards/pulse_404/glitch.png"
+    },
+    {
+      "card_id": "pix",
+      "card_name": "Pix",
+      "clan_id": "pulse_404",
+      "clan_name": "Pulse 404",
+      "source_sheet": "assets/Pulse 404.png",
+      "grid_position": {
+        "sheet": "pulse_404",
+        "index": 2,
+        "slot": "A2",
+        "row": 1,
+        "col": 2
+      },
+      "output_path": "assets/cards/pulse_404/pix.png"
+    },
+    {
+      "card_id": "nox",
+      "card_name": "Nox",
+      "clan_id": "pulse_404",
+      "clan_name": "Pulse 404",
+      "source_sheet": "assets/Pulse 404.png",
+      "grid_position": {
+        "sheet": "pulse_404",
+        "index": 3,
+        "slot": "A3",
+        "row": 1,
+        "col": 3
+      },
+      "output_path": "assets/cards/pulse_404/nox.png"
+    },
+    {
+      "card_id": "vibe",
+      "card_name": "Vibe",
+      "clan_id": "pulse_404",
+      "clan_name": "Pulse 404",
+      "source_sheet": "assets/Pulse 404.png",
+      "grid_position": {
+        "sheet": "pulse_404",
+        "index": 4,
+        "slot": "A4",
+        "row": 1,
+        "col": 4
+      },
+      "output_path": "assets/cards/pulse_404/vibe.png"
+    },
+    {
+      "card_id": "kiro",
+      "card_name": "Kiro",
+      "clan_id": "pulse_404",
+      "clan_name": "Pulse 404",
+      "source_sheet": "assets/Pulse 404.png",
+      "grid_position": {
+        "sheet": "pulse_404",
+        "index": 5,
+        "slot": "A5",
+        "row": 1,
+        "col": 5
+      },
+      "output_path": "assets/cards/pulse_404/kiro.png"
+    },
+    {
+      "card_id": "sira",
+      "card_name": "Sira",
+      "clan_id": "pulse_404",
+      "clan_name": "Pulse 404",
+      "source_sheet": "assets/Pulse 404.png",
+      "grid_position": {
+        "sheet": "pulse_404",
+        "index": 6,
+        "slot": "B1",
+        "row": 2,
+        "col": 1
+      },
+      "output_path": "assets/cards/pulse_404/sira.png"
+    },
+    {
+      "card_id": "hexa",
+      "card_name": "Hexa",
+      "clan_id": "pulse_404",
+      "clan_name": "Pulse 404",
+      "source_sheet": "assets/Pulse 404.png",
+      "grid_position": {
+        "sheet": "pulse_404",
+        "index": 7,
+        "slot": "B2",
+        "row": 2,
+        "col": 2
+      },
+      "output_path": "assets/cards/pulse_404/hexa.png"
+    },
+    {
+      "card_id": "riff",
+      "card_name": "Riff",
+      "clan_id": "pulse_404",
+      "clan_name": "Pulse 404",
+      "source_sheet": "assets/Pulse 404.png",
+      "grid_position": {
+        "sheet": "pulse_404",
+        "index": 8,
+        "slot": "B3",
+        "row": 2,
+        "col": 3
+      },
+      "output_path": "assets/cards/pulse_404/riff.png"
+    },
+    {
+      "card_id": "null",
+      "card_name": "Null",
+      "clan_id": "pulse_404",
+      "clan_name": "Pulse 404",
+      "source_sheet": "assets/Pulse 404.png",
+      "grid_position": {
+        "sheet": "pulse_404",
+        "index": 9,
+        "slot": "B4",
+        "row": 2,
+        "col": 4
+      },
+      "output_path": "assets/cards/pulse_404/null.png"
+    },
+    {
+      "card_id": "nova_byte",
+      "card_name": "Nova Byte",
+      "clan_id": "pulse_404",
+      "clan_name": "Pulse 404",
+      "source_sheet": "assets/Pulse 404.png",
+      "grid_position": {
+        "sheet": "pulse_404",
+        "index": 10,
+        "slot": "B5",
+        "row": 2,
+        "col": 5
+      },
+      "output_path": "assets/cards/pulse_404/nova_byte.png"
+    },
+    {
+      "card_id": "brin",
+      "card_name": "Brin",
+      "clan_id": "verdelune",
+      "clan_name": "Verdelune",
+      "source_sheet": "assets/Verdelune.png",
+      "grid_position": {
+        "sheet": "verdelune",
+        "index": 1,
+        "slot": "A1",
+        "row": 1,
+        "col": 1
+      },
+      "output_path": "assets/cards/verdelune/brin.png"
+    },
+    {
+      "card_id": "mousse",
+      "card_name": "Mousse",
+      "clan_id": "verdelune",
+      "clan_name": "Verdelune",
+      "source_sheet": "assets/Verdelune.png",
+      "grid_position": {
+        "sheet": "verdelune",
+        "index": 2,
+        "slot": "A2",
+        "row": 1,
+        "col": 2
+      },
+      "output_path": "assets/cards/verdelune/mousse.png"
+    },
+    {
+      "card_id": "rosee",
+      "card_name": "Rosée",
+      "clan_id": "verdelune",
+      "clan_name": "Verdelune",
+      "source_sheet": "assets/Verdelune.png",
+      "grid_position": {
+        "sheet": "verdelune",
+        "index": 3,
+        "slot": "A3",
+        "row": 1,
+        "col": 3
+      },
+      "output_path": "assets/cards/verdelune/rosee.png"
+    },
+    {
+      "card_id": "lichen",
+      "card_name": "Lichen",
+      "clan_id": "verdelune",
+      "clan_name": "Verdelune",
+      "source_sheet": "assets/Verdelune.png",
+      "grid_position": {
+        "sheet": "verdelune",
+        "index": 4,
+        "slot": "A4",
+        "row": 1,
+        "col": 4
+      },
+      "output_path": "assets/cards/verdelune/lichen.png"
+    },
+    {
+      "card_id": "sylfa",
+      "card_name": "Sylfa",
+      "clan_id": "verdelune",
+      "clan_name": "Verdelune",
+      "source_sheet": "assets/Verdelune.png",
+      "grid_position": {
+        "sheet": "verdelune",
+        "index": 5,
+        "slot": "A5",
+        "row": 1,
+        "col": 5
+      },
+      "output_path": "assets/cards/verdelune/sylfa.png"
+    },
+    {
+      "card_id": "aster",
+      "card_name": "Aster",
+      "clan_id": "verdelune",
+      "clan_name": "Verdelune",
+      "source_sheet": "assets/Verdelune.png",
+      "grid_position": {
+        "sheet": "verdelune",
+        "index": 6,
+        "slot": "B1",
+        "row": 2,
+        "col": 1
+      },
+      "output_path": "assets/cards/verdelune/aster.png"
+    },
+    {
+      "card_id": "ronce",
+      "card_name": "Ronce",
+      "clan_id": "verdelune",
+      "clan_name": "Verdelune",
+      "source_sheet": "assets/Verdelune.png",
+      "grid_position": {
+        "sheet": "verdelune",
+        "index": 7,
+        "slot": "B2",
+        "row": 2,
+        "col": 2
+      },
+      "output_path": "assets/cards/verdelune/ronce.png"
+    },
+    {
+      "card_id": "druun",
+      "card_name": "Druun",
+      "clan_id": "verdelune",
+      "clan_name": "Verdelune",
+      "source_sheet": "assets/Verdelune.png",
+      "grid_position": {
+        "sheet": "verdelune",
+        "index": 8,
+        "slot": "B3",
+        "row": 2,
+        "col": 3
+      },
+      "output_path": "assets/cards/verdelune/druun.png"
+    },
+    {
+      "card_id": "maelis",
+      "card_name": "Maelis",
+      "clan_id": "verdelune",
+      "clan_name": "Verdelune",
+      "source_sheet": "assets/Verdelune.png",
+      "grid_position": {
+        "sheet": "verdelune",
+        "index": 9,
+        "slot": "B4",
+        "row": 2,
+        "col": 4
+      },
+      "output_path": "assets/cards/verdelune/maelis.png"
+    },
+    {
+      "card_id": "chene",
+      "card_name": "Chêne",
+      "clan_id": "verdelune",
+      "clan_name": "Verdelune",
+      "source_sheet": "assets/Verdelune.png",
+      "grid_position": {
+        "sheet": "verdelune",
+        "index": 10,
+        "slot": "B5",
+        "row": 2,
+        "col": 5
+      },
+      "output_path": "assets/cards/verdelune/chene.png"
+    },
+    {
+      "card_id": "rivet",
+      "card_name": "Rivet",
+      "clan_id": "bastion_9",
+      "clan_name": "Bastion-9",
+      "source_sheet": "assets/Bastion-9.png",
+      "grid_position": {
+        "sheet": "bastion_9",
+        "index": 1,
+        "slot": "A1",
+        "row": 1,
+        "col": 1
+      },
+      "output_path": "assets/cards/bastion_9/rivet.png"
+    },
+    {
+      "card_id": "boulon",
+      "card_name": "Boulon",
+      "clan_id": "bastion_9",
+      "clan_name": "Bastion-9",
+      "source_sheet": "assets/Bastion-9.png",
+      "grid_position": {
+        "sheet": "bastion_9",
+        "index": 2,
+        "slot": "A2",
+        "row": 1,
+        "col": 2
+      },
+      "output_path": "assets/cards/bastion_9/boulon.png"
+    },
+    {
+      "card_id": "cendre",
+      "card_name": "Cendre",
+      "clan_id": "bastion_9",
+      "clan_name": "Bastion-9",
+      "source_sheet": "assets/Bastion-9.png",
+      "grid_position": {
+        "sheet": "bastion_9",
+        "index": 3,
+        "slot": "A3",
+        "row": 1,
+        "col": 3
+      },
+      "output_path": "assets/cards/bastion_9/cendre.png"
+    },
+    {
+      "card_id": "nita",
+      "card_name": "Nita",
+      "clan_id": "bastion_9",
+      "clan_name": "Bastion-9",
+      "source_sheet": "assets/Bastion-9.png",
+      "grid_position": {
+        "sheet": "bastion_9",
+        "index": 4,
+        "slot": "A4",
+        "row": 1,
+        "col": 4
+      },
+      "output_path": "assets/cards/bastion_9/nita.png"
+    },
+    {
+      "card_id": "torque",
+      "card_name": "Torque",
+      "clan_id": "bastion_9",
+      "clan_name": "Bastion-9",
+      "source_sheet": "assets/Bastion-9.png",
+      "grid_position": {
+        "sheet": "bastion_9",
+        "index": 5,
+        "slot": "A5",
+        "row": 1,
+        "col": 5
+      },
+      "output_path": "assets/cards/bastion_9/torque.png"
+    },
+    {
+      "card_id": "magna",
+      "card_name": "Magna",
+      "clan_id": "bastion_9",
+      "clan_name": "Bastion-9",
+      "source_sheet": "assets/Bastion-9.png",
+      "grid_position": {
+        "sheet": "bastion_9",
+        "index": 6,
+        "slot": "B1",
+        "row": 2,
+        "col": 1
+      },
+      "output_path": "assets/cards/bastion_9/magna.png"
+    },
+    {
+      "card_id": "weld",
+      "card_name": "Weld",
+      "clan_id": "bastion_9",
+      "clan_name": "Bastion-9",
+      "source_sheet": "assets/Bastion-9.png",
+      "grid_position": {
+        "sheet": "bastion_9",
+        "index": 7,
+        "slot": "B2",
+        "row": 2,
+        "col": 2
+      },
+      "output_path": "assets/cards/bastion_9/weld.png"
+    },
+    {
+      "card_id": "atlas",
+      "card_name": "Atlas",
+      "clan_id": "bastion_9",
+      "clan_name": "Bastion-9",
+      "source_sheet": "assets/Bastion-9.png",
+      "grid_position": {
+        "sheet": "bastion_9",
+        "index": 8,
+        "slot": "B3",
+        "row": 2,
+        "col": 3
+      },
+      "output_path": "assets/cards/bastion_9/atlas.png"
+    },
+    {
+      "card_id": "bast",
+      "card_name": "Bast",
+      "clan_id": "bastion_9",
+      "clan_name": "Bastion-9",
+      "source_sheet": "assets/Bastion-9.png",
+      "grid_position": {
+        "sheet": "bastion_9",
+        "index": 9,
+        "slot": "B4",
+        "row": 2,
+        "col": 4
+      },
+      "output_path": "assets/cards/bastion_9/bast.png"
+    },
+    {
+      "card_id": "ferrox",
+      "card_name": "Ferrox",
+      "clan_id": "bastion_9",
+      "clan_name": "Bastion-9",
+      "source_sheet": "assets/Bastion-9.png",
+      "grid_position": {
+        "sheet": "bastion_9",
+        "index": 10,
+        "slot": "B5",
+        "row": 2,
+        "col": 5
+      },
+      "output_path": "assets/cards/bastion_9/ferrox.png"
+    }
+  ]
+}
