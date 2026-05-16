@@ -56,11 +56,17 @@ Le projet est pret pour un seul Web Service Render :
 
 Valeurs a mettre dans Render :
 
-- Build Command : `pip install -r requirements.txt`
+- Build Command : `pip install -r requirements-render.txt`
 - Start Command : `python -m backend.main`
 - Health Check Path : `/health`
 
+Variable d'environnement conseillee :
+
+- `PYTHON_VERSION` : `3.12.3`
+
 Render fournit automatiquement `PORT`. Le fichier `render.yaml` contient la meme configuration si tu choisis de creer le service via Blueprint.
+
+`requirements-render.txt` exclut volontairement `pygame`, qui sert seulement au prototype local. Render n'a donc pas besoin des bibliotheques systeme SDL.
 
 ## Prototype local Pygame
 
