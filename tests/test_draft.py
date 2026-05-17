@@ -1,5 +1,6 @@
 """Unit tests for the shared draft and team-building helpers."""
 
+from collections import Counter
 from itertools import combinations
 
 import pytest
@@ -9,11 +10,15 @@ from core.errors import InvalidMoveError
 
 
 def test_build_draft_offer_returns_ten_cards_and_supports_a_legal_team(sample_cards) -> None:
-    """A generated draft offer should always expose ten cards and at least one legal team."""
+    """A generated draft offer should expose ten varied cards and at least one legal team."""
     offer = build_draft_offer(sample_cards, seed="ROOM42")
+    star_counts = Counter(card.stars for card in offer)
 
     assert len(offer) == 10
     assert len({card.id for card in offer}) == 10
+    assert star_counts[3] >= 2
+    assert star_counts[2] >= 3
+    assert star_counts[1] >= 2
     assert any(
         sum(card.stars for card in team) <= TEAM_STAR_CAP
         for team in combinations(offer, TEAM_SIZE)

@@ -13,6 +13,11 @@ from core.models import Card
 DRAFT_OFFER_SIZE = 10
 TEAM_SIZE = 4
 TEAM_STAR_CAP = 8
+DRAFT_MIN_STAR_DISTRIBUTION = {
+    3: 2,
+    2: 3,
+    1: 2,
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -117,9 +122,17 @@ def build_draft_offer(cards: list[Card], *, seed: str | int | None = None) -> li
         )
 
     generator = random.Random(seed)
+    if _roster_supports_star_distribution(cards):
+        offer = _build_balanced_star_offer(cards, generator)
+        if _offer_supports_valid_team(offer):
+            return offer
+
     for _ in range(200):
         offer = list(generator.sample(cards, DRAFT_OFFER_SIZE))
-        if _offer_supports_valid_team(offer):
+        if _offer_supports_valid_team(offer) and (
+            not _roster_supports_star_distribution(cards)
+            or _offer_matches_star_distribution(offer)
+        ):
             return offer
 
     raise InvalidGameSetupError("Unable to generate a valid draft offer from the current roster.")
@@ -188,3 +201,36 @@ def describe_team_selection(selected_cards: list[Card]) -> TeamValidation:
 def _offer_supports_valid_team(cards: list[Card]) -> bool:
     """Return whether the offer contains at least one legal 4-card team."""
     return any(compute_team_stars(list(team)) <= TEAM_STAR_CAP for team in combinations(cards, TEAM_SIZE))
+
+
+def _roster_supports_star_distribution(cards: list[Card]) -> bool:
+    """Return whether the roster can satisfy the preferred draft star spread."""
+    return all(
+        sum(1 for card in cards if card.stars == stars) >= minimum
+        for stars, minimum in DRAFT_MIN_STAR_DISTRIBUTION.items()
+    )
+
+
+def _offer_matches_star_distribution(cards: list[Card]) -> bool:
+    """Return whether one offer includes the minimum desired star variety."""
+    return all(
+        sum(1 for card in cards if card.stars == stars) >= minimum
+        for stars, minimum in DRAFT_MIN_STAR_DISTRIBUTION.items()
+    )
+
+
+def _build_balanced_star_offer(cards: list[Card], generator: random.Random) -> list[Card]:
+    """Sample a 10-card offer with enough 1, 2, and 3-star cards to make draft choices interesting."""
+    selected: list[Card] = []
+    selected_ids: set[str] = set()
+
+    for stars, minimum in DRAFT_MIN_STAR_DISTRIBUTION.items():
+        bucket = [card for card in cards if card.stars == stars]
+        picked = generator.sample(bucket, minimum)
+        selected.extend(picked)
+        selected_ids.update(card.id for card in picked)
+
+    remaining_pool = [card for card in cards if card.id not in selected_ids]
+    selected.extend(generator.sample(remaining_pool, DRAFT_OFFER_SIZE - len(selected)))
+    generator.shuffle(selected)
+    return selected

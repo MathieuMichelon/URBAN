@@ -45,6 +45,7 @@ const elements = {
   draftTeam: document.querySelector("#draft-team"),
   draftTeamMeta: document.querySelector("#draft-team-meta"),
   draftTeamSummary: document.querySelector("#draft-team-summary"),
+  draftLockButton: document.querySelector("#draft-lock-button"),
   matchShell: document.querySelector("#match-shell"),
   roundValue: document.querySelector("#round-value"),
   initiativeValue: document.querySelector("#initiative-value"),
@@ -578,6 +579,8 @@ function renderDraftOffer(localPlayer) {
   if (!state.snapshot?.draft_offer?.length || !localPlayer) {
     elements.draftStatus.textContent = "En attente de l'offre de draft.";
     elements.draftTeamMeta.textContent = "";
+    elements.draftLockButton.textContent = "Verrouiller l'équipe";
+    elements.draftLockButton.disabled = true;
     return;
   }
 
@@ -590,6 +593,8 @@ function renderDraftOffer(localPlayer) {
   elements.draftTeamMeta.textContent = localPlayer.draft_is_valid
     ? "Composition valide côté serveur."
     : "Sélectionne exactement 4 cartes et reste sous la limite d'étoiles.";
+  elements.draftLockButton.textContent = localPlayer.draft_locked ? "Equipe verrouillée" : "Verrouiller l'équipe";
+  elements.draftLockButton.disabled = localPlayer.player_state !== "selecting" || localPlayer.draft_locked || !localPlayer.draft_is_valid;
 
   renderTeamSummary(elements.draftTeamSummary, {
     title: "Equipe sélectionnée",
@@ -1570,6 +1575,7 @@ elements.joinButton.addEventListener("click", () => {
 });
 elements.requestStateButton.addEventListener("click", () => sendMessage("request_state", {}));
 elements.confirmButton.addEventListener("click", () => sendMessage("confirm_selection", {}));
+elements.draftLockButton.addEventListener("click", () => sendMessage("confirm_selection", {}));
 elements.pingButton.addEventListener("click", () => sendMessage("ping", { nonce: crypto.randomUUID() }));
 elements.resetSelectionButton.addEventListener("click", () => {
   resetMatchInteraction();
