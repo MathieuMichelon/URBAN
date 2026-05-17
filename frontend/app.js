@@ -1140,6 +1140,7 @@ function renderBattleResolution(localPlayer, opponent) {
 
   const player1Card = findCardInSnapshot(roundResult.player_1_card_id);
   const player2Card = findCardInSnapshot(roundResult.player_2_card_id);
+  const revealOutcome = battleStepAtLeast("winner");
   const localLabel = (playerId) => {
     if (localPlayer?.player_id === playerId) {
       return localPlayer.name || "Toi";
@@ -1170,7 +1171,7 @@ function renderBattleResolution(localPlayer, opponent) {
       pills: roundResult.player_1_pills_committed ?? 0,
       attack: roundResult.player_1_attack,
       overload: Boolean(roundResult.player_1_overload),
-      outcomeClass: battleOutcomeClass(roundResult, 1),
+      outcomeClass: revealOutcome ? battleOutcomeClass(roundResult, 1) : "",
     }),
   );
 
@@ -1186,7 +1187,7 @@ function renderBattleResolution(localPlayer, opponent) {
       pills: roundResult.player_2_pills_committed ?? 0,
       attack: roundResult.player_2_attack,
       overload: Boolean(roundResult.player_2_overload),
-      outcomeClass: battleOutcomeClass(roundResult, 2),
+      outcomeClass: revealOutcome ? battleOutcomeClass(roundResult, 2) : "",
     }),
   );
 
