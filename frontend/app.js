@@ -181,6 +181,40 @@ function clampInteractionPills(localPlayer) {
   state.interaction.pillsPreview = Math.max(0, Math.min(maxPills, state.interaction.pillsPreview));
 }
 
+function normalizeSelectionInteraction(localPlayer, selectedCard = null) {
+  const canAffordOverload = Boolean(selectedCard) && (localPlayer?.pills ?? 0) >= OVERLOAD_PILL_COST;
+  if (!canAffordOverload) {
+    state.interaction.overloadPreview = false;
+  }
+  clampInteractionPills(localPlayer);
+}
+
+function buildSelectionProjection(localPlayer, selectedCard) {
+  const attackPills = selectedCard ? state.interaction.pillsPreview : 0;
+  const overloadActive = Boolean(selectedCard && state.interaction.overloadPreview);
+  const overloadCost = overloadActive ? OVERLOAD_PILL_COST : 0;
+  const totalCost = attackPills + overloadCost;
+
+  return {
+    selectedName: selectedCard?.name ?? "aucune",
+    projectedAttack: selectedCard ? selectedCard.power * attackPills : "-",
+    projectedDamage: selectedCard ? selectedCard.damage + (overloadActive ? OVERLOAD_DAMAGE_BONUS : 0) : "-",
+    attackPills,
+    overloadCost,
+    totalCost,
+    availablePills: localPlayer?.pills ?? 0,
+    overloadActive,
+    bonusState: selectedCard ? (selectedCard.bonus_active ? "actif" : "inactif") : "-",
+  };
+}
+
+function formatTotalPillCost(projection) {
+  if (!projection.overloadActive) {
+    return String(projection.attackPills);
+  }
+  return `${projection.attackPills} + ${projection.overloadCost} = ${projection.totalCost}`;
+}
+
 function syncInteractionWithSnapshot() {
   const snapshot = state.snapshot;
   if (!snapshot || snapshot.match_state === "drafting" || snapshot.match_state === "game_over") {
@@ -207,7 +241,7 @@ function syncInteractionWithSnapshot() {
   if (localPlayer.drafted_overload !== null && localPlayer.drafted_overload !== undefined) {
     state.interaction.overloadPreview = Boolean(localPlayer.drafted_overload);
   }
-  clampInteractionPills(localPlayer);
+  normalizeSelectionInteraction(localPlayer, selectedCardFor(localPlayer));
   state.interaction.confirmEnabled = localPlayer.player_state === "selecting";
 }
 
@@ -897,7 +931,7 @@ function handleLocalCardSelection(localPlayer, card) {
   state.interaction.selectedCardId = card.id;
   state.interaction.overloadPreview = nextOverload && (localPlayer.pills ?? 0) >= OVERLOAD_PILL_COST;
   state.interaction.pillsPreview = nextPreview;
-  clampInteractionPills(localPlayer);
+  normalizeSelectionInteraction(localPlayer, card);
   state.interaction.confirmEnabled = true;
   sendMessage("select_card", { card_id: card.id });
   render();
@@ -1220,13 +1254,8 @@ function renderSummary() {
   const snapshot = state.snapshot;
   const localPlayer = snapshot.players.find((player) => player.player_id === snapshot.local_player_id);
   const selectedCard = selectedCardFor(localPlayer);
-  const projectedAttack = selectedCard ? selectedCard.power * state.interaction.pillsPreview : "-";
-  const projectedDamage = selectedCard
-    ? selectedCard.damage + (state.interaction.overloadPreview ? OVERLOAD_DAMAGE_BONUS : 0)
-    : "-";
-  const projectedCost = selectedCard
-    ? state.interaction.pillsPreview + (state.interaction.overloadPreview ? OVERLOAD_PILL_COST : 0)
-    : "-";
+  normalizeSelectionInteraction(localPlayer, selectedCard);
+  const projection = buildSelectionProjection(localPlayer, selectedCard);
   const initiativeLabel = snapshot.initiative_player_id === snapshot.local_player_id ? "Toi" : "Adversaire";
   elements.roomStatus.textContent = `Room ${state.roomId ?? "-"} | ${snapshot.match_state}`;
   elements.lobbyRoomId.textContent = state.roomId ?? "-";
@@ -1235,12 +1264,14 @@ function renderSummary() {
   elements.initiativeValue.textContent = snapshot.initiative_player_id ? initiativeLabel : "-";
   elements.matchStateValue.textContent = snapshot.match_state;
   elements.summaryContent.textContent = [
-    `Attaque prévue ${projectedAttack}`,
-    `Dégâts ${projectedDamage}`,
-    `Coût ${projectedCost}`,
-    selectedCard ? `Overload ${state.interaction.overloadPreview ? "oui" : "non"}` : null,
-    `Bonus ${selectedCard ? (selectedCard.bonus_active ? "actif" : "inactif") : "-"}`,
-    `Prêts ${snapshot.pending_player_ids.join(", ") || "aucun"}`,
+    `Carte sélectionnée : ${projection.selectedName}`,
+    `Attaque prévue : ${projection.projectedAttack}`,
+    `Dégâts prévus : ${projection.projectedDamage}`,
+    `Pills attaque : ${selectedCard ? projection.attackPills : "-"}`,
+    `Coût total : ${selectedCard ? formatTotalPillCost(projection) : "-"}`,
+    `Overload : ${projection.overloadActive ? "actif" : "inactif"}`,
+    `Bonus : ${projection.bonusState}`,
+    `Prêts : ${snapshot.pending_player_ids.join(", ") || "aucun"}`,
     snapshot.end_reason ? `Fin: ${snapshot.end_reason}` : null,
   ].filter(Boolean).join(" | ");
 }
@@ -1346,12 +1377,9 @@ function renderSelection() {
   const canAct = localPlayer.player_state === "selecting";
   const showControls = Boolean(selectedCard);
   const canAffordOverload = (localPlayer.pills ?? 0) >= OVERLOAD_PILL_COST;
-  if (!showControls || !canAffordOverload) {
-    state.interaction.overloadPreview = false;
-  }
-  clampInteractionPills(localPlayer);
+  normalizeSelectionInteraction(localPlayer, selectedCard);
   const maxPills = maxAttackPillsFor(localPlayer);
-  const totalPillCost = state.interaction.pillsPreview + (state.interaction.overloadPreview ? OVERLOAD_PILL_COST : 0);
+  const projection = buildSelectionProjection(localPlayer, selectedCard);
 
   elements.confirmButton.textContent = "Confirmer";
   elements.pillsInput.max = String(maxPills);
@@ -1360,7 +1388,13 @@ function renderSelection() {
   elements.overloadInput.checked = state.interaction.overloadPreview;
   elements.overloadInput.disabled = !canAct || !showControls || !canAffordOverload;
   elements.overloadMeta.textContent = showControls
-    ? `Coût total: ${totalPillCost}/${localPlayer.pills ?? 0} pills${state.interaction.overloadPreview ? " · +3 dégâts si victoire" : ""}`
+    ? [
+      `Pills attaque : ${projection.attackPills}`,
+      `Overload : ${projection.overloadActive ? `+${OVERLOAD_PILL_COST}` : "inactif"}`,
+      `Coût total : ${formatTotalPillCost(projection)}/${projection.availablePills}`,
+      `Attaque prévue : ${projection.projectedAttack}`,
+      `Dégâts prévus : ${projection.projectedDamage}`,
+    ].join(" | ")
     : "";
   elements.selectionControls.classList.toggle("hidden", !showControls);
   elements.pillsInput.disabled = !canAct || !showControls;
@@ -1552,8 +1586,10 @@ elements.pillsInput.addEventListener("input", (event) => {
     return;
   }
   const localPlayer = state.snapshot?.players.find((player) => player.player_id === state.snapshot.local_player_id);
-  const pills = Math.max(0, Math.min(maxAttackPillsFor(localPlayer), Number(event.target.value)));
+  const rawPills = Number(event.target.value);
+  const pills = Math.max(0, Math.min(maxAttackPillsFor(localPlayer), Number.isFinite(rawPills) ? rawPills : 0));
   state.interaction.pillsPreview = pills;
+  event.target.value = String(pills);
   elements.pillsValue.textContent = String(pills);
   sendMessage("set_pills", { pills });
   render();
@@ -1564,9 +1600,12 @@ elements.overloadInput.addEventListener("change", (event) => {
     return;
   }
   const localPlayer = state.snapshot?.players.find((player) => player.player_id === state.snapshot.local_player_id);
-  state.interaction.overloadPreview = Boolean(event.target.checked);
+  const selectedCard = selectedCardFor(localPlayer);
+  const canUseOverload = Boolean(selectedCard) && (localPlayer?.pills ?? 0) >= OVERLOAD_PILL_COST;
+  state.interaction.overloadPreview = Boolean(event.target.checked) && canUseOverload;
   const beforeClamp = state.interaction.pillsPreview;
-  clampInteractionPills(localPlayer);
+  normalizeSelectionInteraction(localPlayer, selectedCard);
+  event.target.checked = state.interaction.overloadPreview;
   if (state.interaction.pillsPreview !== beforeClamp) {
     sendMessage("set_pills", { pills: state.interaction.pillsPreview });
   }
