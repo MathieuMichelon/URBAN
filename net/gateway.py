@@ -16,6 +16,7 @@ from net.protocol import (
     ClientPingMessage,
     ClientRequestStateMessage,
     ClientSelectCardMessage,
+    ClientSetOverloadMessage,
     ClientSetPillsMessage,
     ErrorPayload,
     GameFinishedPayload,
@@ -181,6 +182,9 @@ class WebSocketGateway:
         if isinstance(message, ClientSetPillsMessage):
             await self._handle_set_pills(connection, message)
             return
+        if isinstance(message, ClientSetOverloadMessage):
+            await self._handle_set_overload(connection, message)
+            return
         if isinstance(message, ClientConfirmSelectionMessage):
             await self._handle_confirm_selection(connection, message)
             return
@@ -300,6 +304,12 @@ class WebSocketGateway:
         """Authoritatively update the caller draft pills."""
         room_id, player_id = self._require_bound_player(connection, message.room_id, message.player_id)
         await self._room_manager.set_pills(room_id, player_id=player_id, pills=message.payload.pills)
+        await self._send_state_snapshot(connection, await self._room_manager.snapshot_for(room_id, player_id=player_id))
+
+    async def _handle_set_overload(self, connection: ClientConnection, message: ClientSetOverloadMessage) -> None:
+        """Authoritatively update the caller draft Overload flag."""
+        room_id, player_id = self._require_bound_player(connection, message.room_id, message.player_id)
+        await self._room_manager.set_overload(room_id, player_id=player_id, overload=message.payload.overload)
         await self._send_state_snapshot(connection, await self._room_manager.snapshot_for(room_id, player_id=player_id))
 
     async def _handle_confirm_selection(self, connection: ClientConnection, message: ClientConfirmSelectionMessage) -> None:

@@ -261,6 +261,9 @@ def _deserialize_round_result(payload: object, *, index: int) -> RoundResult:
             life_swing_player_2=_read_optional_int(payload, key="life_swing_player_2", context=context) or 0,
             pills_gained_player_1=_read_optional_int(payload, key="pills_gained_player_1", context=context) or 0,
             pills_gained_player_2=_read_optional_int(payload, key="pills_gained_player_2", context=context) or 0,
+            player_1_overload=_read_optional_bool(payload, key="player_1_overload", context=context) or False,
+            player_2_overload=_read_optional_bool(payload, key="player_2_overload", context=context) or False,
+            overload_damage_bonus=_read_optional_int(payload, key="overload_damage_bonus", context=context) or 0,
         )
     except ValueError as error:
         raise SaveGameFormatError(f"Invalid {context}: {error}") from error
@@ -299,6 +302,16 @@ def _read_optional_int(payload: dict[str, object], *, key: str, context: str) ->
         return None
     if isinstance(value, bool) or not isinstance(value, int):
         raise SaveGameFormatError(f"{context} field '{key}' must be an integer or null.")
+    return value
+
+
+def _read_optional_bool(payload: dict[str, object], *, key: str, context: str) -> bool | None:
+    """Read an optional boolean from a JSON object."""
+    value = payload.get(key)
+    if value is None:
+        return None
+    if not isinstance(value, bool):
+        raise SaveGameFormatError(f"{context} field '{key}' must be a boolean or null.")
     return value
 
 

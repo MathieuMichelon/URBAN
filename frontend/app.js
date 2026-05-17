@@ -1,4 +1,6 @@
 const SESSION_STORAGE_KEY = "urban_duel_session";
+const OVERLOAD_PILL_COST = 2;
+const OVERLOAD_DAMAGE_BONUS = 3;
 
 const state = {
   socket: null,
@@ -9,6 +11,7 @@ const state = {
   interaction: {
     selectedCardId: null,
     pillsPreview: 0,
+    overloadPreview: false,
     confirmEnabled: false,
   },
 };
@@ -25,6 +28,8 @@ const elements = {
   pingButton: document.querySelector("#ping-button"),
   pillsInput: document.querySelector("#pills-input"),
   pillsValue: document.querySelector("#pills-value"),
+  overloadInput: document.querySelector("#overload-input"),
+  overloadMeta: document.querySelector("#overload-meta"),
   connectionStatus: document.querySelector("#connection-status"),
   roomStatus: document.querySelector("#room-status"),
   summaryContent: document.querySelector("#summary-content"),
@@ -121,7 +126,18 @@ function clearPersistedSession() {
 function resetMatchInteraction() {
   state.interaction.selectedCardId = null;
   state.interaction.pillsPreview = 0;
+  state.interaction.overloadPreview = false;
   state.interaction.confirmEnabled = false;
+}
+
+function maxAttackPillsFor(localPlayer, overload = state.interaction.overloadPreview) {
+  const availablePills = localPlayer?.pills ?? 0;
+  return Math.max(0, availablePills - (overload ? OVERLOAD_PILL_COST : 0));
+}
+
+function clampInteractionPills(localPlayer) {
+  const maxPills = maxAttackPillsFor(localPlayer);
+  state.interaction.pillsPreview = Math.max(0, Math.min(maxPills, state.interaction.pillsPreview));
 }
 
 function syncInteractionWithSnapshot() {
@@ -147,8 +163,10 @@ function syncInteractionWithSnapshot() {
     return;
   }
 
-  const maxPills = localPlayer.pills ?? 0;
-  state.interaction.pillsPreview = Math.max(0, Math.min(maxPills, state.interaction.pillsPreview));
+  if (localPlayer.drafted_overload !== null && localPlayer.drafted_overload !== undefined) {
+    state.interaction.overloadPreview = Boolean(localPlayer.drafted_overload);
+  }
+  clampInteractionPills(localPlayer);
   state.interaction.confirmEnabled = localPlayer.player_state === "selecting";
 }
 
@@ -828,8 +846,13 @@ function handleLocalCardSelection(localPlayer, card) {
   const nextPreview = state.interaction.selectedCardId === null
     ? (localPlayer.drafted_pills ?? 0)
     : state.interaction.pillsPreview;
+  const nextOverload = state.interaction.selectedCardId === null
+    ? Boolean(localPlayer.drafted_overload)
+    : state.interaction.overloadPreview;
   state.interaction.selectedCardId = card.id;
-  state.interaction.pillsPreview = Math.max(0, Math.min(localPlayer.pills ?? 0, nextPreview));
+  state.interaction.overloadPreview = nextOverload && (localPlayer.pills ?? 0) >= OVERLOAD_PILL_COST;
+  state.interaction.pillsPreview = nextPreview;
+  clampInteractionPills(localPlayer);
   state.interaction.confirmEnabled = true;
   sendMessage("select_card", { card_id: card.id });
   render();
@@ -925,7 +948,12 @@ function renderSummary() {
   const localPlayer = snapshot.players.find((player) => player.player_id === snapshot.local_player_id);
   const selectedCard = selectedCardFor(localPlayer);
   const projectedAttack = selectedCard ? selectedCard.power * state.interaction.pillsPreview : "-";
-  const projectedDamage = selectedCard ? selectedCard.damage : "-";
+  const projectedDamage = selectedCard
+    ? selectedCard.damage + (state.interaction.overloadPreview ? OVERLOAD_DAMAGE_BONUS : 0)
+    : "-";
+  const projectedCost = selectedCard
+    ? state.interaction.pillsPreview + (state.interaction.overloadPreview ? OVERLOAD_PILL_COST : 0)
+    : "-";
   const initiativeLabel = snapshot.initiative_player_id === snapshot.local_player_id ? "Toi" : "Adversaire";
   elements.roomStatus.textContent = `Room ${state.roomId ?? "-"} | ${snapshot.match_state}`;
   elements.lobbyRoomId.textContent = state.roomId ?? "-";
@@ -936,6 +964,8 @@ function renderSummary() {
   elements.summaryContent.textContent = [
     `Attaque prévue ${projectedAttack}`,
     `Dégâts ${projectedDamage}`,
+    `Coût ${projectedCost}`,
+    selectedCard ? `Overload ${state.interaction.overloadPreview ? "oui" : "non"}` : null,
     `Bonus ${selectedCard ? (selectedCard.bonus_active ? "actif" : "inactif") : "-"}`,
     `Prêts ${snapshot.pending_player_ids.join(", ") || "aucun"}`,
     snapshot.end_reason ? `Fin: ${snapshot.end_reason}` : null,
@@ -1011,6 +1041,9 @@ function renderSelection() {
     elements.selectionControls.classList.add("hidden");
     elements.confirmButton.disabled = true;
     elements.pillsInput.disabled = true;
+    elements.overloadInput.disabled = true;
+    elements.overloadInput.checked = false;
+    elements.overloadMeta.textContent = "";
     return;
   }
 
@@ -1023,6 +1056,9 @@ function renderSelection() {
     elements.confirmButton.textContent = localPlayer.draft_locked ? "Equipe verrouillée" : "Verrouiller l'équipe";
     elements.selectionControls.classList.add("hidden");
     elements.pillsInput.disabled = true;
+    elements.overloadInput.disabled = true;
+    elements.overloadInput.checked = false;
+    elements.overloadMeta.textContent = "";
     elements.confirmButton.disabled = localPlayer.player_state !== "selecting" || localPlayer.draft_locked;
     elements.selectionInfo.textContent = [
       `Equipe ${localPlayer.draft_selected_cards.length}/${state.snapshot.draft_team_size ?? 4}`,
@@ -1033,15 +1069,26 @@ function renderSelection() {
     return;
   }
 
-  const maxPills = localPlayer.pills ?? 0;
   const selectedCard = selectedCardFor(localPlayer);
+  const canAct = localPlayer.player_state === "selecting";
+  const showControls = Boolean(selectedCard);
+  const canAffordOverload = (localPlayer.pills ?? 0) >= OVERLOAD_PILL_COST;
+  if (!showControls || !canAffordOverload) {
+    state.interaction.overloadPreview = false;
+  }
+  clampInteractionPills(localPlayer);
+  const maxPills = maxAttackPillsFor(localPlayer);
+  const totalPillCost = state.interaction.pillsPreview + (state.interaction.overloadPreview ? OVERLOAD_PILL_COST : 0);
+
   elements.confirmButton.textContent = "Confirmer";
   elements.pillsInput.max = String(maxPills);
   elements.pillsInput.value = String(state.interaction.pillsPreview);
   elements.pillsValue.textContent = String(state.interaction.pillsPreview);
-
-  const canAct = localPlayer.player_state === "selecting";
-  const showControls = Boolean(selectedCard);
+  elements.overloadInput.checked = state.interaction.overloadPreview;
+  elements.overloadInput.disabled = !canAct || !showControls || !canAffordOverload;
+  elements.overloadMeta.textContent = showControls
+    ? `Coût total: ${totalPillCost}/${localPlayer.pills ?? 0} pills${state.interaction.overloadPreview ? " · +3 dégâts si victoire" : ""}`
+    : "";
   elements.selectionControls.classList.toggle("hidden", !showControls);
   elements.pillsInput.disabled = !canAct || !showControls;
   state.interaction.confirmEnabled = Boolean(showControls && canAct);
@@ -1228,10 +1275,26 @@ elements.pillsInput.addEventListener("input", (event) => {
   if (!state.interaction.selectedCardId) {
     return;
   }
-  const pills = Number(event.target.value);
+  const localPlayer = state.snapshot?.players.find((player) => player.player_id === state.snapshot.local_player_id);
+  const pills = Math.max(0, Math.min(maxAttackPillsFor(localPlayer), Number(event.target.value)));
   state.interaction.pillsPreview = pills;
   elements.pillsValue.textContent = String(pills);
   sendMessage("set_pills", { pills });
+  render();
+});
+elements.overloadInput.addEventListener("change", (event) => {
+  if (!state.interaction.selectedCardId) {
+    event.target.checked = false;
+    return;
+  }
+  const localPlayer = state.snapshot?.players.find((player) => player.player_id === state.snapshot.local_player_id);
+  state.interaction.overloadPreview = Boolean(event.target.checked);
+  const beforeClamp = state.interaction.pillsPreview;
+  clampInteractionPills(localPlayer);
+  if (state.interaction.pillsPreview !== beforeClamp) {
+    sendMessage("set_pills", { pills: state.interaction.pillsPreview });
+  }
+  sendMessage("set_overload", { overload: state.interaction.overloadPreview });
   render();
 });
 

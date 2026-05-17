@@ -69,4 +69,7 @@ def serialize_round_result(result: RoundResult) -> dict[str, object]:
         "life_swing_player_2": result.life_swing_player_2,
         "pills_gained_player_1": result.pills_gained_player_1,
         "pills_gained_player_2": result.pills_gained_player_2,
+        "player_1_overload": result.player_1_overload,
+        "player_2_overload": result.player_2_overload,
+        "overload_damage_bonus": result.overload_damage_bonus,
     }

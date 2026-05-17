@@ -65,6 +65,13 @@ class RoomManager:
             self._state_machine.set_pills(room, player_id=player_id, pills=pills)
             return room
 
+    async def set_overload(self, room_id: str, *, player_id: int, overload: bool) -> OnlineRoom:
+        """Update the drafted Overload intent for one player."""
+        room = await self.get_room(room_id)
+        async with self._locks[room_id]:
+            self._state_machine.set_overload(room, player_id=player_id, overload=overload)
+            return room
+
     async def confirm_selection(self, room_id: str, *, player_id: int) -> tuple[OnlineRoom, ConfirmSelectionOutcome]:
         """Lock a selection and resolve the round if both players are ready."""
         room = await self.get_room(room_id)

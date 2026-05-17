@@ -83,6 +83,96 @@ def test_play_round_applies_damage_and_consumes_pills(card_factory) -> None:
     assert len(state.history) == 1
 
 
+def test_round_selection_defaults_to_no_overload() -> None:
+    """Legacy round selections should keep working without specifying Overload."""
+    selection = RoundSelection(card_id="card", pills_committed=3)
+
+    assert selection.overload is False
+
+
+def test_overload_consumes_extra_pills_without_changing_attack(card_factory) -> None:
+    """Overload should cost two extra pills while keeping attack pills separate."""
+    engine = GameEngine()
+    state = engine.create_game(
+        _simple_hand(card_factory, "p1c", [(7, 5), (6, 5), (8, 3), (5, 6)]),
+        _simple_hand(card_factory, "p2c", [(1, 1), (6, 4), (4, 7), (8, 3)]),
+    )
+
+    result = engine.play_round(
+        state=state,
+        player_1_selection=RoundSelection(card_id="p1c1", pills_committed=4, overload=True),
+        player_2_selection=RoundSelection(card_id="p2c1", pills_committed=1),
+    )
+
+    assert result.player_1_attack == 28
+    assert result.damage_dealt == 8
+    assert result.overload_damage_bonus == 3
+    assert result.player_1_overload is True
+    assert result.player_2_overload is False
+    assert state.get_player(1).pills == 6
+    assert state.get_player(2).hit_points == 12
+
+
+def test_overload_does_not_add_damage_when_overloaded_card_loses(card_factory) -> None:
+    """The Overload damage bonus should not apply when the overloaded card loses."""
+    engine = GameEngine()
+    state = engine.create_game(
+        _simple_hand(card_factory, "p1c", [(5, 5), (6, 5), (8, 3), (5, 6)]),
+        _simple_hand(card_factory, "p2c", [(9, 2), (6, 4), (4, 7), (8, 3)]),
+    )
+
+    result = engine.play_round(
+        state=state,
+        player_1_selection=RoundSelection(card_id="p1c1", pills_committed=2, overload=True),
+        player_2_selection=RoundSelection(card_id="p2c1", pills_committed=2),
+    )
+
+    assert result.outcome is RoundOutcome.PLAYER_2_WINS
+    assert result.damage_dealt == 2
+    assert result.overload_damage_bonus == 0
+    assert result.player_1_overload is True
+    assert state.get_player(1).pills == 8
+    assert state.get_player(1).hit_points == 18
+
+
+def test_overload_does_not_add_damage_on_tie(card_factory) -> None:
+    """A tied round should consume Overload but deal no bonus damage."""
+    engine = GameEngine()
+    state = engine.create_game(
+        _simple_hand(card_factory, "p1c", [(5, 5), (6, 5), (8, 3), (5, 6)]),
+        _simple_hand(card_factory, "p2c", [(5, 2), (6, 4), (4, 7), (8, 3)]),
+    )
+
+    result = engine.play_round(
+        state=state,
+        player_1_selection=RoundSelection(card_id="p1c1", pills_committed=2, overload=True),
+        player_2_selection=RoundSelection(card_id="p2c1", pills_committed=2),
+    )
+
+    assert result.outcome is RoundOutcome.TIE
+    assert result.damage_dealt == 0
+    assert result.overload_damage_bonus == 0
+    assert state.get_player(1).pills == 8
+    assert state.get_player(2).hit_points == 20
+
+
+def test_overload_rejects_total_cost_above_available_pills(card_factory) -> None:
+    """Validation should include Overload's extra cost without changing pills_committed."""
+    engine = GameEngine()
+    state = engine.create_game(
+        _simple_hand(card_factory, "p1c", [(7, 5), (6, 5), (8, 3), (5, 6)]),
+        _simple_hand(card_factory, "p2c", [(1, 1), (6, 4), (4, 7), (8, 3)]),
+    )
+    state.get_player(1).pills = 5
+
+    with pytest.raises(NotEnoughPillsError, match="enough pills"):
+        engine.play_round(
+            state=state,
+            player_1_selection=RoundSelection(card_id="p1c1", pills_committed=4, overload=True),
+            player_2_selection=RoundSelection(card_id="p2c1", pills_committed=1),
+        )
+
+
 def test_play_round_rejects_reusing_a_card(card_factory) -> None:
     """A player should not be able to play the same card twice."""
     engine = GameEngine()

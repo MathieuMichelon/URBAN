@@ -783,6 +783,39 @@ button:disabled {
   gap: 12px;
 }
 
+.overload-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 91, 107, 0.08);
+  border: 1px solid rgba(255, 118, 137, 0.38);
+}
+
+.overload-control input {
+  width: 20px;
+  height: 20px;
+  accent-color: #ff6b7a;
+}
+
+.overload-control strong {
+  display: block;
+  color: #ffd5dc;
+}
+
+.overload-control small {
+  display: block;
+  margin-top: 3px;
+  color: #ffb5c0;
+  line-height: 1.35;
+}
+
+.overload-control:has(input:checked) {
+  border-color: rgba(255, 196, 76, 0.72);
+  box-shadow: 0 0 0 1px rgba(255, 196, 76, 0.16), 0 0 24px rgba(255, 91, 107, 0.14);
+}
+
 .match-card {
   display: grid;
   gap: 12px;

@@ -10,7 +10,7 @@ from core.engine import GameEngine
 from core.enums import GameStatus
 from core.errors import InvalidMoveError, NotEnoughPillsError, SelectionAlreadySubmittedError
 from core.models import Card, GameState, RoundResult, RoundSelection
-from core.rules import validate_round_selection
+from core.rules import OVERLOAD_PILL_COST, validate_round_selection
 from core.serialization import serialize_round_result
 from net.protocol import CardPayload, PlayerStatePayload, RoundResultPayload, StateSnapshotPayload
 from rooms.states import MatchState, PlayerRoomState
@@ -42,6 +42,7 @@ class DraftSelection:
 
     card_id: str | None = None
     pills_committed: int = 0
+    overload: bool = False
 
 
 @dataclass(slots=True)
@@ -168,10 +169,26 @@ class RoomStateMachine:
         self._require_player_state(player, {PlayerRoomState.SELECTING})
 
         player_state = self._game_player(room, player_id)
-        if pills < 0 or pills > player_state.pills:
+        draft = room.round_drafts[player_id]
+        overload_cost = OVERLOAD_PILL_COST if draft.overload else 0
+        if pills < 0 or pills + overload_cost > player_state.pills:
             raise NotEnoughPillsError("Player does not have enough pills.")
 
-        room.round_drafts[player_id].pills_committed = pills
+        draft.pills_committed = pills
+
+    def set_overload(self, room: OnlineRoom, *, player_id: int, overload: bool) -> None:
+        """Update the local Overload intent during round selection phases."""
+        self._require_match_state(room, {MatchState.ROUND_SELECTION, MatchState.ROUND_LOCKED})
+        player = self._player(room, player_id)
+        self._require_player_state(player, {PlayerRoomState.SELECTING})
+
+        player_state = self._game_player(room, player_id)
+        draft = room.round_drafts[player_id]
+        overload_cost = OVERLOAD_PILL_COST if overload else 0
+        if draft.pills_committed + overload_cost > player_state.pills:
+            raise NotEnoughPillsError("Player does not have enough pills.")
+
+        draft.overload = overload
 
     def confirm_selection(self, room: OnlineRoom, *, player_id: int) -> ConfirmSelectionOutcome:
         """Lock one selection and advance draft or round flow."""
@@ -194,7 +211,7 @@ class RoomStateMachine:
         if draft.card_id is None:
             raise InvalidMoveError("Select a card before confirming the round.")
 
-        selection = RoundSelection(card_id=draft.card_id, pills_committed=draft.pills_committed)
+        selection = RoundSelection(card_id=draft.card_id, pills_committed=draft.pills_committed, overload=draft.overload)
         validate_round_selection(self._game_player(room, player_id), selection)
 
         self._transition_player(player, PlayerRoomState.LOCKED)
@@ -341,6 +358,7 @@ class RoomStateMachine:
                     ready=room_player.state is PlayerRoomState.LOCKED,
                     draft_card_id=self._visible_round_card_id(room, target_player_id=player_id, perspective_player_id=local_player_id),
                     drafted_pills=room.round_drafts.get(player_id, DraftSelection()).pills_committed if player_id == local_player_id else None,
+                    drafted_overload=room.round_drafts.get(player_id, DraftSelection()).overload if player_id == local_player_id else None,
                     draft_selected_cards=draft_selected_cards,
                     draft_locked=draft_locked,
                     draft_is_valid=draft_is_valid,
@@ -537,7 +555,7 @@ class RoomStateMachine:
     def _selection_from_draft(self, room: OnlineRoom, player_id: int) -> RoundSelection:
         """Convert one stored round draft into a validated round selection."""
         draft = room.round_drafts[player_id]
-        return RoundSelection(card_id=draft.card_id or "", pills_committed=draft.pills_committed)
+        return RoundSelection(card_id=draft.card_id or "", pills_committed=draft.pills_committed, overload=draft.overload)
 
     def _require_match_state(self, room: OnlineRoom, allowed_states: set[MatchState]) -> None:
         """Guard one room action by match state."""

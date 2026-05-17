@@ -13,6 +13,8 @@ STARTING_HIT_POINTS = 20
 STARTING_PILLS = 12
 HAND_SIZE = 4
 MAX_ROUNDS = 4
+OVERLOAD_PILL_COST = 2
+OVERLOAD_DAMAGE_BONUS = 3
 
 
 def compute_attack(card: Card, pills_committed: int) -> int:
@@ -44,7 +46,11 @@ def validate_game_state(state: GameState) -> None:
 
 def validate_round_selection(player: PlayerState, selection: RoundSelection) -> None:
     """Validate one player's round choice."""
-    if selection.pills_committed > player.pills:
+    total_pill_cost = selection.pills_committed
+    if selection.overload:
+        total_pill_cost += OVERLOAD_PILL_COST
+
+    if total_pill_cost > player.pills:
         raise NotEnoughPillsError("Player does not have enough pills.")
 
     if not player.has_card(selection.card_id):

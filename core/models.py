@@ -123,6 +123,7 @@ class RoundSelection:
 
     card_id: str
     pills_committed: int
+    overload: bool = False
 
     def __post_init__(self) -> None:
         """Validate a round selection."""
@@ -222,6 +223,9 @@ class RoundResult:
     life_swing_player_2: int = 0
     pills_gained_player_1: int = 0
     pills_gained_player_2: int = 0
+    player_1_overload: bool = False
+    player_2_overload: bool = False
+    overload_damage_bonus: int = 0
 
 
 @dataclass(slots=True)

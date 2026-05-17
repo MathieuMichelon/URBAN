@@ -55,6 +55,9 @@ class RoundResultPayload(ProtocolModel):
     life_swing_player_2: int = 0
     pills_gained_player_1: int = 0
     pills_gained_player_2: int = 0
+    player_1_overload: bool = False
+    player_2_overload: bool = False
+    overload_damage_bonus: int = 0
 
 
 class PlayerStatePayload(ProtocolModel):
@@ -73,6 +76,7 @@ class PlayerStatePayload(ProtocolModel):
     ready: bool = False
     draft_card_id: str | None = None
     drafted_pills: int | None = None
+    drafted_overload: bool | None = None
     draft_selected_cards: list[CardPayload] = Field(default_factory=list)
     draft_locked: bool = False
     draft_is_valid: bool = False
@@ -145,6 +149,12 @@ class SetPillsPayload(ProtocolModel):
     """Payload used to update the drafted number of pills."""
 
     pills: int = Field(ge=0)
+
+
+class SetOverloadPayload(ProtocolModel):
+    """Payload used to update the drafted Overload flag."""
+
+    overload: bool = False
 
 
 class EmptyPayload(ProtocolModel):
@@ -257,6 +267,15 @@ class ClientSetPillsMessage(MessageEnvelope):
 
     type: Literal["set_pills"]
     payload: SetPillsPayload
+    room_id: str
+    player_id: int | None = None
+
+
+class ClientSetOverloadMessage(MessageEnvelope):
+    """`set_overload` command."""
+
+    type: Literal["set_overload"]
+    payload: SetOverloadPayload
     room_id: str
     player_id: int | None = None
 
@@ -404,6 +423,7 @@ ClientMessage = Annotated[
         | ClientJoinRoomMessage
         | ClientSelectCardMessage
         | ClientSetPillsMessage
+        | ClientSetOverloadMessage
         | ClientConfirmSelectionMessage
         | ClientPingMessage
         | ClientRequestStateMessage

@@ -125,6 +125,10 @@ def test_two_players_can_create_draft_join_and_resolve_one_round() -> None:
                 pills_snapshot = ws_1.receive_json()
                 assert pills_snapshot["payload"]["players"][0]["drafted_pills"] == 3
 
+                ws_1.send_json({"type": "set_overload", "room_id": room_id, "payload": {"overload": True}})
+                overload_snapshot = ws_1.receive_json()
+                assert overload_snapshot["payload"]["players"][0]["drafted_overload"] is True
+
                 ws_1.send_json({"type": "confirm_selection", "room_id": room_id, "payload": {}})
                 player_ready_1 = ws_1.receive_json()
                 player_ready_2 = ws_2.receive_json()
@@ -132,6 +136,7 @@ def test_two_players_can_create_draft_join_and_resolve_one_round() -> None:
                 assert player_ready_1["payload"]["state"]["match_state"] == "round_locked"
                 assert player_ready_2["payload"]["state"]["players"][0]["draft_card_id"] == player_1_card_id
                 assert player_ready_2["payload"]["state"]["players"][0]["drafted_pills"] is None
+                assert player_ready_2["payload"]["state"]["players"][0]["drafted_overload"] is None
 
                 ws_1.receive_json()
                 ws_2.receive_json()
@@ -148,6 +153,7 @@ def test_two_players_can_create_draft_join_and_resolve_one_round() -> None:
                 assert resolved_2["type"] == "round_resolved"
                 assert resolved_1["payload"]["round_result"]["player_1_attack"] > 0
                 assert resolved_1["payload"]["round_result"]["player_2_attack"] > 0
+                assert resolved_1["payload"]["round_result"]["player_1_overload"] is True
                 assert resolved_1["payload"]["state"]["match_state"] == "round_selection"
 
     with TestClient(app) as client:

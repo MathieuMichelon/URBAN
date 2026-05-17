@@ -11,6 +11,8 @@ from core.errors import GameAlreadyFinishedError
 from core.models import Card, GameState, PlayerState, RoundResult, RoundSelection
 from core.rules import (
     MAX_ROUNDS,
+    OVERLOAD_DAMAGE_BONUS,
+    OVERLOAD_PILL_COST,
     STARTING_HIT_POINTS,
     STARTING_PILLS,
     validate_game_state,
@@ -41,6 +43,9 @@ class _RoundComputation:
     life_swing_player_2: int = 0
     pills_gained_player_1: int = 0
     pills_gained_player_2: int = 0
+    player_1_overload: bool = False
+    player_2_overload: bool = False
+    overload_damage_bonus: int = 0
 
 
 class GameEngine:
@@ -100,6 +105,11 @@ class GameEngine:
             state=state,
             player_1=player_1,
             player_2=player_2,
+            player_1_selection=player_1_selection,
+            player_2_selection=player_2_selection,
+        )
+        self._apply_overload_damage_bonus(
+            round_computation=round_computation,
             player_1_selection=player_1_selection,
             player_2_selection=player_2_selection,
         )
@@ -202,6 +212,24 @@ class GameEngine:
             damage_dealt=effect_result.damage_dealt,
         )
 
+    def _apply_overload_damage_bonus(
+        self,
+        *,
+        round_computation: _RoundComputation,
+        player_1_selection: RoundSelection,
+        player_2_selection: RoundSelection,
+    ) -> None:
+        """Apply Overload's damage-only win bonus after normal attack resolution."""
+        round_computation.player_1_overload = player_1_selection.overload
+        round_computation.player_2_overload = player_2_selection.overload
+
+        if round_computation.winner_id == 1 and player_1_selection.overload:
+            round_computation.damage_dealt += OVERLOAD_DAMAGE_BONUS
+            round_computation.overload_damage_bonus = OVERLOAD_DAMAGE_BONUS
+        elif round_computation.winner_id == 2 and player_2_selection.overload:
+            round_computation.damage_dealt += OVERLOAD_DAMAGE_BONUS
+            round_computation.overload_damage_bonus = OVERLOAD_DAMAGE_BONUS
+
     def _consume_round_resources(
         self,
         *,
@@ -212,10 +240,14 @@ class GameEngine:
         round_computation: _RoundComputation,
     ) -> None:
         """Consume pills and mark both played cards."""
-        player_1.pills -= player_1_selection.pills_committed
-        player_2.pills -= player_2_selection.pills_committed
+        player_1.pills -= self._selection_pill_cost(player_1_selection)
+        player_2.pills -= self._selection_pill_cost(player_2_selection)
         player_1.played_card_ids.add(round_computation.player_1_card.id)
         player_2.played_card_ids.add(round_computation.player_2_card.id)
+
+    def _selection_pill_cost(self, selection: RoundSelection) -> int:
+        """Return total pills paid while keeping attack pills separate."""
+        return selection.pills_committed + (OVERLOAD_PILL_COST if selection.overload else 0)
 
     def _apply_round_damage(
         self,
@@ -272,6 +304,9 @@ class GameEngine:
             life_swing_player_2=round_computation.life_swing_player_2,
             pills_gained_player_1=round_computation.pills_gained_player_1,
             pills_gained_player_2=round_computation.pills_gained_player_2,
+            player_1_overload=round_computation.player_1_overload,
+            player_2_overload=round_computation.player_2_overload,
+            overload_damage_bonus=round_computation.overload_damage_bonus,
         )
 
     def _advance_match_state(
