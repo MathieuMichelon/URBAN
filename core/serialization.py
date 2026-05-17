@@ -65,6 +65,8 @@ def serialize_round_result(result: RoundResult) -> dict[str, object]:
         "winner_id": result.winner_id,
         "loser_id": result.loser_id,
         "damage_dealt": result.damage_dealt,
+        "player_1_pills_committed": result.player_1_pills_committed,
+        "player_2_pills_committed": result.player_2_pills_committed,
         "life_swing_player_1": result.life_swing_player_1,
         "life_swing_player_2": result.life_swing_player_2,
         "pills_gained_player_1": result.pills_gained_player_1,

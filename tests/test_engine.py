@@ -73,6 +73,8 @@ def test_play_round_applies_damage_and_consumes_pills(card_factory) -> None:
     assert result.loser_id == 2
     assert result.player_1_attack == 21
     assert result.player_2_attack == 14
+    assert result.player_1_pills_committed == 3
+    assert result.player_2_pills_committed == 2
     assert result.damage_dealt == 4
     assert state.get_player(1).pills == 9
     assert state.get_player(2).pills == 10

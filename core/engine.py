@@ -39,6 +39,8 @@ class _RoundComputation:
     winner_id: int | None
     loser_id: int | None
     damage_dealt: int
+    player_1_pills_committed: int = 0
+    player_2_pills_committed: int = 0
     life_swing_player_1: int = 0
     life_swing_player_2: int = 0
     pills_gained_player_1: int = 0
@@ -210,6 +212,8 @@ class GameEngine:
             winner_id=effect_result.winner_id,
             loser_id=effect_result.loser_id,
             damage_dealt=effect_result.damage_dealt,
+            player_1_pills_committed=player_1_selection.pills_committed,
+            player_2_pills_committed=player_2_selection.pills_committed,
         )
 
     def _apply_overload_damage_bonus(
@@ -300,6 +304,8 @@ class GameEngine:
             winner_id=round_computation.winner_id,
             loser_id=round_computation.loser_id,
             damage_dealt=round_computation.damage_dealt,
+            player_1_pills_committed=round_computation.player_1_pills_committed,
+            player_2_pills_committed=round_computation.player_2_pills_committed,
             life_swing_player_1=round_computation.life_swing_player_1,
             life_swing_player_2=round_computation.life_swing_player_2,
             pills_gained_player_1=round_computation.pills_gained_player_1,

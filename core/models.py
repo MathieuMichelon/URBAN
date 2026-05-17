@@ -223,6 +223,8 @@ class RoundResult:
     winner_id: int | None
     loser_id: int | None
     damage_dealt: int
+    player_1_pills_committed: int = 0
+    player_2_pills_committed: int = 0
     life_swing_player_1: int = 0
     life_swing_player_2: int = 0
     pills_gained_player_1: int = 0

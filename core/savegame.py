@@ -257,6 +257,8 @@ def _deserialize_round_result(payload: object, *, index: int) -> RoundResult:
             winner_id=_read_optional_player_id(payload, key="winner_id", context=context),
             loser_id=_read_optional_player_id(payload, key="loser_id", context=context),
             damage_dealt=_read_required_int(payload, key="damage_dealt", context=context),
+            player_1_pills_committed=_read_optional_int(payload, key="player_1_pills_committed", context=context) or 0,
+            player_2_pills_committed=_read_optional_int(payload, key="player_2_pills_committed", context=context) or 0,
             life_swing_player_1=_read_optional_int(payload, key="life_swing_player_1", context=context) or 0,
             life_swing_player_2=_read_optional_int(payload, key="life_swing_player_2", context=context) or 0,
             pills_gained_player_1=_read_optional_int(payload, key="pills_gained_player_1", context=context) or 0,

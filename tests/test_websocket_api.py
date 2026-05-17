@@ -153,6 +153,8 @@ def test_two_players_can_create_draft_join_and_resolve_one_round() -> None:
                 assert resolved_2["type"] == "round_resolved"
                 assert resolved_1["payload"]["round_result"]["player_1_attack"] > 0
                 assert resolved_1["payload"]["round_result"]["player_2_attack"] > 0
+                assert resolved_1["payload"]["round_result"]["player_1_pills_committed"] == 3
+                assert resolved_1["payload"]["round_result"]["player_2_pills_committed"] == 2
                 assert resolved_1["payload"]["round_result"]["player_1_overload"] is True
                 assert resolved_1["payload"]["state"]["match_state"] == "round_selection"
 

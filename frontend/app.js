@@ -14,6 +14,12 @@ const state = {
     overloadPreview: false,
     confirmEnabled: false,
   },
+  resolution: {
+    active: false,
+    roundResult: null,
+    step: "idle",
+    timeoutIds: [],
+  },
 };
 
 const elements = {
@@ -44,8 +50,10 @@ const elements = {
   initiativeValue: document.querySelector("#initiative-value"),
   matchStateValue: document.querySelector("#match-state-value"),
   selectionInfo: document.querySelector("#selection-info"),
+  selectionStage: document.querySelector("#selection-stage"),
   selectionDetail: document.querySelector("#selection-detail"),
   selectionControls: document.querySelector("#selection-controls"),
+  battleResolution: document.querySelector("#battle-resolution"),
   localHand: document.querySelector("#local-hand"),
   opponentHand: document.querySelector("#opponent-hand"),
   playerIdentity: document.querySelector("#player-identity"),
@@ -128,6 +136,39 @@ function resetMatchInteraction() {
   state.interaction.pillsPreview = 0;
   state.interaction.overloadPreview = false;
   state.interaction.confirmEnabled = false;
+}
+
+function clearRoundResolutionAnimation() {
+  state.resolution.timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+  state.resolution.active = false;
+  state.resolution.roundResult = null;
+  state.resolution.step = "idle";
+  state.resolution.timeoutIds = [];
+}
+
+function startRoundResolutionAnimation(roundResult) {
+  clearRoundResolutionAnimation();
+  state.resolution.active = true;
+  state.resolution.roundResult = roundResult;
+  state.resolution.step = "cards";
+
+  const steps = [
+    [700, "stats"],
+    [1500, "winner"],
+    [2500, "effects"],
+    [3600, "done"],
+  ];
+
+  state.resolution.timeoutIds = steps.map(([delay, step]) => window.setTimeout(() => {
+    if (step === "done") {
+      clearRoundResolutionAnimation();
+    } else {
+      state.resolution.step = step;
+    }
+    render();
+  }, delay));
+
+  render();
 }
 
 function maxAttackPillsFor(localPlayer, overload = state.interaction.overloadPreview) {
@@ -243,6 +284,7 @@ function connectSocket() {
     elements.confirmButton.disabled = true;
     elements.pingButton.disabled = true;
     state.snapshot = null;
+    clearRoundResolutionAnimation();
     addLog("Connexion WebSocket fermée.");
     render();
   });
@@ -275,6 +317,7 @@ function handleServerMessage(message) {
       addLog(`${payload.joined_player_name} a rejoint la room.`);
       break;
     case "game_started":
+      clearRoundResolutionAnimation();
       state.snapshot = payload.state;
       addLog("La partie commence.");
       break;
@@ -287,6 +330,7 @@ function handleServerMessage(message) {
       break;
     case "round_resolved":
       state.snapshot = payload.state;
+      startRoundResolutionAnimation(payload.round_result);
       addLog(`Round ${payload.round_result.round_number} résolu.`);
       break;
     case "game_finished":
@@ -294,6 +338,7 @@ function handleServerMessage(message) {
       addLog(payload.winner_id ? `Partie terminée. Gagnant: joueur ${payload.winner_id}.` : "Partie annulée ou sans gagnant.");
       break;
     case "opponent_disconnected":
+      clearRoundResolutionAnimation();
       addLog(`${payload.disconnected_player_name} s'est déconnecté.`);
       break;
     case "error":
@@ -905,9 +950,237 @@ function renderSelectionDetail(localPlayer) {
   elements.selectionDetail.appendChild(createSelectionDetailNode(card));
 }
 
+function findCardInSnapshot(cardId) {
+  for (const player of state.snapshot?.players ?? []) {
+    const card = player.hand?.find((candidate) => candidate.id === cardId);
+    if (card) {
+      return card;
+    }
+  }
+  return {
+    id: cardId,
+    name: cardId,
+    clan: "Inconnu",
+    stars: 0,
+    power: "-",
+    damage: "-",
+    power_text: "Carte non trouvée dans le snapshot.",
+    bonus_text: "-",
+    illustration: "",
+    bonus_active: false,
+  };
+}
+
+function battleStepAtLeast(step) {
+  const order = ["idle", "cards", "stats", "winner", "effects"];
+  return order.indexOf(state.resolution.step) >= order.indexOf(step);
+}
+
+function createBattleStat(label, value) {
+  const stat = document.createElement("div");
+  stat.className = "battle-stat";
+
+  const statLabel = document.createElement("span");
+  statLabel.textContent = label;
+
+  const statValue = document.createElement("strong");
+  statValue.textContent = value;
+
+  stat.append(statLabel, statValue);
+  return stat;
+}
+
+function createBattleCard(card, options) {
+  const { playerLabel, playerId, pills, attack, overload, outcomeClass } = options;
+  const cardNode = document.createElement("article");
+  cardNode.className = ["battle-card", outcomeClass, `clan-${slugifyClan(card.clan)}`].filter(Boolean).join(" ");
+
+  const heading = document.createElement("div");
+  heading.className = "battle-card-heading";
+
+  const player = document.createElement("span");
+  player.className = "battle-player-label";
+  player.textContent = `${playerLabel} · P${playerId}`;
+
+  const name = document.createElement("h3");
+  name.textContent = card.name;
+
+  heading.append(player, name, createClanBadge(card.clan));
+
+  const media = document.createElement("div");
+  media.className = "battle-card-media";
+  if (card.illustration) {
+    const image = document.createElement("img");
+    image.src = `/${card.illustration}`;
+    image.alt = card.name;
+    media.appendChild(image);
+  } else {
+    const fallback = document.createElement("div");
+    fallback.className = "battle-card-fallback";
+    fallback.textContent = card.id;
+    media.appendChild(fallback);
+  }
+
+  const stats = document.createElement("div");
+  stats.className = "battle-card-stats";
+  stats.append(
+    createBattleStat("Puissance", card.power),
+    createBattleStat("Dégâts", card.damage),
+  );
+
+  if (battleStepAtLeast("stats")) {
+    stats.append(
+      createBattleStat("Pills jouées", pills),
+      createBattleStat("Attaque", attack),
+      createBattleStat("Overload", overload ? "Actif" : "Inactif"),
+    );
+  }
+
+  const text = document.createElement("div");
+  text.className = "battle-card-text";
+  text.append(
+    createDetailRow("Pouvoir", card.power_text),
+    createDetailRow("Bonus", card.bonus_text, `card-bonus ${card.bonus_active ? "active" : "inactive"}`),
+  );
+
+  cardNode.append(heading, media, stats, text);
+  return cardNode;
+}
+
+function battleOutcomeClass(roundResult, playerId) {
+  if (!battleStepAtLeast("winner")) {
+    return "";
+  }
+  if (roundResult.winner_id === null || roundResult.winner_id === undefined) {
+    return "tie";
+  }
+  return roundResult.winner_id === playerId ? "winner" : "loser";
+}
+
+function buildBattleEffects(roundResult, player1Card, player2Card) {
+  const effects = [];
+  if (roundResult.winner_id === null || roundResult.winner_id === undefined) {
+    effects.push("Égalité : aucun dégât infligé.");
+  } else {
+    effects.push(`Dégâts infligés : ${roundResult.damage_dealt}`);
+  }
+
+  if (roundResult.life_swing_player_1) {
+    effects.push(`Joueur 1 vie ${roundResult.life_swing_player_1 > 0 ? "+" : ""}${roundResult.life_swing_player_1}`);
+  }
+  if (roundResult.life_swing_player_2) {
+    effects.push(`Joueur 2 vie ${roundResult.life_swing_player_2 > 0 ? "+" : ""}${roundResult.life_swing_player_2}`);
+  }
+  if (roundResult.pills_gained_player_1) {
+    effects.push(`Joueur 1 pills ${roundResult.pills_gained_player_1 > 0 ? "+" : ""}${roundResult.pills_gained_player_1}`);
+  }
+  if (roundResult.pills_gained_player_2) {
+    effects.push(`Joueur 2 pills ${roundResult.pills_gained_player_2 > 0 ? "+" : ""}${roundResult.pills_gained_player_2}`);
+  }
+  if (roundResult.player_1_overload) {
+    effects.push(`Joueur 1 Overload actif${roundResult.winner_id === 1 ? ` : +${roundResult.overload_damage_bonus} dégâts` : ""}`);
+  }
+  if (roundResult.player_2_overload) {
+    effects.push(`Joueur 2 Overload actif${roundResult.winner_id === 2 ? ` : +${roundResult.overload_damage_bonus} dégâts` : ""}`);
+  }
+
+  const winnerCard = roundResult.winner_id === 1 ? player1Card : roundResult.winner_id === 2 ? player2Card : null;
+  if (winnerCard?.power_text?.toLowerCase().includes("poison")) {
+    effects.push(`Poison : ${winnerCard.power_text}`);
+  }
+
+  return effects;
+}
+
+function renderBattleResolution(localPlayer, opponent) {
+  elements.battleResolution.innerHTML = "";
+  const roundResult = state.resolution.roundResult;
+  const active = Boolean(state.resolution.active && roundResult);
+  elements.battleResolution.classList.toggle("hidden", !active);
+  elements.battleResolution.classList.toggle("active", active);
+  elements.selectionStage.classList.toggle("hidden", active);
+
+  if (!active) {
+    return;
+  }
+
+  const player1Card = findCardInSnapshot(roundResult.player_1_card_id);
+  const player2Card = findCardInSnapshot(roundResult.player_2_card_id);
+  const localLabel = (playerId) => {
+    if (localPlayer?.player_id === playerId) {
+      return localPlayer.name || "Toi";
+    }
+    if (opponent?.player_id === playerId) {
+      return opponent.name || "Adversaire";
+    }
+    return `Joueur ${playerId}`;
+  };
+
+  const title = document.createElement("div");
+  title.className = "battle-resolution-title";
+  const heading = document.createElement("h2");
+  heading.textContent = `Résolution du round ${roundResult.round_number}`;
+  const subheading = document.createElement("p");
+  subheading.className = "muted";
+  subheading.textContent = battleStepAtLeast("stats")
+    ? "Les pills sont révélées officiellement par le serveur."
+    : "Les cartes s'affrontent.";
+  title.append(heading, subheading);
+
+  const board = document.createElement("div");
+  board.className = "battle-board";
+  board.append(
+    createBattleCard(player1Card, {
+      playerLabel: localLabel(1),
+      playerId: 1,
+      pills: roundResult.player_1_pills_committed ?? 0,
+      attack: roundResult.player_1_attack,
+      overload: Boolean(roundResult.player_1_overload),
+      outcomeClass: battleOutcomeClass(roundResult, 1),
+    }),
+  );
+
+  const versus = document.createElement("div");
+  versus.className = "battle-versus";
+  versus.textContent = "VS";
+  board.appendChild(versus);
+
+  board.append(
+    createBattleCard(player2Card, {
+      playerLabel: localLabel(2),
+      playerId: 2,
+      pills: roundResult.player_2_pills_committed ?? 0,
+      attack: roundResult.player_2_attack,
+      overload: Boolean(roundResult.player_2_overload),
+      outcomeClass: battleOutcomeClass(roundResult, 2),
+    }),
+  );
+
+  elements.battleResolution.append(title, board);
+
+  if (battleStepAtLeast("winner")) {
+    const damage = document.createElement("div");
+    damage.className = "battle-damage-pop";
+    damage.textContent = roundResult.winner_id === null || roundResult.winner_id === undefined
+      ? "Égalité"
+      : `${localLabel(roundResult.winner_id)} gagne · ${roundResult.damage_dealt} dégâts`;
+    elements.battleResolution.appendChild(damage);
+  }
+
+  if (battleStepAtLeast("effects")) {
+    const effects = document.createElement("div");
+    effects.className = "battle-effects";
+    buildBattleEffects(roundResult, player1Card, player2Card).forEach((effectText) => {
+      effects.appendChild(makeBadge(effectText, "state"));
+    });
+    elements.battleResolution.appendChild(effects);
+  }
+}
+
 function updateViewVisibility() {
   const snapshot = state.snapshot;
   const matchState = snapshot?.match_state ?? null;
+  const showingResolution = state.resolution.active && state.resolution.roundResult;
 
   elements.homeView.classList.add("hidden");
   elements.lobbyView.classList.add("hidden");
@@ -924,7 +1197,7 @@ function updateViewVisibility() {
     return;
   }
 
-  if (matchState === "game_over") {
+  if (matchState === "game_over" && !showingResolution) {
     elements.endView.classList.remove("hidden");
     return;
   }
@@ -1126,6 +1399,7 @@ function render() {
     elements.opponentStatus.innerHTML = "";
     elements.localHand.innerHTML = "";
     elements.opponentHand.innerHTML = "";
+    renderBattleResolution(null, null);
     renderSelection();
     return;
   }
@@ -1150,6 +1424,7 @@ function render() {
     elements.localHand.innerHTML = "";
     elements.opponentHand.innerHTML = "";
   }
+  renderBattleResolution(localPlayer, opponent);
   renderSelection();
 }
 
@@ -1268,6 +1543,7 @@ elements.resetSelectionButton.addEventListener("click", () => {
 elements.returnHomeButton.addEventListener("click", () => {
   state.snapshot = null;
   resetMatchInteraction();
+  clearRoundResolutionAnimation();
   clearPersistedSession();
   render();
 });
