@@ -360,6 +360,83 @@ def test_victory_and_defeat_triggers_apply_life_and_pill_gain(card_factory) -> N
     assert state.get_player(2).pills == 14
 
 
+def test_victory_pill_steal_transfers_one_existing_pill(card_factory) -> None:
+    """Pill steal should move one real pill from the loser to the triggering winner."""
+    engine = GameEngine()
+    player_1_hand = [
+        card_factory(
+            "thief",
+            clan="Neon",
+            power=7,
+            damage=2,
+            power_text="Victory: Steal 1 pill",
+            bonus_text="No bonus",
+            power_effects=(EffectDefinition("victory", "opponent", "pill_steal", 1),),
+        ),
+        card_factory("p1c2"),
+        card_factory("p1c3"),
+        card_factory("p1c4"),
+    ]
+    player_2_hand = [
+        card_factory("target", clan="Iron", power=3, damage=1),
+        card_factory("p2c2"),
+        card_factory("p2c3"),
+        card_factory("p2c4"),
+    ]
+    state = engine.create_game(player_1_hand, player_2_hand)
+
+    result = engine.play_round(
+        state=state,
+        player_1_selection=RoundSelection("thief", 2),
+        player_2_selection=RoundSelection("target", 1),
+    )
+
+    assert result.winner_id == 1
+    assert result.pills_gained_player_1 == 1
+    assert result.pills_gained_player_2 == -1
+    assert state.get_player(1).pills == 11
+    assert state.get_player(2).pills == 10
+
+
+def test_victory_pill_steal_cannot_steal_missing_pills(card_factory) -> None:
+    """Pill steal should not create pills when the target has none left."""
+    engine = GameEngine()
+    player_1_hand = [
+        card_factory(
+            "thief",
+            clan="Neon",
+            power=7,
+            damage=2,
+            power_text="Victory: Steal 1 pill",
+            bonus_text="No bonus",
+            power_effects=(EffectDefinition("victory", "opponent", "pill_steal", 1),),
+        ),
+        card_factory("p1c2"),
+        card_factory("p1c3"),
+        card_factory("p1c4"),
+    ]
+    player_2_hand = [
+        card_factory("empty", clan="Iron", power=3, damage=1),
+        card_factory("p2c2"),
+        card_factory("p2c3"),
+        card_factory("p2c4"),
+    ]
+    state = engine.create_game(player_1_hand, player_2_hand)
+    state.get_player(2).pills = 1
+
+    result = engine.play_round(
+        state=state,
+        player_1_selection=RoundSelection("thief", 2),
+        player_2_selection=RoundSelection("empty", 1),
+    )
+
+    assert result.winner_id == 1
+    assert result.pills_gained_player_1 == 0
+    assert result.pills_gained_player_2 == 0
+    assert state.get_player(1).pills == 10
+    assert state.get_player(2).pills == 0
+
+
 def test_poison_applies_after_damage_and_ticks_on_following_rounds(card_factory) -> None:
     """Poison should apply at end of round and continue on later rounds."""
     engine = GameEngine()
@@ -413,9 +490,10 @@ def test_describe_effects_returns_ui_readable_power_and_bonus_text() -> None:
         (
             EffectDefinition("courage", "self", "power_modifier", 2),
             EffectDefinition("victory", "opponent", "life_loss", 2),
+            EffectDefinition("victory", "opponent", "pill_steal", 1),
         )
     )
     bonus_text = describe_effects((EffectDefinition("passive", "self", "attack_modifier", 6),))
 
-    assert power_text == "Courage: Power +2 | Victory: Opponent life -2"
+    assert power_text == "Courage: Power +2 | Victory: Opponent life -2 | Victory: Steal 1 pill"
     assert bonus_text == "Attack +6"

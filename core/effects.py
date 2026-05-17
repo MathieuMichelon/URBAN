@@ -39,6 +39,7 @@ EFFECT_TYPE_LABELS = {
     "life_loss": "Opponent life -{value}",
     "poison": "Poison {value}",
     "pill_gain": "Pills +{value}",
+    "pill_steal": "Steal {value} pill",
     "stop_opponent_power": "Stop opponent power",
     "stop_opponent_bonus": "Stop opponent bonus",
     "protection_bonus": "Protection: Bonus",
@@ -330,6 +331,7 @@ def _apply_stat_modifiers(
             "life_loss",
             "poison",
             "pill_gain",
+            "pill_steal",
         }:
             continue
 
@@ -378,6 +380,17 @@ def _apply_post_effect(
     if effect.effect_type == "pill_gain":
         target_player.pills += effect.value
         ledger.pill_gain[target_player.player_id] += effect.value
+        return
+
+    if effect.effect_type == "pill_steal":
+        stolen_pills = min(effect.value, target_player.pills)
+        if stolen_pills <= 0:
+            return
+
+        target_player.pills -= stolen_pills
+        actor.player.pills += stolen_pills
+        ledger.pill_gain[target_player.player_id] -= stolen_pills
+        ledger.pill_gain[actor.player.player_id] += stolen_pills
         return
 
     if effect.effect_type == "poison":

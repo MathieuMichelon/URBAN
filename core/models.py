@@ -22,6 +22,7 @@ SUPPORTED_EFFECT_TYPES = {
     "life_loss",
     "poison",
     "pill_gain",
+    "pill_steal",
     "stop_opponent_power",
     "stop_opponent_bonus",
     "protection_bonus",
@@ -77,6 +78,9 @@ class EffectDefinition:
 
         if self.minimum is not None and self.minimum < 0:
             raise InvalidCardDefinitionError("Effect minimum must be greater than or equal to 0.")
+
+        if self.effect_type == "pill_steal" and (self.value < 0 or self.value > 1):
+            raise InvalidCardDefinitionError("Pill steal value must be 0 or 1.")
 
 
 @dataclass(frozen=True, slots=True)
