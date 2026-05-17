@@ -93,14 +93,14 @@ def test_load_card_set_keeps_clan_bonus_data_consistent_per_clan() -> None:
         assert card.power_effects or card.bonus_effects
 
     assert bonus_texts_by_clan == {
-        "Pulse 404": {"+2 Attaque"},
-        "Verdelune": {"Victoire : +1 Vie"},
-        "Bastion-9": {"Protection : Puissance"},
+        "Pulse 404": {"+8 Attaque"},
+        "Verdelune": {"Victoire : +2 Vie"},
+        "Bastion-9": {"+2 Dégâts"},
     }
     assert bonus_effect_signatures_by_clan == {
-        "Pulse 404": {(("passive", "self", "attack_modifier", 2, None),)},
-        "Verdelune": {(("victory", "self", "life_gain", 1, None),)},
-        "Bastion-9": {(("passive", "self", "protection_power", 0, None),)},
+        "Pulse 404": {(("passive", "self", "attack_modifier", 8, None),)},
+        "Verdelune": {(("victory", "self", "life_gain", 2, None),)},
+        "Bastion-9": {(("passive", "self", "damage_modifier", 2, None),)},
     }
 
 

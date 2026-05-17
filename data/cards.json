@@ -8,25 +8,25 @@
       "clan": "Bastion-9",
       "stars": 1,
       "power": 5,
-      "damage": 2,
-      "power_text": "+2 Attaque",
-      "bonus_text": "Protection : Puissance",
+      "damage": 3,
+      "power_text": "+8 Attaque",
+      "bonus_text": "+2 Dégâts",
       "illustration": "assets/cards/bastion_9/boulon.png",
-      "info": "1 étoile agressif pour contester un round à bas coût.",
+      "info": "Petit attaquant fiable de Bastion-9.",
       "power_effects": [
         {
           "trigger": "passive",
           "target": "self",
           "effect_type": "attack_modifier",
-          "value": 2
+          "value": 8
         }
       ],
       "bonus_effects": [
         {
           "trigger": "passive",
           "target": "self",
-          "effect_type": "protection_power",
-          "value": 0
+          "effect_type": "damage_modifier",
+          "value": 2
         }
       ]
     },
@@ -36,11 +36,11 @@
       "clan": "Bastion-9",
       "stars": 1,
       "power": 6,
-      "damage": 1,
+      "damage": 2,
       "power_text": "Stop Bonus adv.",
-      "bonus_text": "Protection : Puissance",
+      "bonus_text": "+2 Dégâts",
       "illustration": "assets/cards/bastion_9/cendre.png",
-      "info": "Petit anti-bonus très pratique contre certains matchups.",
+      "info": "Anti-bonus compact et efficace.",
       "power_effects": [
         {
           "trigger": "passive",
@@ -53,8 +53,8 @@
         {
           "trigger": "passive",
           "target": "self",
-          "effect_type": "protection_power",
-          "value": 0
+          "effect_type": "damage_modifier",
+          "value": 2
         }
       ]
     },
@@ -63,27 +63,27 @@
       "name": "Nita",
       "clan": "Bastion-9",
       "stars": 1,
-      "power": 5,
-      "damage": 2,
-      "power_text": "-1 Dégât adv., min. 1",
-      "bonus_text": "Protection : Puissance",
+      "power": 4,
+      "damage": 4,
+      "power_text": "-3 Dégâts adv., min. 2",
+      "bonus_text": "+2 Dégâts",
       "illustration": "assets/cards/bastion_9/nita.png",
-      "info": "Carte souple pour limiter la casse sur les rounds perdus.",
+      "info": "Réduit les dégâts adverses.",
       "power_effects": [
         {
           "trigger": "passive",
           "target": "opponent",
           "effect_type": "damage_modifier",
-          "value": -1,
-          "minimum": 1
+          "value": -3,
+          "minimum": 2
         }
       ],
       "bonus_effects": [
         {
           "trigger": "passive",
           "target": "self",
-          "effect_type": "protection_power",
-          "value": 0
+          "effect_type": "damage_modifier",
+          "value": 2
         }
       ]
     },
@@ -92,26 +92,26 @@
       "name": "Rivet",
       "clan": "Bastion-9",
       "stars": 1,
-      "power": 6,
-      "damage": 1,
-      "power_text": "Défaite : +1 pill",
-      "bonus_text": "Protection : Puissance",
+      "power": 5,
+      "damage": 3,
+      "power_text": "Défaite : +2 pills",
+      "bonus_text": "+2 Dégâts",
       "illustration": "assets/cards/bastion_9/rivet.png",
-      "info": "Petit générateur de tempo pour perdre utile.",
+      "info": "Perd utilement en récupérant des pills.",
       "power_effects": [
         {
           "trigger": "defeat",
           "target": "self",
           "effect_type": "pill_gain",
-          "value": 1
+          "value": 2
         }
       ],
       "bonus_effects": [
         {
           "trigger": "passive",
           "target": "self",
-          "effect_type": "protection_power",
-          "value": 0
+          "effect_type": "damage_modifier",
+          "value": 2
         }
       ]
     },
@@ -121,25 +121,26 @@
       "clan": "Bastion-9",
       "stars": 2,
       "power": 6,
-      "damage": 3,
-      "power_text": "Protection : Bonus",
-      "bonus_text": "Protection : Puissance",
+      "damage": 5,
+      "power_text": "-2 Puissance adv., min. 4",
+      "bonus_text": "+2 Dégâts",
       "illustration": "assets/cards/bastion_9/magna.png",
-      "info": "Bon profil stable pour conserver l'identité du clan.",
+      "info": "Contrôle la puissance adverse.",
       "power_effects": [
         {
           "trigger": "passive",
-          "target": "self",
-          "effect_type": "protection_bonus",
-          "value": 0
+          "target": "opponent",
+          "effect_type": "power_modifier",
+          "value": -2,
+          "minimum": 4
         }
       ],
       "bonus_effects": [
         {
           "trigger": "passive",
           "target": "self",
-          "effect_type": "protection_power",
-          "value": 0
+          "effect_type": "damage_modifier",
+          "value": 2
         }
       ]
     },
@@ -149,11 +150,11 @@
       "clan": "Bastion-9",
       "stars": 2,
       "power": 7,
-      "damage": 2,
+      "damage": 3,
       "power_text": "Stop Pouvoir adv.",
-      "bonus_text": "Protection : Puissance",
+      "bonus_text": "+2 Dégâts",
       "illustration": "assets/cards/bastion_9/torque.png",
-      "info": "2 étoiles de contrôle très fiable.",
+      "info": "Neutralise les pouvoirs clés.",
       "power_effects": [
         {
           "trigger": "passive",
@@ -166,8 +167,8 @@
         {
           "trigger": "passive",
           "target": "self",
-          "effect_type": "protection_power",
-          "value": 0
+          "effect_type": "damage_modifier",
+          "value": 2
         }
       ]
     },
@@ -176,27 +177,26 @@
       "name": "Weld",
       "clan": "Bastion-9",
       "stars": 2,
-      "power": 6,
-      "damage": 2,
-      "power_text": "-1 Puissance adv., min. 5",
-      "bonus_text": "Protection : Puissance",
+      "power": 5,
+      "damage": 5,
+      "power_text": "+10 Attaque",
+      "bonus_text": "+2 Dégâts",
       "illustration": "assets/cards/bastion_9/weld.png",
-      "info": "Carte utilitaire pour casser les duels de stats.",
+      "info": "Pression d'attaque directe.",
       "power_effects": [
         {
           "trigger": "passive",
-          "target": "opponent",
-          "effect_type": "power_modifier",
-          "value": -1,
-          "minimum": 5
+          "target": "self",
+          "effect_type": "attack_modifier",
+          "value": 10
         }
       ],
       "bonus_effects": [
         {
           "trigger": "passive",
           "target": "self",
-          "effect_type": "protection_power",
-          "value": 0
+          "effect_type": "damage_modifier",
+          "value": 2
         }
       ]
     },
@@ -206,25 +206,25 @@
       "clan": "Bastion-9",
       "stars": 3,
       "power": 7,
-      "damage": 3,
-      "power_text": "+1 Dégât",
-      "bonus_text": "Protection : Puissance",
+      "damage": 6,
+      "power_text": "+2 Dégâts",
+      "bonus_text": "+2 Dégâts",
       "illustration": "assets/cards/bastion_9/atlas.png",
-      "info": "Beater offensif net et sans détour.",
+      "info": "Finisseur à dégâts élevés.",
       "power_effects": [
         {
           "trigger": "passive",
           "target": "self",
           "effect_type": "damage_modifier",
-          "value": 1
+          "value": 2
         }
       ],
       "bonus_effects": [
         {
           "trigger": "passive",
           "target": "self",
-          "effect_type": "protection_power",
-          "value": 0
+          "effect_type": "damage_modifier",
+          "value": 2
         }
       ]
     },
@@ -234,25 +234,25 @@
       "clan": "Bastion-9",
       "stars": 3,
       "power": 6,
-      "damage": 4,
-      "power_text": "Courage : +2 Attaque",
-      "bonus_text": "Protection : Puissance",
+      "damage": 7,
+      "power_text": "Courage : +10 Attaque",
+      "bonus_text": "+2 Dégâts",
       "illustration": "assets/cards/bastion_9/bast.png",
-      "info": "Carte très menaçante quand elle ouvre le round.",
+      "info": "Très fort avec l'initiative.",
       "power_effects": [
         {
           "trigger": "courage",
           "target": "self",
           "effect_type": "attack_modifier",
-          "value": 2
+          "value": 10
         }
       ],
       "bonus_effects": [
         {
           "trigger": "passive",
           "target": "self",
-          "effect_type": "protection_power",
-          "value": 0
+          "effect_type": "damage_modifier",
+          "value": 2
         }
       ]
     },
@@ -261,27 +261,27 @@
       "name": "Ferrox",
       "clan": "Bastion-9",
       "stars": 3,
-      "power": 7,
-      "damage": 3,
-      "power_text": "-2 Dégâts adv., min. 1",
-      "bonus_text": "Protection : Puissance",
+      "power": 8,
+      "damage": 5,
+      "power_text": "-4 Dégâts adv., min. 2",
+      "bonus_text": "+2 Dégâts",
       "illustration": "assets/cards/bastion_9/ferrox.png",
-      "info": "Finisseur/régulateur qui reste pénible à passer.",
+      "info": "Menace solide qui amortit les dégâts.",
       "power_effects": [
         {
           "trigger": "passive",
           "target": "opponent",
           "effect_type": "damage_modifier",
-          "value": -2,
-          "minimum": 1
+          "value": -4,
+          "minimum": 2
         }
       ],
       "bonus_effects": [
         {
           "trigger": "passive",
           "target": "self",
-          "effect_type": "protection_power",
-          "value": 0
+          "effect_type": "damage_modifier",
+          "value": 2
         }
       ]
     },
@@ -291,17 +291,17 @@
       "clan": "Pulse 404",
       "stars": 1,
       "power": 6,
-      "damage": 1,
-      "power_text": "Défaite : +1 pill",
-      "bonus_text": "+2 Attaque",
+      "damage": 2,
+      "power_text": "Défaite : +2 pills",
+      "bonus_text": "+8 Attaque",
       "illustration": "assets/cards/pulse_404/glitch.png",
-      "info": "Petit utilitaire de tempo, bon sacrifice intelligent.",
+      "info": "Sacrifice utile pour récupérer des pills.",
       "power_effects": [
         {
           "trigger": "defeat",
           "target": "self",
           "effect_type": "pill_gain",
-          "value": 1
+          "value": 2
         }
       ],
       "bonus_effects": [
@@ -309,7 +309,7 @@
           "trigger": "passive",
           "target": "self",
           "effect_type": "attack_modifier",
-          "value": 2
+          "value": 8
         }
       ]
     },
@@ -319,11 +319,11 @@
       "clan": "Pulse 404",
       "stars": 1,
       "power": 6,
-      "damage": 1,
+      "damage": 2,
       "power_text": "Stop Bonus adv.",
-      "bonus_text": "+2 Attaque",
+      "bonus_text": "+8 Attaque",
       "illustration": "assets/cards/pulse_404/nox.png",
-      "info": "Tech défensive contre les clans trop dépendants de leur bonus.",
+      "info": "Coupe les bonus adverses.",
       "power_effects": [
         {
           "trigger": "passive",
@@ -337,7 +337,7 @@
           "trigger": "passive",
           "target": "self",
           "effect_type": "attack_modifier",
-          "value": 2
+          "value": 8
         }
       ]
     },
@@ -346,18 +346,18 @@
       "name": "Pix",
       "clan": "Pulse 404",
       "stars": 1,
-      "power": 5,
-      "damage": 2,
-      "power_text": "+2 Attaque",
-      "bonus_text": "+2 Attaque",
+      "power": 4,
+      "damage": 4,
+      "power_text": "+10 Attaque",
+      "bonus_text": "+8 Attaque",
       "illustration": "assets/cards/pulse_404/pix.png",
-      "info": "Mini carte agressive pour arracher un round à faible investissement.",
+      "info": "Petite carte très agressive.",
       "power_effects": [
         {
           "trigger": "passive",
           "target": "self",
           "effect_type": "attack_modifier",
-          "value": 2
+          "value": 10
         }
       ],
       "bonus_effects": [
@@ -365,7 +365,7 @@
           "trigger": "passive",
           "target": "self",
           "effect_type": "attack_modifier",
-          "value": 2
+          "value": 8
         }
       ]
     },
@@ -375,17 +375,17 @@
       "clan": "Pulse 404",
       "stars": 1,
       "power": 5,
-      "damage": 2,
-      "power_text": "Courage : +1 Puissance",
-      "bonus_text": "+2 Attaque",
+      "damage": 3,
+      "power_text": "Courage : +2 Puissance",
+      "bonus_text": "+8 Attaque",
       "illustration": "assets/cards/pulse_404/vibe.png",
-      "info": "Petit opener utile quand tu joues en premier.",
+      "info": "Bon opener avec l'initiative.",
       "power_effects": [
         {
           "trigger": "courage",
           "target": "self",
           "effect_type": "power_modifier",
-          "value": 1
+          "value": 2
         }
       ],
       "bonus_effects": [
@@ -393,7 +393,7 @@
           "trigger": "passive",
           "target": "self",
           "effect_type": "attack_modifier",
-          "value": 2
+          "value": 8
         }
       ]
     },
@@ -403,17 +403,17 @@
       "clan": "Pulse 404",
       "stars": 2,
       "power": 7,
-      "damage": 2,
-      "power_text": "Victoire : +1 Vie",
-      "bonus_text": "+2 Attaque",
+      "damage": 3,
+      "power_text": "Victoire : +3 Vie",
+      "bonus_text": "+8 Attaque",
       "illustration": "assets/cards/pulse_404/hexa.png",
-      "info": "Carte de tempo positive qui crée un petit écart de vie.",
+      "info": "Crée un écart de vie net.",
       "power_effects": [
         {
           "trigger": "victory",
           "target": "self",
           "effect_type": "life_gain",
-          "value": 1
+          "value": 3
         }
       ],
       "bonus_effects": [
@@ -421,7 +421,7 @@
           "trigger": "passive",
           "target": "self",
           "effect_type": "attack_modifier",
-          "value": 2
+          "value": 8
         }
       ]
     },
@@ -431,18 +431,18 @@
       "clan": "Pulse 404",
       "stars": 2,
       "power": 7,
-      "damage": 2,
-      "power_text": "-2 Attaque adv., min. 1",
-      "bonus_text": "+2 Attaque",
+      "damage": 4,
+      "power_text": "-10 Attaque adv., min. 3",
+      "bonus_text": "+8 Attaque",
       "illustration": "assets/cards/pulse_404/kiro.png",
-      "info": "2 étoiles très propre pour contrôler les petits rounds.",
+      "info": "Contrôle fortement l'attaque adverse.",
       "power_effects": [
         {
           "trigger": "passive",
           "target": "opponent",
           "effect_type": "attack_modifier",
-          "value": -2,
-          "minimum": 1
+          "value": -10,
+          "minimum": 3
         }
       ],
       "bonus_effects": [
@@ -450,7 +450,7 @@
           "trigger": "passive",
           "target": "self",
           "effect_type": "attack_modifier",
-          "value": 2
+          "value": 8
         }
       ]
     },
@@ -459,18 +459,18 @@
       "name": "Sira",
       "clan": "Pulse 404",
       "stars": 2,
-      "power": 6,
-      "damage": 3,
-      "power_text": "Protection : Bonus",
-      "bonus_text": "+2 Attaque",
+      "power": 5,
+      "damage": 5,
+      "power_text": "Vole 1 pill",
+      "bonus_text": "+8 Attaque",
       "illustration": "assets/cards/pulse_404/sira.png",
-      "info": "Bonne carte stable qui sécurise l'activation de clan.",
+      "info": "Vole une pill après une victoire.",
       "power_effects": [
         {
-          "trigger": "passive",
-          "target": "self",
-          "effect_type": "protection_bonus",
-          "value": 0
+          "trigger": "victory",
+          "target": "opponent",
+          "effect_type": "pill_steal",
+          "value": 1
         }
       ],
       "bonus_effects": [
@@ -478,7 +478,7 @@
           "trigger": "passive",
           "target": "self",
           "effect_type": "attack_modifier",
-          "value": 2
+          "value": 8
         }
       ]
     },
@@ -488,17 +488,17 @@
       "clan": "Pulse 404",
       "stars": 3,
       "power": 7,
-      "damage": 4,
-      "power_text": "Revanche : +2 Attaque",
-      "bonus_text": "+2 Attaque",
+      "damage": 6,
+      "power_text": "Revanche : +12 Attaque",
+      "bonus_text": "+8 Attaque",
       "illustration": "assets/cards/pulse_404/nova_byte.png",
-      "info": "Finisseur offensif très menaçant après un round perdu.",
+      "info": "Très menaçante après un round perdu.",
       "power_effects": [
         {
           "trigger": "revenge",
           "target": "self",
           "effect_type": "attack_modifier",
-          "value": 2
+          "value": 12
         }
       ],
       "bonus_effects": [
@@ -506,7 +506,7 @@
           "trigger": "passive",
           "target": "self",
           "effect_type": "attack_modifier",
-          "value": 2
+          "value": 8
         }
       ]
     },
@@ -516,11 +516,11 @@
       "clan": "Pulse 404",
       "stars": 3,
       "power": 8,
-      "damage": 2,
+      "damage": 4,
       "power_text": "Stop Pouvoir adv.",
-      "bonus_text": "+2 Attaque",
+      "bonus_text": "+8 Attaque",
       "illustration": "assets/cards/pulse_404/null.png",
-      "info": "Grosse carte de contrôle, très utile contre les effets clés.",
+      "info": "Contrôle les pouvoirs adverses.",
       "power_effects": [
         {
           "trigger": "passive",
@@ -534,7 +534,7 @@
           "trigger": "passive",
           "target": "self",
           "effect_type": "attack_modifier",
-          "value": 2
+          "value": 8
         }
       ]
     },
@@ -543,18 +543,18 @@
       "name": "Riff",
       "clan": "Pulse 404",
       "stars": 3,
-      "power": 7,
-      "damage": 3,
-      "power_text": "+1 Dégât",
-      "bonus_text": "+2 Attaque",
+      "power": 6,
+      "damage": 7,
+      "power_text": "+2 Dégâts",
+      "bonus_text": "+8 Attaque",
       "illustration": "assets/cards/pulse_404/riff.png",
-      "info": "Beater offensif simple et efficace.",
+      "info": "Finisseur simple et brutal.",
       "power_effects": [
         {
           "trigger": "passive",
           "target": "self",
           "effect_type": "damage_modifier",
-          "value": 1
+          "value": 2
         }
       ],
       "bonus_effects": [
@@ -562,7 +562,7 @@
           "trigger": "passive",
           "target": "self",
           "effect_type": "attack_modifier",
-          "value": 2
+          "value": 8
         }
       ]
     },
@@ -572,18 +572,18 @@
       "clan": "Verdelune",
       "stars": 1,
       "power": 6,
-      "damage": 1,
-      "power_text": "-1 Dégât adv., min. 1",
-      "bonus_text": "Victoire : +1 Vie",
+      "damage": 2,
+      "power_text": "-3 Dégâts adv., min. 2",
+      "bonus_text": "Victoire : +2 Vie",
       "illustration": "assets/cards/verdelune/brin.png",
-      "info": "Petit mur utilitaire pour amortir un round.",
+      "info": "Limite les dégâts adverses.",
       "power_effects": [
         {
           "trigger": "passive",
           "target": "opponent",
           "effect_type": "damage_modifier",
-          "value": -1,
-          "minimum": 1
+          "value": -3,
+          "minimum": 2
         }
       ],
       "bonus_effects": [
@@ -591,7 +591,7 @@
           "trigger": "victory",
           "target": "self",
           "effect_type": "life_gain",
-          "value": 1
+          "value": 2
         }
       ]
     },
@@ -600,19 +600,19 @@
       "name": "Lichen",
       "clan": "Verdelune",
       "stars": 1,
-      "power": 5,
-      "damage": 2,
-      "power_text": "Victoire : Poison 1, min. 17",
-      "bonus_text": "Victoire : +1 Vie",
+      "power": 4,
+      "damage": 3,
+      "power_text": "Victoire : Poison 2, min. 10",
+      "bonus_text": "Victoire : +2 Vie",
       "illustration": "assets/cards/verdelune/lichen.png",
-      "info": "Mini poison pour installer une pression lente dès le début.",
+      "info": "Pose un poison léger.",
       "power_effects": [
         {
           "trigger": "victory",
           "target": "opponent",
           "effect_type": "poison",
-          "value": 1,
-          "minimum": 17
+          "value": 2,
+          "minimum": 10
         }
       ],
       "bonus_effects": [
@@ -620,7 +620,7 @@
           "trigger": "victory",
           "target": "self",
           "effect_type": "life_gain",
-          "value": 1
+          "value": 2
         }
       ]
     },
@@ -630,17 +630,17 @@
       "clan": "Verdelune",
       "stars": 1,
       "power": 5,
-      "damage": 2,
-      "power_text": "Défaite : +1 Vie",
-      "bonus_text": "Victoire : +1 Vie",
+      "damage": 3,
+      "power_text": "Défaite : +3 Vie",
+      "bonus_text": "Victoire : +2 Vie",
       "illustration": "assets/cards/verdelune/mousse.png",
-      "info": "Carte de sacrifice confortable pour limiter l'écart.",
+      "info": "Perd en récupérant de la vie.",
       "power_effects": [
         {
           "trigger": "defeat",
           "target": "self",
           "effect_type": "life_gain",
-          "value": 1
+          "value": 3
         }
       ],
       "bonus_effects": [
@@ -648,7 +648,7 @@
           "trigger": "victory",
           "target": "self",
           "effect_type": "life_gain",
-          "value": 1
+          "value": 2
         }
       ]
     },
@@ -658,17 +658,17 @@
       "clan": "Verdelune",
       "stars": 1,
       "power": 6,
-      "damage": 1,
-      "power_text": "+2 Attaque",
-      "bonus_text": "Victoire : +1 Vie",
+      "damage": 2,
+      "power_text": "+8 Attaque",
+      "bonus_text": "Victoire : +2 Vie",
       "illustration": "assets/cards/verdelune/rosee.png",
-      "info": "1 étoile propre pour gratter un duel serré.",
+      "info": "Petite carte de pression.",
       "power_effects": [
         {
           "trigger": "passive",
           "target": "self",
           "effect_type": "attack_modifier",
-          "value": 2
+          "value": 8
         }
       ],
       "bonus_effects": [
@@ -676,7 +676,7 @@
           "trigger": "victory",
           "target": "self",
           "effect_type": "life_gain",
-          "value": 1
+          "value": 2
         }
       ]
     },
@@ -686,17 +686,17 @@
       "clan": "Verdelune",
       "stars": 2,
       "power": 6,
-      "damage": 2,
-      "power_text": "Victoire : +1 Vie",
-      "bonus_text": "Victoire : +1 Vie",
+      "damage": 4,
+      "power_text": "Victoire : +3 Vie",
+      "bonus_text": "Victoire : +2 Vie",
       "illustration": "assets/cards/verdelune/aster.png",
-      "info": "Carte d'écart de vie simple, toujours utile.",
+      "info": "Gagne de la vie en passant.",
       "power_effects": [
         {
           "trigger": "victory",
           "target": "self",
           "effect_type": "life_gain",
-          "value": 1
+          "value": 3
         }
       ],
       "bonus_effects": [
@@ -704,7 +704,7 @@
           "trigger": "victory",
           "target": "self",
           "effect_type": "life_gain",
-          "value": 1
+          "value": 2
         }
       ]
     },
@@ -713,19 +713,19 @@
       "name": "Ronce",
       "clan": "Verdelune",
       "stars": 2,
-      "power": 6,
-      "damage": 3,
-      "power_text": "-2 Attaque adv., min. 2",
-      "bonus_text": "Victoire : +1 Vie",
+      "power": 5,
+      "damage": 5,
+      "power_text": "-10 Attaque adv., min. 3",
+      "bonus_text": "Victoire : +2 Vie",
       "illustration": "assets/cards/verdelune/ronce.png",
-      "info": "2 étoiles offensif avec un bon contrôle de round.",
+      "info": "Contrôle fortement le round.",
       "power_effects": [
         {
           "trigger": "passive",
           "target": "opponent",
           "effect_type": "attack_modifier",
-          "value": -2,
-          "minimum": 2
+          "value": -10,
+          "minimum": 3
         }
       ],
       "bonus_effects": [
@@ -733,7 +733,7 @@
           "trigger": "victory",
           "target": "self",
           "effect_type": "life_gain",
-          "value": 1
+          "value": 2
         }
       ]
     },
@@ -742,18 +742,25 @@
       "name": "Sylfa",
       "clan": "Verdelune",
       "stars": 2,
-      "power": 6,
-      "damage": 2,
-      "power_text": "Protection : Puissance",
-      "bonus_text": "Victoire : +1 Vie",
+      "power": 7,
+      "damage": 3,
+      "power_text": "Vole 2 Vie",
+      "bonus_text": "Victoire : +2 Vie",
       "illustration": "assets/cards/verdelune/sylfa.png",
-      "info": "Carte solide et stable, peu sensible aux malus adverses.",
+      "info": "Vole de la vie à la victoire.",
       "power_effects": [
         {
-          "trigger": "passive",
+          "trigger": "victory",
           "target": "self",
-          "effect_type": "protection_power",
-          "value": 0
+          "effect_type": "life_gain",
+          "value": 2
+        },
+        {
+          "trigger": "victory",
+          "target": "opponent",
+          "effect_type": "life_loss",
+          "value": 2,
+          "minimum": 0
         }
       ],
       "bonus_effects": [
@@ -761,7 +768,7 @@
           "trigger": "victory",
           "target": "self",
           "effect_type": "life_gain",
-          "value": 1
+          "value": 2
         }
       ]
     },
@@ -771,18 +778,18 @@
       "clan": "Verdelune",
       "stars": 3,
       "power": 8,
-      "damage": 2,
-      "power_text": "-2 Dégâts adv., min. 1",
-      "bonus_text": "Victoire : +1 Vie",
+      "damage": 4,
+      "power_text": "-5 Dégâts adv., min. 2",
+      "bonus_text": "Victoire : +2 Vie",
       "illustration": "assets/cards/verdelune/chene.png",
-      "info": "Grosse pièce défensive, parfaite pour absorber un impact.",
+      "info": "Réduit les gros impacts.",
       "power_effects": [
         {
           "trigger": "passive",
           "target": "opponent",
           "effect_type": "damage_modifier",
-          "value": -2,
-          "minimum": 1
+          "value": -5,
+          "minimum": 2
         }
       ],
       "bonus_effects": [
@@ -790,7 +797,7 @@
           "trigger": "victory",
           "target": "self",
           "effect_type": "life_gain",
-          "value": 1
+          "value": 2
         }
       ]
     },
@@ -799,19 +806,19 @@
       "name": "Druun",
       "clan": "Verdelune",
       "stars": 3,
-      "power": 7,
-      "damage": 3,
-      "power_text": "Victoire : Poison 1, min. 14",
-      "bonus_text": "Victoire : +1 Vie",
+      "power": 6,
+      "damage": 6,
+      "power_text": "Victoire : Poison 3, min. 8",
+      "bonus_text": "Victoire : +2 Vie",
       "illustration": "assets/cards/verdelune/druun.png",
-      "info": "Poison principal du clan, très fort quand il passe tôt.",
+      "info": "Menace poison principale.",
       "power_effects": [
         {
           "trigger": "victory",
           "target": "opponent",
           "effect_type": "poison",
-          "value": 1,
-          "minimum": 14
+          "value": 3,
+          "minimum": 8
         }
       ],
       "bonus_effects": [
@@ -819,7 +826,7 @@
           "trigger": "victory",
           "target": "self",
           "effect_type": "life_gain",
-          "value": 1
+          "value": 2
         }
       ]
     },
@@ -829,17 +836,24 @@
       "clan": "Verdelune",
       "stars": 3,
       "power": 7,
-      "damage": 3,
-      "power_text": "Victoire : +2 Vie",
-      "bonus_text": "Victoire : +1 Vie",
+      "damage": 5,
+      "power_text": "Vole 4 Vie",
+      "bonus_text": "Victoire : +2 Vie",
       "illustration": "assets/cards/verdelune/maelis.png",
-      "info": "Carte de swing de vie, excellente pour creuser l'écart.",
+      "info": "Gros swing de vie en victoire.",
       "power_effects": [
         {
           "trigger": "victory",
           "target": "self",
           "effect_type": "life_gain",
-          "value": 2
+          "value": 4
+        },
+        {
+          "trigger": "victory",
+          "target": "opponent",
+          "effect_type": "life_loss",
+          "value": 4,
+          "minimum": 0
         }
       ],
       "bonus_effects": [
@@ -847,7 +861,7 @@
           "trigger": "victory",
           "target": "self",
           "effect_type": "life_gain",
-          "value": 1
+          "value": 2
         }
       ]
     }
