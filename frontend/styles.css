@@ -1410,6 +1410,21 @@ button:disabled {
   filter: saturate(0.75);
 }
 
+.match-card.played.outcome-won {
+  border-color: rgba(92, 235, 154, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(92, 235, 154, 0.22), 0 0 18px rgba(57, 216, 136, 0.1);
+}
+
+.match-card.played.outcome-lost {
+  border-color: rgba(255, 93, 116, 0.68);
+  box-shadow: inset 0 0 0 1px rgba(255, 93, 116, 0.2), 0 0 18px rgba(255, 64, 93, 0.08);
+}
+
+.match-card.played.outcome-tie {
+  border-color: rgba(255, 205, 89, 0.62);
+  box-shadow: inset 0 0 0 1px rgba(255, 205, 89, 0.18);
+}
+
 .match-card-media {
   position: relative;
 }
@@ -1446,6 +1461,21 @@ button:disabled {
 .match-card-badge.selected,
 .match-card-badge.revealed {
   color: #ffe680;
+}
+
+.match-card-badge.won {
+  color: #8ff0bf;
+  border: 1px solid rgba(92, 235, 154, 0.34);
+}
+
+.match-card-badge.lost {
+  color: #ff91a4;
+  border: 1px solid rgba(255, 93, 116, 0.34);
+}
+
+.match-card-badge.tie {
+  color: #ffe680;
+  border: 1px solid rgba(255, 205, 89, 0.3);
 }
 
 .match-card-content {

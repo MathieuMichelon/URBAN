@@ -194,11 +194,11 @@ function startRoundResolutionAnimation(roundResult) {
   state.resolution.step = "intro";
 
   const steps = [
-    [1000, "pills"],
-    [2000, "attack"],
-    [3000, "winner"],
-    [4000, "effects"],
-    [5400, "done"],
+    [2000, "pills"],
+    [4000, "attack"],
+    [6000, "winner"],
+    [8000, "effects"],
+    [10800, "done"],
   ];
 
   state.resolution.timeoutIds = steps.map(([delay, step]) => window.setTimeout(() => {
@@ -857,7 +857,7 @@ function renderZoneStatus(container, player, { opponent = false } = {}) {
   container.appendChild(panel);
 }
 
-function cardStateLabel({ selected = false, played = false, revealed = false, bonusActive = false }) {
+function cardStateLabel({ selected = false, played = false, revealed = false, bonusActive = false, outcome = null }) {
   if (selected) {
     return { tone: "selected", text: "Sélectionnée" };
   }
@@ -865,6 +865,15 @@ function cardStateLabel({ selected = false, played = false, revealed = false, bo
     return { tone: "revealed", text: "Révélée" };
   }
   if (played) {
+    if (outcome === "won") {
+      return { tone: "won", text: "Gagné" };
+    }
+    if (outcome === "lost") {
+      return { tone: "lost", text: "Perdu" };
+    }
+    if (outcome === "tie") {
+      return { tone: "tie", text: "Égalité" };
+    }
     return { tone: "played", text: "Jouée" };
   }
   return { tone: bonusActive ? "active" : "inactive", text: bonusActive ? "Bonus actif" : "Bonus inactif" };
@@ -989,11 +998,12 @@ function createMatchCardNode(card, options = {}) {
     revealed = false,
     localPlayer = false,
     locked = false,
+    outcome = null,
     onClick = null,
     disabled = false,
   } = options;
   const bonusActive = card.bonus_active ?? false;
-  const stateMeta = cardStateLabel({ selected, played, revealed, bonusActive });
+  const stateMeta = cardStateLabel({ selected, played, revealed, bonusActive, outcome });
   const cardNode = document.createElement("article");
   cardNode.className = [
     "match-card",
@@ -1003,6 +1013,7 @@ function createMatchCardNode(card, options = {}) {
     played ? "played" : "",
     revealed ? "revealed" : "",
     locked ? "locked" : "",
+    outcome ? `outcome-${outcome}` : "",
   ].filter(Boolean).join(" ");
 
   const sideBadge = document.createElement("span");
@@ -1028,6 +1039,34 @@ function createMatchCardNode(card, options = {}) {
   }
 
   return cardNode;
+}
+
+function playedCardOutcomeFor(player, cardId) {
+  if (!player?.played_card_ids?.includes(cardId)) {
+    return null;
+  }
+
+  const result = (state.snapshot?.history ?? []).find((roundResult) => {
+    if (player.player_id === 1) {
+      return roundResult.player_1_card_id === cardId;
+    }
+    if (player.player_id === 2) {
+      return roundResult.player_2_card_id === cardId;
+    }
+    return false;
+  });
+
+  if (!result) {
+    return null;
+  }
+
+  if (result.winner_id === player.player_id) {
+    return "won";
+  }
+  if (result.loser_id === player.player_id) {
+    return "lost";
+  }
+  return "tie";
 }
 
 function createSelectionDetailNode(card) {
@@ -1087,6 +1126,7 @@ function renderMatchHand(container, player, { localPlayer = false } = {}) {
 
   player.hand.slice(0, 4).forEach((card) => {
     const played = player.played_card_ids.includes(card.id);
+    const outcome = played ? playedCardOutcomeFor(player, card.id) : null;
     const selected = localPlayer
       ? state.interaction.selectedCardId === card.id || player.draft_card_id === card.id
       : false;
@@ -1099,6 +1139,7 @@ function renderMatchHand(container, player, { localPlayer = false } = {}) {
         played,
         revealed,
         locked,
+        outcome,
         localPlayer,
         disabled: !canSelect,
         onClick: canSelect ? () => handleLocalCardSelection(player, card) : null,
