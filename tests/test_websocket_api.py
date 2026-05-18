@@ -6,6 +6,23 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from backend.main import create_app
+from core.draft import DRAFT_OFFER_SIZE
+
+
+BALANCED_TEST_ROSTER_IDS = [
+    "glitch",
+    "hexa",
+    "nova_byte",
+    "pix",
+    "boulon",
+    "magna",
+    "atlas",
+    "cendre",
+    "brin",
+    "aster",
+    "chene",
+    "mousse",
+]
 
 
 def _first_valid_team_ids(draft_offer: list[dict[str, object]]) -> list[str]:
@@ -39,18 +56,7 @@ def test_two_players_can_create_draft_join_and_resolve_one_round() -> None:
             _configure_room_cards(
                 app,
                 room_id,
-                [
-                    "glitch",
-                    "pix",
-                    "nox",
-                    "vibe",
-                    "rivet",
-                    "boulon",
-                    "cendre",
-                    "nita",
-                    "mousse",
-                    "rosee",
-                ],
+                BALANCED_TEST_ROSTER_IDS,
             )
 
             initial_snapshot = ws_1.receive_json()
@@ -80,7 +86,7 @@ def test_two_players_can_create_draft_join_and_resolve_one_round() -> None:
                 assert draft_snapshot_1["type"] == "state_snapshot"
                 assert draft_snapshot_2["type"] == "state_snapshot"
                 assert draft_snapshot_1["payload"]["match_state"] == "drafting"
-                assert len(draft_snapshot_1["payload"]["draft_offer"]) == 10
+                assert len(draft_snapshot_1["payload"]["draft_offer"]) == DRAFT_OFFER_SIZE
 
                 team_ids = _first_valid_team_ids(draft_snapshot_1["payload"]["draft_offer"])
 
@@ -245,18 +251,7 @@ def test_draft_selection_and_bonus_preview_are_synchronized_over_websocket() -> 
             _configure_room_cards(
                 app,
                 room_id,
-                [
-                    "glitch",
-                    "pix",
-                    "nox",
-                    "vibe",
-                    "rivet",
-                    "boulon",
-                    "cendre",
-                    "nita",
-                    "mousse",
-                    "rosee",
-                ],
+                BALANCED_TEST_ROSTER_IDS,
             )
             ws_1.receive_json()
 
@@ -298,18 +293,7 @@ def test_invalid_star_cap_team_is_rejected_over_websocket() -> None:
             _configure_room_cards(
                 app,
                 room_id,
-                [
-                    "nova_byte",
-                    "null",
-                    "atlas",
-                    "ferrox",
-                    "kiro",
-                    "druun",
-                    "maelis",
-                    "torque",
-                    "magna",
-                    "sylfa",
-                ],
+                BALANCED_TEST_ROSTER_IDS,
             )
             ws_1.receive_json()
 
@@ -320,7 +304,7 @@ def test_invalid_star_cap_team_is_rejected_over_websocket() -> None:
                 ws_2.receive_json()
                 ws_1.receive_json()
 
-                for card_id in ("nova_byte", "null", "atlas", "ferrox"):
+                for card_id in ("nova_byte", "atlas", "chene", "hexa"):
                     ws_1.send_json({"type": "select_card", "room_id": room_id, "payload": {"card_id": card_id}})
                     ws_1.receive_json()
                     ws_2.receive_json()

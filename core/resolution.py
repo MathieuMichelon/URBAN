@@ -16,7 +16,7 @@ ROUND_RESOLUTION_PIPELINE = (
     "apply_protections",
     "apply_pre_fight_modifiers",
     "compute_final_attacks",
-    "determine_round_outcome",
+    "determine_round_outcome_with_initiative_tie_breaker",
     "apply_victory_and_defeat_effects",
     "apply_poison_and_end_of_round_effects",
     "persist_full_updated_state",
@@ -50,7 +50,7 @@ class RoundResolutionPipeline:
     3. apply protections
     4. apply pre-fight modifiers
     5. compute final attacks
-    6. determine winner / loser / tie
+    6. determine winner / loser, using initiative as the attack tie-breaker
     7. apply victory / defeat effects
     8. apply poison / end-of-round effects
     9. persist the full updated game state

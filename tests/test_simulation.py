@@ -5,7 +5,7 @@ from io import StringIO
 from pathlib import Path
 
 from ai.bot import ScriptedAIChoiceProvider
-from core.draft import build_draft_offer
+from core.draft import DRAFT_OFFER_SIZE, build_draft_offer
 from data.card_repository import load_cards
 from core.models import RoundSelection
 from core.simulation import build_solo_draft_match, simulate_console_match_from_json, simulate_solo_match_with_draft_from_json
@@ -68,7 +68,7 @@ def test_build_solo_draft_match_uses_shared_draft_and_engine(sample_cards) -> No
         draft_seed="solo-mode",
     )
 
-    assert len(setup.offer) == 10
+    assert len(setup.offer) == DRAFT_OFFER_SIZE
     assert [card.id for card in setup.player_1_team] == player_1_draft_ids
     assert [card.id for card in setup.player_2_team] == player_2_draft_ids
     assert len(setup.state.get_player(1).hand) == 4
@@ -109,7 +109,7 @@ def test_solo_draft_simulation_from_json_runs_with_scripted_ai() -> None:
 
     output = stream.getvalue()
     assert "Urban Duel Solo Draft Simulation" in output
-    assert "Draft offer size: 10" in output
+    assert f"Draft offer size: {DRAFT_OFFER_SIZE}" in output
     assert "Drafted teams -> P1:" in output
     assert "Round 1" in output
     assert "Final result:" in output

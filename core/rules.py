@@ -9,7 +9,7 @@ from core.errors import (
 )
 from core.models import Card, GameState, PlayerState, RoundSelection
 
-STARTING_HIT_POINTS = 20
+STARTING_HIT_POINTS = 16
 STARTING_PILLS = 12
 HAND_SIZE = 4
 MAX_ROUNDS = 4

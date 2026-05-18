@@ -11,15 +11,15 @@ from core.errors import CardNotFoundError, InvalidGameSetupError, InvalidMoveErr
 from core.effects import compute_active_clans
 from core.models import Card
 
-DRAFT_OFFER_SIZE = 10
+DRAFT_OFFER_SIZE = 12
 TEAM_SIZE = 4
 TEAM_STAR_CAP = 8
 DRAFT_MIN_STAR_DISTRIBUTION = {
-    3: 2,
+    3: 3,
     2: 3,
-    1: 2,
+    1: 3,
 }
-DRAFT_MIN_CLAN_DISTRIBUTION = 2
+DRAFT_MIN_CLAN_DISTRIBUTION = 3
 
 
 @dataclass(frozen=True, slots=True)
@@ -269,7 +269,7 @@ def _build_balanced_offer(
     *,
     roster_clans: set[str],
 ) -> list[Card] | None:
-    """Sample a 10-card offer with enough clan and star variety."""
+    """Sample an offer with enough clan and star variety."""
     selected: list[Card] = []
     selected_ids: set[str] = set()
 

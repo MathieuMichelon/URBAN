@@ -6,7 +6,7 @@ from core.engine import GameEngine
 from core.enums import GameStatus, RoundOutcome
 from core.errors import CardAlreadyPlayedError, GameAlreadyFinishedError, InvalidGameSetupError, NotEnoughPillsError
 from core.models import Card, RoundSelection
-from core.rules import compute_attack
+from core.rules import STARTING_HIT_POINTS, compute_attack
 
 
 def _simple_hand(card_factory, prefix: str, stats: list[tuple[int, int]]) -> list[Card]:
@@ -32,6 +32,7 @@ def test_game_initialization_sets_expected_default_values(card_factory) -> None:
     state = engine.create_game(
         _simple_hand(card_factory, "p1c", [(7, 4), (6, 5), (8, 3), (5, 6)]),
         _simple_hand(card_factory, "p2c", [(7, 2), (6, 4), (4, 7), (8, 3)]),
+        starting_initiative_player_id=2,
     )
 
     assert state.current_round == 1
@@ -40,10 +41,10 @@ def test_game_initialization_sets_expected_default_values(card_factory) -> None:
     assert state.status is GameStatus.IN_PROGRESS
     assert state.winner_id is None
     assert state.history == []
-    assert state.get_player(1).hit_points == 20
+    assert state.get_player(1).hit_points == STARTING_HIT_POINTS
     assert state.get_player(1).pills == 12
     assert len(state.get_player(1).available_cards()) == 4
-    assert state.get_player(2).hit_points == 20
+    assert state.get_player(2).hit_points == STARTING_HIT_POINTS
     assert state.get_player(2).pills == 12
     assert len(state.get_player(2).available_cards()) == 4
 
@@ -92,6 +93,7 @@ def test_game_initialization_randomizes_starting_player(card_factory, monkeypatc
     state = engine.create_game(
         _simple_hand(card_factory, "p1c", [(7, 4), (6, 5), (8, 3), (5, 6)]),
         _simple_hand(card_factory, "p2c", [(7, 2), (6, 4), (4, 7), (8, 3)]),
+        starting_initiative_player_id=2,
     )
 
     assert state.starting_initiative_player_id == 2
@@ -143,7 +145,7 @@ def test_play_round_applies_damage_and_consumes_pills(card_factory) -> None:
     assert result.damage_dealt == 4
     assert state.get_player(1).pills == 9
     assert state.get_player(2).pills == 10
-    assert state.get_player(2).hit_points == 16
+    assert state.get_player(2).hit_points == STARTING_HIT_POINTS - 4
     assert "p1c1" in state.get_player(1).played_card_ids
     assert "p2c1" in state.get_player(2).played_card_ids
     assert state.current_round == 2
@@ -177,7 +179,7 @@ def test_overload_consumes_extra_pills_without_changing_attack(card_factory) -> 
     assert result.player_1_overload is True
     assert result.player_2_overload is False
     assert state.get_player(1).pills == 8
-    assert state.get_player(2).hit_points == 12
+    assert state.get_player(2).hit_points == STARTING_HIT_POINTS - 8
 
 
 def test_overload_does_not_add_damage_when_overloaded_card_loses(card_factory) -> None:
@@ -199,15 +201,16 @@ def test_overload_does_not_add_damage_when_overloaded_card_loses(card_factory) -
     assert result.overload_damage_bonus == 0
     assert result.player_1_overload is True
     assert state.get_player(1).pills == 8
-    assert state.get_player(1).hit_points == 18
+    assert state.get_player(1).hit_points == STARTING_HIT_POINTS - 2
 
 
-def test_overload_does_not_add_damage_on_tie(card_factory) -> None:
-    """A tied round should consume Overload but deal no bonus damage."""
+def test_overload_does_not_add_damage_when_attack_tie_is_lost_by_non_initiative(card_factory) -> None:
+    """An attack tie should be won by initiative, so the non-initiative Overload still loses."""
     engine = GameEngine()
     state = engine.create_game(
         _simple_hand(card_factory, "p1c", [(5, 5), (6, 5), (8, 3), (5, 6)]),
         _simple_hand(card_factory, "p2c", [(5, 2), (6, 4), (4, 7), (8, 3)]),
+        starting_initiative_player_id=2,
     )
 
     result = engine.play_round(
@@ -216,11 +219,13 @@ def test_overload_does_not_add_damage_on_tie(card_factory) -> None:
         player_2_selection=RoundSelection(card_id="p2c1", pills_committed=2),
     )
 
-    assert result.outcome is RoundOutcome.TIE
-    assert result.damage_dealt == 0
+    assert result.outcome is RoundOutcome.PLAYER_2_WINS
+    assert result.winner_id == 2
+    assert result.damage_dealt == 2
     assert result.overload_damage_bonus == 0
     assert state.get_player(1).pills == 8
-    assert state.get_player(2).hit_points == 20
+    assert state.get_player(2).hit_points == STARTING_HIT_POINTS
+    assert state.get_player(1).hit_points == STARTING_HIT_POINTS - 2
 
 
 def test_overload_rejects_total_cost_above_available_pills(card_factory) -> None:
@@ -278,12 +283,13 @@ def test_play_round_rejects_spending_more_pills_than_available(card_factory) -> 
         )
 
 
-def test_play_round_handles_tie_without_damage_or_winner(card_factory) -> None:
-    """Equal attacks should consume resources but deal no damage."""
+def test_play_round_awards_equal_attack_to_initiative_player(card_factory) -> None:
+    """Equal attacks should be broken by the player who had initiative."""
     engine = GameEngine()
     state = engine.create_game(
         _simple_hand(card_factory, "p1c", [(7, 4), (6, 5), (8, 3), (5, 6)]),
         _simple_hand(card_factory, "p2c", [(7, 2), (6, 4), (4, 7), (8, 3)]),
+        starting_initiative_player_id=1,
     )
 
     result = engine.play_round(
@@ -292,15 +298,38 @@ def test_play_round_handles_tie_without_damage_or_winner(card_factory) -> None:
         player_2_selection=RoundSelection(card_id="p2c2", pills_committed=2),
     )
 
-    assert result.outcome is RoundOutcome.TIE
-    assert result.winner_id is None
-    assert result.loser_id is None
-    assert result.damage_dealt == 0
-    assert state.get_player(1).hit_points == 20
-    assert state.get_player(2).hit_points == 20
+    assert result.outcome is RoundOutcome.PLAYER_1_WINS
+    assert result.winner_id == 1
+    assert result.loser_id == 2
+    assert result.damage_dealt == 5
+    assert state.get_player(1).hit_points == STARTING_HIT_POINTS
+    assert state.get_player(2).hit_points == STARTING_HIT_POINTS - 5
     assert state.get_player(1).pills == 10
     assert state.get_player(2).pills == 10
     assert state.current_round == 2
+
+
+def test_play_round_awards_equal_attack_to_player_2_when_player_2_has_initiative(card_factory) -> None:
+    """The initiative tie-breaker should work for either starting player."""
+    engine = GameEngine()
+    state = engine.create_game(
+        _simple_hand(card_factory, "p1c", [(7, 4), (6, 5), (8, 3), (5, 6)]),
+        _simple_hand(card_factory, "p2c", [(7, 2), (6, 4), (4, 7), (8, 3)]),
+        starting_initiative_player_id=2,
+    )
+
+    result = engine.play_round(
+        state=state,
+        player_1_selection=RoundSelection(card_id="p1c2", pills_committed=2),
+        player_2_selection=RoundSelection(card_id="p2c2", pills_committed=2),
+    )
+
+    assert result.outcome is RoundOutcome.PLAYER_2_WINS
+    assert result.winner_id == 2
+    assert result.loser_id == 1
+    assert result.damage_dealt == 4
+    assert state.get_player(1).hit_points == STARTING_HIT_POINTS - 4
+    assert state.get_player(2).hit_points == STARTING_HIT_POINTS
 
 
 def test_play_round_stops_immediately_when_a_player_reaches_zero_hit_points(card_factory) -> None:
@@ -356,8 +385,8 @@ def test_game_uses_score_to_pick_the_winner_after_four_rounds(card_factory) -> N
     assert result.round_number == 4
     assert state.status is GameStatus.PLAYER_1_WON
     assert state.winner_id == 1
-    assert state.get_player(1).hit_points == 17
-    assert state.get_player(2).hit_points == 14
+    assert state.get_player(1).hit_points == STARTING_HIT_POINTS - 3
+    assert state.get_player(2).hit_points == STARTING_HIT_POINTS - 6
     assert state.current_round == 4
     assert len(state.history) == 4
 
@@ -368,6 +397,7 @@ def test_complete_match_keeps_history_resources_and_played_cards_consistent(card
     state = engine.create_game(
         _simple_hand(card_factory, "p1c", [(7, 4), (6, 5), (8, 3), (5, 6)]),
         _simple_hand(card_factory, "p2c", [(7, 2), (6, 4), (4, 7), (8, 3)]),
+        starting_initiative_player_id=2,
     )
 
     scripted_rounds = [
@@ -387,8 +417,8 @@ def test_complete_match_keeps_history_resources_and_played_cards_consistent(card
     assert [round_result.round_number for round_result in state.history] == [1, 2, 3, 4]
     assert state.get_player(1).pills == 0
     assert state.get_player(2).pills == 4
-    assert state.get_player(1).hit_points == 17
-    assert state.get_player(2).hit_points == 13
+    assert state.get_player(1).hit_points == STARTING_HIT_POINTS - 3
+    assert state.get_player(2).hit_points == STARTING_HIT_POINTS - 12
     assert state.get_player(1).played_card_ids == {"p1c1", "p1c2", "p1c3", "p1c4"}
     assert state.get_player(2).played_card_ids == {"p2c1", "p2c2", "p2c3", "p2c4"}
     assert state.get_player(1).available_cards() == []

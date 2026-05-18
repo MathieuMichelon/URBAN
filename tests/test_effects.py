@@ -3,6 +3,7 @@
 from core.effects import compute_active_clans, describe_effects
 from core.engine import GameEngine
 from core.models import EffectDefinition, RoundSelection
+from core.rules import STARTING_HIT_POINTS
 
 
 def test_bonus_activation_requires_two_cards_from_same_clan(card_factory) -> None:
@@ -356,7 +357,7 @@ def test_victory_and_defeat_triggers_apply_life_and_pill_gain(card_factory) -> N
     assert result.winner_id == 1
     assert result.life_swing_player_1 == 2
     assert result.pills_gained_player_2 == 3
-    assert state.get_player(1).hit_points == 22
+    assert state.get_player(1).hit_points == STARTING_HIT_POINTS + 2
     assert state.get_player(2).pills == 14
 
 
@@ -470,7 +471,7 @@ def test_poison_applies_after_damage_and_ticks_on_following_rounds(card_factory)
 
     assert first_result.winner_id == 1
     assert first_result.life_swing_player_2 == -2
-    assert state.get_player(2).hit_points == 16
+    assert state.get_player(2).hit_points == STARTING_HIT_POINTS - 4
     assert state.get_player(2).poison is not None
 
     second_result = engine.play_round(
@@ -481,7 +482,7 @@ def test_poison_applies_after_damage_and_ticks_on_following_rounds(card_factory)
 
     assert second_result.winner_id == 1
     assert second_result.life_swing_player_2 == -2
-    assert state.get_player(2).hit_points == 13
+    assert state.get_player(2).hit_points == STARTING_HIT_POINTS - 7
 
 
 def test_describe_effects_returns_ui_readable_power_and_bonus_text() -> None:

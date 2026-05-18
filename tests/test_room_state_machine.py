@@ -5,7 +5,7 @@ from itertools import combinations
 
 import pytest
 
-from core.draft import TEAM_STAR_CAP
+from core.draft import DRAFT_OFFER_SIZE, TEAM_STAR_CAP
 from core.errors import InvalidMoveError
 from rooms.state_machine import RoomStateMachine
 from rooms.states import MatchState, PlayerRoomState
@@ -31,9 +31,38 @@ def _first_valid_team_ids(offer) -> list[str]:
 
 
 def _build_online_test_roster(sample_cards, card_ids: list[str]):
-    """Return a deterministic 10-card roster used to stabilize online draft tests."""
+    """Return a deterministic roster used to stabilize online draft tests."""
     cards_by_id = {card.id: card for card in sample_cards}
     return [cards_by_id[card_id] for card_id in card_ids]
+
+
+def _balanced_online_test_roster(sample_cards):
+    """Return a 12-card roster satisfying the draft clan and star constraints."""
+    return _build_online_test_roster(
+        sample_cards,
+        [
+            "glitch",
+            "hexa",
+            "nova_byte",
+            "pix",
+            "boulon",
+            "magna",
+            "atlas",
+            "cendre",
+            "brin",
+            "aster",
+            "chene",
+            "mousse",
+        ],
+    )
+
+
+def _first_invalid_star_cap_team_ids(offer) -> list[str]:
+    """Return the first 4-card team that exceeds the legal star cap."""
+    for team in combinations(offer, 4):
+        if sum(card.stars for card in team) > TEAM_STAR_CAP:
+            return [card.id for card in team]
+    raise AssertionError("Expected at least one illegal over-cap team in the draft offer.")
 
 
 def _team_ids_with_active_bonus(offer) -> list[str]:
@@ -64,7 +93,7 @@ def test_joining_second_player_starts_drafting(sample_cards) -> None:
     assert room.players[1].state is PlayerRoomState.SELECTING
     assert room.players[2].state is PlayerRoomState.SELECTING
     assert room.draft_phase is not None
-    assert len(room.draft_phase.offer) == 10
+    assert len(room.draft_phase.offer) == DRAFT_OFFER_SIZE
 
 
 def test_first_draft_confirmation_keeps_room_in_drafting(sample_cards) -> None:
@@ -90,21 +119,7 @@ def test_draft_snapshot_shows_shared_offer_and_bonus_preview(sample_cards) -> No
     machine = RoomStateMachine()
     room, _ = machine.create_room(
         "ROOM01",
-        cards=_build_online_test_roster(
-            sample_cards,
-            [
-                "glitch",
-                "pix",
-                "nox",
-                "vibe",
-                "rivet",
-                "boulon",
-                "cendre",
-                "nita",
-                "mousse",
-                "rosee",
-            ],
-        ),
+        cards=_balanced_online_test_roster(sample_cards),
         player_name="Alice",
     )
     machine.join_room(room, player_name="Bob")
@@ -134,21 +149,7 @@ def test_two_valid_locked_draft_teams_start_online_match(sample_cards) -> None:
     machine = RoomStateMachine()
     room, _ = machine.create_room(
         "ROOM01",
-        cards=_build_online_test_roster(
-            sample_cards,
-            [
-                "glitch",
-                "pix",
-                "nox",
-                "vibe",
-                "rivet",
-                "boulon",
-                "cendre",
-                "nita",
-                "mousse",
-                "rosee",
-            ],
-        ),
+        cards=_balanced_online_test_roster(sample_cards),
         player_name="Alice",
     )
     machine.join_room(room, player_name="Bob")
@@ -173,30 +174,17 @@ def test_invalid_star_cap_team_is_rejected_during_online_draft(sample_cards) -> 
     machine = RoomStateMachine()
     room, _ = machine.create_room(
         "ROOM01",
-        cards=_build_online_test_roster(
-            sample_cards,
-            [
-                "nova_byte",
-                "null",
-                "atlas",
-                "ferrox",
-                "kiro",
-                "druun",
-                "maelis",
-                "torque",
-                "magna",
-                "sylfa",
-            ],
-        ),
+        cards=_balanced_online_test_roster(sample_cards),
         player_name="Alice",
     )
     machine.join_room(room, player_name="Bob")
+    assert room.draft_phase is not None
 
     _select_team(
         machine,
         room,
         player_id=1,
-        card_ids=["nova_byte", "null", "atlas", "ferrox"],
+        card_ids=_first_invalid_star_cap_team_ids(room.draft_phase.offer),
     )
 
     with pytest.raises(InvalidMoveError, match="cannot exceed 8 stars"):

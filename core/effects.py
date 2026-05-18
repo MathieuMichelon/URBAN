@@ -148,17 +148,22 @@ def resolve_round_effects(
     player_1_attack = fighter_1.attack
     player_2_attack = fighter_2.attack
 
-    outcome = RoundOutcome.TIE
-    winner_id = None
-    loser_id = None
-    damage_dealt = 0
-
     if player_1_attack > player_2_attack:
         outcome = RoundOutcome.PLAYER_1_WINS
         winner_id = 1
         loser_id = 2
         damage_dealt = fighter_1.effective_damage
     elif player_2_attack > player_1_attack:
+        outcome = RoundOutcome.PLAYER_2_WINS
+        winner_id = 2
+        loser_id = 1
+        damage_dealt = fighter_2.effective_damage
+    elif state.initiative_player_id == 1:
+        outcome = RoundOutcome.PLAYER_1_WINS
+        winner_id = 1
+        loser_id = 2
+        damage_dealt = fighter_1.effective_damage
+    else:
         outcome = RoundOutcome.PLAYER_2_WINS
         winner_id = 2
         loser_id = 1
