@@ -4,7 +4,7 @@ import pytest
 
 from core.engine import GameEngine
 from core.enums import GameStatus, RoundOutcome
-from core.errors import CardAlreadyPlayedError, GameAlreadyFinishedError, NotEnoughPillsError
+from core.errors import CardAlreadyPlayedError, GameAlreadyFinishedError, InvalidGameSetupError, NotEnoughPillsError
 from core.models import Card, RoundSelection
 from core.rules import compute_attack
 
@@ -35,6 +35,8 @@ def test_game_initialization_sets_expected_default_values(card_factory) -> None:
     )
 
     assert state.current_round == 1
+    assert state.starting_initiative_player_id in {1, 2}
+    assert state.initiative_player_id == state.starting_initiative_player_id
     assert state.status is GameStatus.IN_PROGRESS
     assert state.winner_id is None
     assert state.history == []
@@ -46,12 +48,75 @@ def test_game_initialization_sets_expected_default_values(card_factory) -> None:
     assert len(state.get_player(2).available_cards()) == 4
 
 
-def test_compute_attack_multiplies_power_by_committed_pills(card_factory) -> None:
-    """Attack should be the card power multiplied by the spent pills."""
+def test_game_initialization_can_force_player_1_to_start_and_alternates_initiative(card_factory) -> None:
+    """Player 1 can be forced to start and initiative then alternates every round."""
+    engine = GameEngine()
+    state = engine.create_game(
+        _simple_hand(card_factory, "p1c", [(7, 4), (6, 5), (8, 3), (5, 6)]),
+        _simple_hand(card_factory, "p2c", [(7, 2), (6, 4), (4, 7), (8, 3)]),
+        starting_initiative_player_id=1,
+    )
+
+    assert state.initiative_player_id == 1
+    state.current_round = 2
+    assert state.initiative_player_id == 2
+    state.current_round = 3
+    assert state.initiative_player_id == 1
+    state.current_round = 4
+    assert state.initiative_player_id == 2
+
+
+def test_game_initialization_can_force_player_2_to_start_and_alternates_initiative(card_factory) -> None:
+    """Player 2 can be forced to start and initiative then alternates every round."""
+    engine = GameEngine()
+    state = engine.create_game(
+        _simple_hand(card_factory, "p1c", [(7, 4), (6, 5), (8, 3), (5, 6)]),
+        _simple_hand(card_factory, "p2c", [(7, 2), (6, 4), (4, 7), (8, 3)]),
+        starting_initiative_player_id=2,
+    )
+
+    assert state.initiative_player_id == 2
+    state.current_round = 2
+    assert state.initiative_player_id == 1
+    state.current_round = 3
+    assert state.initiative_player_id == 2
+    state.current_round = 4
+    assert state.initiative_player_id == 1
+
+
+def test_game_initialization_randomizes_starting_player(card_factory, monkeypatch) -> None:
+    """When no starting player is provided, the engine should draw one server-side."""
+    monkeypatch.setattr("core.engine.secrets.choice", lambda choices: 2)
+    engine = GameEngine()
+
+    state = engine.create_game(
+        _simple_hand(card_factory, "p1c", [(7, 4), (6, 5), (8, 3), (5, 6)]),
+        _simple_hand(card_factory, "p2c", [(7, 2), (6, 4), (4, 7), (8, 3)]),
+    )
+
+    assert state.starting_initiative_player_id == 2
+    assert state.initiative_player_id == 2
+
+
+def test_game_initialization_rejects_invalid_starting_player(card_factory) -> None:
+    """Explicit invalid initiative seeds should be rejected instead of silently randomized."""
+    engine = GameEngine()
+
+    with pytest.raises(InvalidGameSetupError, match="Starting initiative player"):
+        engine.create_game(
+            _simple_hand(card_factory, "p1c", [(7, 4), (6, 5), (8, 3), (5, 6)]),
+            _simple_hand(card_factory, "p2c", [(7, 2), (6, 4), (4, 7), (8, 3)]),
+            starting_initiative_player_id=0,
+        )
+
+
+def test_compute_attack_uses_one_base_multiplier_plus_committed_pills(card_factory) -> None:
+    """Attack should use card power multiplied by one plus committed pills."""
     card = card_factory("attacker", power=7, damage=4)
 
-    assert compute_attack(card, 0) == 0
-    assert compute_attack(card, 3) == 21
+    assert compute_attack(card, 0) == 7
+    assert compute_attack(card, 1) == 14
+    assert compute_attack(card, 2) == 21
 
 
 def test_play_round_applies_damage_and_consumes_pills(card_factory) -> None:
@@ -71,8 +136,8 @@ def test_play_round_applies_damage_and_consumes_pills(card_factory) -> None:
     assert result.outcome is RoundOutcome.PLAYER_1_WINS
     assert result.winner_id == 1
     assert result.loser_id == 2
-    assert result.player_1_attack == 21
-    assert result.player_2_attack == 14
+    assert result.player_1_attack == 28
+    assert result.player_2_attack == 21
     assert result.player_1_pills_committed == 3
     assert result.player_2_pills_committed == 2
     assert result.damage_dealt == 4
@@ -102,16 +167,16 @@ def test_overload_consumes_extra_pills_without_changing_attack(card_factory) -> 
 
     result = engine.play_round(
         state=state,
-        player_1_selection=RoundSelection(card_id="p1c1", pills_committed=4, overload=True),
+        player_1_selection=RoundSelection(card_id="p1c1", pills_committed=2, overload=True),
         player_2_selection=RoundSelection(card_id="p2c1", pills_committed=1),
     )
 
-    assert result.player_1_attack == 28
+    assert result.player_1_attack == 21
     assert result.damage_dealt == 8
     assert result.overload_damage_bonus == 3
     assert result.player_1_overload is True
     assert result.player_2_overload is False
-    assert state.get_player(1).pills == 6
+    assert state.get_player(1).pills == 8
     assert state.get_player(2).hit_points == 12
 
 

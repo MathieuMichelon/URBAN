@@ -6,23 +6,63 @@ from itertools import combinations
 import pytest
 
 from core.draft import DraftPhase, TEAM_SIZE, TEAM_STAR_CAP, build_draft_offer
-from core.errors import InvalidMoveError
+from core.errors import InvalidGameSetupError, InvalidMoveError
 
 
 def test_build_draft_offer_returns_ten_cards_and_supports_a_legal_team(sample_cards) -> None:
     """A generated draft offer should expose ten varied cards and at least one legal team."""
     offer = build_draft_offer(sample_cards, seed="ROOM42")
     star_counts = Counter(card.stars for card in offer)
+    clan_counts = Counter(card.clan for card in offer)
 
     assert len(offer) == 10
     assert len({card.id for card in offer}) == 10
     assert star_counts[3] >= 2
     assert star_counts[2] >= 3
     assert star_counts[1] >= 2
+    assert all(clan_counts[clan] >= 2 for clan in {card.clan for card in sample_cards})
     assert any(
         sum(card.stars for card in team) <= TEAM_STAR_CAP
         for team in combinations(offer, TEAM_SIZE)
     )
+
+
+def test_build_draft_offer_consistently_keeps_size_uniqueness_stars_clans_and_legal_team(sample_cards) -> None:
+    """Draft offers should combine all balancing constraints without duplicates."""
+    for seed in range(20):
+        offer = build_draft_offer(sample_cards, seed=seed)
+        star_counts = Counter(card.stars for card in offer)
+        clan_counts = Counter(card.clan for card in offer)
+
+        assert len(offer) == 10
+        assert len({card.id for card in offer}) == 10
+        assert star_counts[3] >= 2
+        assert star_counts[2] >= 3
+        assert star_counts[1] >= 2
+        assert all(clan_counts[clan] >= 2 for clan in {card.clan for card in sample_cards})
+        assert any(
+            sum(card.stars for card in team) <= TEAM_STAR_CAP
+            for team in combinations(offer, TEAM_SIZE)
+        )
+
+
+def test_build_draft_offer_rejects_roster_without_enough_cards_in_each_clan(card_factory) -> None:
+    """A clear setup error should be raised when any roster clan cannot supply two cards."""
+    roster = [
+        card_factory("alpha_1", clan="Alpha", stars=1),
+        card_factory("beta_1", clan="Beta", stars=1),
+        card_factory("beta_2", clan="Beta", stars=2),
+        card_factory("beta_3", clan="Beta", stars=2),
+        card_factory("beta_4", clan="Beta", stars=3),
+        card_factory("beta_5", clan="Beta", stars=3),
+        card_factory("gamma_1", clan="Gamma", stars=1),
+        card_factory("gamma_2", clan="Gamma", stars=2),
+        card_factory("gamma_3", clan="Gamma", stars=3),
+        card_factory("gamma_4", clan="Gamma", stars=1),
+    ]
+
+    with pytest.raises(InvalidGameSetupError, match="at least 2 cards for each clan"):
+        build_draft_offer(roster, seed="bad-clan")
 
 
 def test_draft_phase_tracks_selection_validation(card_factory) -> None:

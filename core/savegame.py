@@ -28,6 +28,7 @@ def serialize_game_state(state: GameState) -> dict[str, object]:
         "version": SAVE_VERSION,
         "game_state": {
             "current_round": state.current_round,
+            "starting_initiative_player_id": state.starting_initiative_player_id,
             "status": state.status.value,
             "winner_id": state.winner_id,
             "players": {
@@ -64,6 +65,17 @@ def deserialize_game_state(payload: object) -> GameState:
         raise SaveGameFormatError("'game_state' must be a JSON object.")
 
     current_round = _read_required_int(raw_state, key="current_round", context="game_state")
+    starting_initiative_player_id = _read_optional_int(
+        raw_state,
+        key="starting_initiative_player_id",
+        context="game_state",
+    )
+    if starting_initiative_player_id is None:
+        starting_initiative_player_id = _read_optional_int(
+            raw_state,
+            key="starting_player_id",
+            context="game_state",
+        ) or 1
     status = _read_enum(raw_state, key="status", enum_type=GameStatus, context="game_state")
     winner_id = _read_optional_player_id(raw_state, key="winner_id", context="game_state")
 
@@ -89,6 +101,7 @@ def deserialize_game_state(payload: object) -> GameState:
         state = GameState(
             players=players,
             current_round=current_round,
+            starting_initiative_player_id=starting_initiative_player_id,
             history=history,
             status=status,
             winner_id=winner_id,

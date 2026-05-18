@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import secrets
 
 from core.effects import apply_round_aftermath, compute_active_clans, resolve_round_effects
 from core.enums import GameStatus, RoundOutcome
@@ -53,10 +54,18 @@ class _RoundComputation:
 class GameEngine:
     """Resolve rounds and update the game state."""
 
-    def create_game(self, player_1_hand: list[Card], player_2_hand: list[Card]) -> GameState:
+    def create_game(
+        self,
+        player_1_hand: list[Card],
+        player_2_hand: list[Card],
+        *,
+        starting_initiative_player_id: int | None = None,
+    ) -> GameState:
         """Create a fresh game state for two players."""
         validate_hand(player_1_hand)
         validate_hand(player_2_hand)
+        if starting_initiative_player_id is None:
+            starting_initiative_player_id = secrets.choice((1, 2))
 
         players = {
             1: PlayerState(
@@ -74,7 +83,7 @@ class GameEngine:
                 active_clan_bonuses=compute_active_clans(player_2_hand),
             ),
         }
-        return GameState(players=players)
+        return GameState(players=players, starting_initiative_player_id=starting_initiative_player_id)
 
     def export_state(self, state: GameState) -> dict[str, object]:
         """Return a JSON-serializable snapshot of the current game state."""

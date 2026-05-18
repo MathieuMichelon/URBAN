@@ -55,6 +55,8 @@ const elements = {
   selectionDetail: document.querySelector("#selection-detail"),
   selectionControls: document.querySelector("#selection-controls"),
   battleResolution: document.querySelector("#battle-resolution"),
+  playerZone: document.querySelector(".player-zone"),
+  opponentZone: document.querySelector(".opponent-zone"),
   localHand: document.querySelector("#local-hand"),
   opponentHand: document.querySelector("#opponent-hand"),
   playerIdentity: document.querySelector("#player-identity"),
@@ -77,6 +79,44 @@ const elements = {
   resetSelectionButton: document.querySelector("#reset-selection-button"),
   pillsControl: document.querySelector("#pills-control"),
 };
+
+function ensureMatchSideChrome() {
+  const sides = [
+    { element: elements.playerZone, sideClass: "local-side", label: "TES CARTES" },
+    { element: elements.opponentZone, sideClass: "opponent-side", label: "CARTES ADVERSAIRE" },
+  ];
+
+  sides.forEach(({ element, sideClass, label }) => {
+    if (!element) {
+      return;
+    }
+
+    element.classList.add(sideClass);
+    let sideLabel = element.querySelector(":scope > .side-label");
+    if (!sideLabel) {
+      sideLabel = document.createElement("div");
+      sideLabel.className = "side-label";
+      element.insertBefore(sideLabel, element.firstChild);
+    }
+    sideLabel.textContent = label;
+  });
+}
+
+function syncMatchSideState(localPlayer, opponent) {
+  const pairs = [
+    { element: elements.playerZone, player: localPlayer },
+    { element: elements.opponentZone, player: opponent },
+  ];
+
+  pairs.forEach(({ element, player }) => {
+    if (!element) {
+      return;
+    }
+
+    element.classList.toggle("side-must-act", player?.player_state === "selecting");
+    element.classList.toggle("side-locked", Boolean(player?.ready));
+  });
+}
 
 function buildDefaultWebSocketUrl() {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -151,13 +191,14 @@ function startRoundResolutionAnimation(roundResult) {
   clearRoundResolutionAnimation();
   state.resolution.active = true;
   state.resolution.roundResult = roundResult;
-  state.resolution.step = "cards";
+  state.resolution.step = "intro";
 
   const steps = [
-    [700, "stats"],
-    [1500, "winner"],
-    [2500, "effects"],
-    [3600, "done"],
+    [1000, "pills"],
+    [2000, "attack"],
+    [3000, "winner"],
+    [4000, "effects"],
+    [5400, "done"],
   ];
 
   state.resolution.timeoutIds = steps.map(([delay, step]) => window.setTimeout(() => {
@@ -198,7 +239,7 @@ function buildSelectionProjection(localPlayer, selectedCard) {
 
   return {
     selectedName: selectedCard?.name ?? "aucune",
-    projectedAttack: selectedCard ? selectedCard.power * attackPills : "-",
+    projectedAttack: selectedCard ? selectedCard.power * (attackPills + 1) : "-",
     projectedDamage: selectedCard ? selectedCard.damage + (overloadActive ? OVERLOAD_DAMAGE_BONUS : 0) : "-",
     attackPills,
     overloadCost,
@@ -207,6 +248,88 @@ function buildSelectionProjection(localPlayer, selectedCard) {
     overloadActive,
     bonusState: selectedCard ? (selectedCard.bonus_active ? "actif" : "inactif") : "-",
   };
+}
+
+function getTurnStatusMessage(snapshot, localPlayer, opponent) {
+  if (!snapshot) {
+    return { text: "En attente de la partie.", tone: "waiting" };
+  }
+
+  const matchState = snapshot.match_state;
+  if (matchState === "waiting_for_players") {
+    return { text: "En attente d'un second joueur.", tone: "waiting" };
+  }
+
+  if (matchState === "drafting") {
+    const lockedCount = snapshot.draft_locked_player_ids?.length ?? 0;
+    return {
+      text: `Draft en cours : compose 4 cartes pour 8 stars max. Equipes verrouillées : ${lockedCount}/2.`,
+      tone: "your-turn",
+    };
+  }
+
+  if (matchState === "round_resolution" || state.resolution.active) {
+    return { text: "Les deux joueurs ont confirmé, résolution du round...", tone: "resolving" };
+  }
+
+  if (matchState === "game_over") {
+    const result = snapshot.winner_id === null
+      ? "Partie annulée."
+      : snapshot.winner_id === snapshot.local_player_id ? "Victoire." : "Défaite.";
+    return { text: result, tone: snapshot.winner_id === snapshot.local_player_id ? "your-turn" : "waiting" };
+  }
+
+  const localReady = Boolean(localPlayer?.ready);
+  const opponentReady = Boolean(opponent?.ready);
+  const opponentCardRevealed = Boolean(opponent?.draft_card_id);
+  const localSelected = Boolean(state.interaction.selectedCardId || localPlayer?.draft_card_id);
+  const localCanSelect = localPlayer?.player_state === "selecting";
+  const localHasInitiative = snapshot.initiative_player_id === snapshot.local_player_id;
+
+  if (localReady && opponentReady) {
+    return { text: "Les deux joueurs ont confirmé, résolution du round...", tone: "resolving" };
+  }
+
+  if (localReady) {
+    return { text: "En attente du choix adverse. Ta carte est verrouillée côté serveur.", tone: "waiting" };
+  }
+
+  if (opponentReady && opponentCardRevealed) {
+    return {
+      text: "Carte adverse révélée : l'adversaire a confirmé, à toi de répondre.",
+      tone: "revealed",
+    };
+  }
+
+  if (opponentReady) {
+    return {
+      text: "L'adversaire a choisi une carte. Elle reste cachée tant qu'elle n'est pas révélée par l'initiative.",
+      tone: "opponent-ready",
+    };
+  }
+
+  if (!localCanSelect && !localHasInitiative) {
+    return {
+      text: "En attente du choix adverse : l'adversaire a l'initiative et doit confirmer en premier.",
+      tone: "waiting",
+    };
+  }
+
+  if (localSelected) {
+    return {
+      text: localHasInitiative ? "Tu dois confirmer ton choix. Tu as l'initiative." : "Tu dois confirmer ton choix.",
+      tone: "your-turn",
+    };
+  }
+
+  if (localCanSelect) {
+    return {
+      text: localHasInitiative ? "À toi de choisir une carte. Tu as l'initiative." : "À toi de choisir une carte.",
+      tone: "your-turn",
+    };
+  }
+
+  return { text: "En attente du choix adverse.", tone: "waiting" };
 }
 
 function formatTotalPillCost(projection) {
@@ -357,6 +480,9 @@ function handleServerMessage(message) {
       addLog("La partie commence.");
       break;
     case "state_snapshot":
+      if (state.resolution.active) {
+        clearRoundResolutionAnimation();
+      }
       state.snapshot = payload;
       break;
     case "player_ready":
@@ -369,6 +495,9 @@ function handleServerMessage(message) {
       addLog(`Round ${payload.round_result.round_number} résolu.`);
       break;
     case "game_finished":
+      if (state.resolution.active) {
+        clearRoundResolutionAnimation();
+      }
       state.snapshot = payload.state;
       addLog(payload.winner_id ? `Partie terminée. Gagnant: joueur ${payload.winner_id}.` : "Partie annulée ou sans gagnant.");
       break;
@@ -707,18 +836,21 @@ function renderZoneStatus(container, player, { opponent = false } = {}) {
   if (opponent && !player.ready) {
     title.textContent = "En attente";
     body.textContent = "L'adversaire n'a pas encore verrouillé sa sélection.";
+    panel.classList.add("waiting");
   } else if (opponent && selectedCard) {
     title.textContent = "Carte révélée";
     body.textContent = `${selectedCard.name} est visible grâce au flux d'initiative.`;
     panel.classList.add("revealed");
   } else if (player.ready) {
-    title.textContent = opponent ? "Choix verrouillé" : "Choix confirmé";
+    title.textContent = opponent ? "Carte verrouillée" : "Choix confirmé";
     body.textContent = opponent
       ? "La carte est verrouillée côté serveur. Les pills restent cachées."
       : "Ton choix est confirmé. Attente de la résolution officielle.";
+    panel.classList.add(opponent ? "opponent-ready" : "waiting");
   } else {
     title.textContent = "Ton tour";
     body.textContent = "Clique sur une carte puis choisis le nombre de pills.";
+    panel.classList.add("your-turn");
   }
 
   panel.append(title, body);
@@ -865,12 +997,17 @@ function createMatchCardNode(card, options = {}) {
   const cardNode = document.createElement("article");
   cardNode.className = [
     "match-card",
+    localPlayer ? "local-card" : "opponent-card",
     `clan-${slugifyClan(card.clan)}`,
     selected ? "selected" : "",
     played ? "played" : "",
     revealed ? "revealed" : "",
     locked ? "locked" : "",
   ].filter(Boolean).join(" ");
+
+  const sideBadge = document.createElement("span");
+  sideBadge.className = `card-side-badge ${localPlayer ? "local" : "opponent"}`;
+  sideBadge.textContent = localPlayer ? "TOI" : "ADVERSAIRE";
 
   const content = document.createElement("div");
   content.className = "match-card-content";
@@ -879,7 +1016,7 @@ function createMatchCardNode(card, options = {}) {
     createCardStats(card, "match"),
     createCardTextGroup(card, "match", bonusActive),
   );
-  cardNode.append(createCardMedia(card, stateMeta, "match"), content);
+  cardNode.append(sideBadge, createCardMedia(card, stateMeta, "match"), content);
 
   if (localPlayer) {
     cardNode.classList.add("clickable");
@@ -950,15 +1087,18 @@ function renderMatchHand(container, player, { localPlayer = false } = {}) {
 
   player.hand.slice(0, 4).forEach((card) => {
     const played = player.played_card_ids.includes(card.id);
-    const selected = localPlayer ? state.interaction.selectedCardId === card.id : player.draft_card_id === card.id;
+    const selected = localPlayer
+      ? state.interaction.selectedCardId === card.id || player.draft_card_id === card.id
+      : false;
     const revealed = !localPlayer && player.draft_card_id === card.id;
+    const locked = player.ready && player.draft_card_id === card.id;
     const canSelect = localPlayer && !played && player.player_state === "selecting";
     container.appendChild(
       createMatchCardNode(card, {
         selected,
         played,
         revealed,
-        locked: player.ready,
+        locked,
         localPlayer,
         disabled: !canSelect,
         onClick: canSelect ? () => handleLocalCardSelection(player, card) : null,
@@ -1011,7 +1151,7 @@ function findCardInSnapshot(cardId) {
 }
 
 function battleStepAtLeast(step) {
-  const order = ["idle", "cards", "stats", "winner", "effects"];
+  const order = ["idle", "intro", "pills", "attack", "winner", "effects", "done"];
   return order.indexOf(state.resolution.step) >= order.indexOf(step);
 }
 
@@ -1067,12 +1207,22 @@ function createBattleCard(card, options) {
     createBattleStat("Dégâts", card.damage),
   );
 
-  if (battleStepAtLeast("stats")) {
-    stats.append(
-      createBattleStat("Pills jouées", pills),
-      createBattleStat("Attaque", attack),
-      createBattleStat("Overload", overload ? "Actif" : "Inactif"),
-    );
+  if (battleStepAtLeast("pills")) {
+    const pillsStat = createBattleStat("Pills d'attaque", pills);
+    pillsStat.classList.add("important", "pills-stat", `player-${playerId}`);
+    stats.append(pillsStat);
+
+    if (overload) {
+      const overloadStat = createBattleStat("Overload", "+2 coût / +3 dégâts si victoire");
+      overloadStat.classList.add("overload-stat", `player-${playerId}`);
+      stats.append(overloadStat);
+    }
+  }
+
+  if (battleStepAtLeast("attack")) {
+    const attackStat = createBattleStat("Attaque totale", attack);
+    attackStat.classList.add("important", "attack-stat");
+    stats.append(attackStat);
   }
 
   const text = document.createElement("div");
@@ -1099,9 +1249,7 @@ function battleOutcomeClass(roundResult, playerId) {
 function buildBattleEffects(roundResult, player1Card, player2Card) {
   const effects = [];
   if (roundResult.winner_id === null || roundResult.winner_id === undefined) {
-    effects.push("Égalité : aucun dégât infligé.");
-  } else {
-    effects.push(`Dégâts infligés : ${roundResult.damage_dealt}`);
+    effects.push("Égalité : aucun effet de victoire ou défaite.");
   }
 
   if (roundResult.life_swing_player_1) {
@@ -1110,6 +1258,18 @@ function buildBattleEffects(roundResult, player1Card, player2Card) {
   if (roundResult.life_swing_player_2) {
     effects.push(`Joueur 2 vie ${roundResult.life_swing_player_2 > 0 ? "+" : ""}${roundResult.life_swing_player_2}`);
   }
+
+  const player1PillGain = roundResult.pills_gained_player_1 ?? 0;
+  const player2PillGain = roundResult.pills_gained_player_2 ?? 0;
+  const stolenByPlayer1 = Math.min(Math.max(player1PillGain, 0), Math.max(-player2PillGain, 0));
+  const stolenByPlayer2 = Math.min(Math.max(player2PillGain, 0), Math.max(-player1PillGain, 0));
+  if (stolenByPlayer1 > 0) {
+    effects.push(`Vol de pill : Joueur 1 vole ${stolenByPlayer1} à Joueur 2`);
+  }
+  if (stolenByPlayer2 > 0) {
+    effects.push(`Vol de pill : Joueur 2 vole ${stolenByPlayer2} à Joueur 1`);
+  }
+
   if (roundResult.pills_gained_player_1) {
     effects.push(`Joueur 1 pills ${roundResult.pills_gained_player_1 > 0 ? "+" : ""}${roundResult.pills_gained_player_1}`);
   }
@@ -1117,15 +1277,23 @@ function buildBattleEffects(roundResult, player1Card, player2Card) {
     effects.push(`Joueur 2 pills ${roundResult.pills_gained_player_2 > 0 ? "+" : ""}${roundResult.pills_gained_player_2}`);
   }
   if (roundResult.player_1_overload) {
-    effects.push(`Joueur 1 Overload actif${roundResult.winner_id === 1 ? ` : +${roundResult.overload_damage_bonus} dégâts` : ""}`);
+    effects.push(roundResult.winner_id === 1
+      ? `Joueur 1 Overload gagnant : +${roundResult.overload_damage_bonus} dégâts`
+      : "Joueur 1 Overload payé : pas de bonus dégâts");
   }
   if (roundResult.player_2_overload) {
-    effects.push(`Joueur 2 Overload actif${roundResult.winner_id === 2 ? ` : +${roundResult.overload_damage_bonus} dégâts` : ""}`);
+    effects.push(roundResult.winner_id === 2
+      ? `Joueur 2 Overload gagnant : +${roundResult.overload_damage_bonus} dégâts`
+      : "Joueur 2 Overload payé : pas de bonus dégâts");
   }
 
   const winnerCard = roundResult.winner_id === 1 ? player1Card : roundResult.winner_id === 2 ? player2Card : null;
   if (winnerCard?.power_text?.toLowerCase().includes("poison")) {
     effects.push(`Poison : ${winnerCard.power_text}`);
+  }
+
+  if (effects.length === 0) {
+    effects.push("Aucun effet additionnel.");
   }
 
   return effects;
@@ -1137,6 +1305,9 @@ function renderBattleResolution(localPlayer, opponent) {
   const active = Boolean(state.resolution.active && roundResult);
   elements.battleResolution.classList.toggle("hidden", !active);
   elements.battleResolution.classList.toggle("active", active);
+  ["intro", "pills", "attack", "winner", "effects"].forEach((phase) => {
+    elements.battleResolution.classList.toggle(`battle-phase-${phase}`, active && state.resolution.step === phase);
+  });
   elements.selectionStage.classList.toggle("hidden", active);
 
   if (!active) {
@@ -1148,12 +1319,23 @@ function renderBattleResolution(localPlayer, opponent) {
   const revealOutcome = battleStepAtLeast("winner");
   const localLabel = (playerId) => {
     if (localPlayer?.player_id === playerId) {
-      return localPlayer.name || "Toi";
+      return `Toi · ${localPlayer.name || "Joueur"}`;
     }
     if (opponent?.player_id === playerId) {
-      return opponent.name || "Adversaire";
+      return `Adversaire · ${opponent.name || "Joueur"}`;
     }
     return `Joueur ${playerId}`;
+  };
+
+  const phaseCopy = {
+    intro: "Les combattants entrent en scène.",
+    pills: "Pills d'attaque révélées officiellement. Overload reste séparé du calcul d'attaque.",
+    attack: "Attaque totale officielle calculée par le serveur.",
+    winner: roundResult.winner_id === null || roundResult.winner_id === undefined
+      ? "Égalité : aucune carte ne prend l'avantage."
+      : `${localLabel(roundResult.winner_id)} remporte l'affrontement.`,
+    effects: "Dégâts et effets appliqués au nouvel état officiel.",
+    done: "Résolution terminée.",
   };
 
   const title = document.createElement("div");
@@ -1162,9 +1344,7 @@ function renderBattleResolution(localPlayer, opponent) {
   heading.textContent = `Résolution du round ${roundResult.round_number}`;
   const subheading = document.createElement("p");
   subheading.className = "muted";
-  subheading.textContent = battleStepAtLeast("stats")
-    ? "Les pills sont révélées officiellement par le serveur."
-    : "Les cartes s'affrontent.";
+  subheading.textContent = phaseCopy[state.resolution.step] ?? "Résolution en cours.";
   title.append(heading, subheading);
 
   const board = document.createElement("div");
@@ -1199,12 +1379,12 @@ function renderBattleResolution(localPlayer, opponent) {
   elements.battleResolution.append(title, board);
 
   if (battleStepAtLeast("winner")) {
-    const damage = document.createElement("div");
-    damage.className = "battle-damage-pop";
-    damage.textContent = roundResult.winner_id === null || roundResult.winner_id === undefined
+    const winnerCall = document.createElement("div");
+    winnerCall.className = "battle-winner-call";
+    winnerCall.textContent = roundResult.winner_id === null || roundResult.winner_id === undefined
       ? "Égalité"
-      : `${localLabel(roundResult.winner_id)} gagne · ${roundResult.damage_dealt} dégâts`;
-    elements.battleResolution.appendChild(damage);
+      : `${localLabel(roundResult.winner_id)} gagne`;
+    elements.battleResolution.appendChild(winnerCall);
   }
 
   if (battleStepAtLeast("effects")) {
@@ -1214,6 +1394,13 @@ function renderBattleResolution(localPlayer, opponent) {
       effects.appendChild(makeBadge(effectText, "state"));
     });
     elements.battleResolution.appendChild(effects);
+
+    const damage = document.createElement("div");
+    damage.className = "battle-damage-pop";
+    damage.textContent = roundResult.winner_id === null || roundResult.winner_id === undefined
+      ? "Dégâts infligés : 0"
+      : `Dégâts infligés : ${roundResult.damage_dealt}`;
+    elements.battleResolution.appendChild(damage);
   }
 }
 
@@ -1283,8 +1470,13 @@ function renderSummary() {
 }
 
 function renderBanner() {
+  const bannerTones = ["your-turn", "waiting", "opponent-ready", "revealed", "resolving"];
+  elements.gameBanner.classList.remove(...bannerTones);
+
   if (!state.snapshot) {
-    elements.gameBanner.textContent = "En attente de la partie.";
+    const status = getTurnStatusMessage(null, null, null);
+    elements.gameBanner.textContent = status.text;
+    elements.gameBanner.classList.add(status.tone);
     elements.endBanner.textContent = "Partie terminée.";
     elements.endSummary.textContent = "";
     return;
@@ -1292,26 +1484,24 @@ function renderBanner() {
 
   const snapshot = state.snapshot;
   const localPlayer = snapshot.players.find((player) => player.player_id === snapshot.local_player_id);
-  const lastRound = snapshot.history.at(-1);
+  const opponent = snapshot.players.find((player) => player.player_id !== snapshot.local_player_id);
+  const status = getTurnStatusMessage(snapshot, localPlayer, opponent);
+  elements.gameBanner.textContent = status.text;
+  elements.gameBanner.classList.add(status.tone);
 
   if (snapshot.match_state === "waiting_for_players") {
-    elements.gameBanner.textContent = "En attente d'un second joueur.";
     return;
   }
 
   if (snapshot.match_state === "drafting") {
-    const lockedCount = snapshot.draft_locked_player_ids?.length ?? 0;
-    elements.gameBanner.textContent = `Draft en cours: compose 4 cartes pour 8 stars max. Equipes verrouillées: ${lockedCount}/2.`;
     return;
   }
 
   if (snapshot.match_state === "round_locked") {
-    elements.gameBanner.textContent = "Attente de l'adversaire: un choix est verrouillé, le round n'est pas encore résolu.";
     return;
   }
 
   if (snapshot.match_state === "round_resolution") {
-    elements.gameBanner.textContent = "Round résolu côté serveur, mise à jour officielle en cours.";
     return;
   }
 
@@ -1324,24 +1514,6 @@ function renderBanner() {
     ].filter(Boolean).join(" | ");
     return;
   }
-
-  if (localPlayer?.ready) {
-    elements.gameBanner.textContent = "Attente de l'adversaire: ton choix est confirmé côté serveur.";
-    return;
-  }
-
-  if (snapshot.match_state === "round_selection" && lastRound && snapshot.pending_player_ids.length === 0) {
-    if (lastRound.winner_id === null) {
-      elements.gameBanner.textContent = `Round ${lastRound.round_number} résolu: égalité. Nouveau choix en cours.`;
-      return;
-    }
-
-    const resultLabel = lastRound.winner_id === snapshot.local_player_id ? "victoire" : "défaite";
-    elements.gameBanner.textContent = `Round ${lastRound.round_number} résolu: ${resultLabel}. Prépare le round suivant.`;
-    return;
-  }
-
-  elements.gameBanner.textContent = "Sélectionne une carte, règle tes pills, puis confirme.";
 }
 
 function renderSelection() {
@@ -1429,6 +1601,7 @@ function render() {
   renderBanner();
 
   if (!state.snapshot) {
+    syncMatchSideState(null, null);
     elements.draftOffer.innerHTML = "";
     elements.draftTeam.innerHTML = "";
     elements.draftTeamSummary.innerHTML = "";
@@ -1448,6 +1621,7 @@ function render() {
 
   const localPlayer = state.snapshot.players.find((player) => player.player_id === state.snapshot.local_player_id);
   const opponent = state.snapshot.players.find((player) => player.player_id !== state.snapshot.local_player_id);
+  syncMatchSideState(localPlayer, opponent);
   renderDraftOffer(localPlayer);
   if (state.snapshot.match_state !== "drafting") {
     renderIdentityPanel(elements.playerIdentity, localPlayer, "Joueur");
@@ -1457,6 +1631,7 @@ function render() {
     renderMatchHand(elements.localHand, localPlayer, { localPlayer: true });
     renderMatchHand(elements.opponentHand, opponent, { localPlayer: false });
   } else {
+    syncMatchSideState(null, null);
     elements.playerIdentity.innerHTML = "";
     elements.playerStatus.innerHTML = "";
     elements.opponentIdentity.innerHTML = "";
@@ -1627,4 +1802,5 @@ if (savedSession) {
   elements.playerName.value = savedSession.playerName ?? "Player";
 }
 
+ensureMatchSideChrome();
 render();

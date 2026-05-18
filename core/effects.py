@@ -77,7 +77,7 @@ class FighterEffects:
     @property
     def attack(self) -> int:
         """Return the final attack after modifiers."""
-        return max(0, (self.effective_power * self.pills_committed) + self.attack_modifier)
+        return max(0, (self.effective_power * (self.pills_committed + 1)) + self.attack_modifier)
 
 
 @dataclass(frozen=True, slots=True)
@@ -344,7 +344,7 @@ def _apply_stat_modifiers(
                 target.attack_modifier,
                 effect.value,
                 minimum=effect.minimum,
-                base=target.card.power * target.pills_committed,
+                base=target.card.power * (target.pills_committed + 1),
             )
         elif effect.effect_type == "power_modifier":
             target.power_modifier = _apply_with_minimum(target.power_modifier, effect.value, minimum=effect.minimum, base=target.card.power)

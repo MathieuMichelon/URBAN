@@ -490,6 +490,75 @@ button:disabled {
   border-color: #23385f;
 }
 
+.player-zone.local-side {
+  background:
+    radial-gradient(circle at bottom left, rgba(55, 215, 255, 0.16), transparent 17rem),
+    linear-gradient(180deg, rgba(11, 22, 38, 0.97), rgba(9, 17, 30, 0.99));
+  border-color: rgba(78, 202, 255, 0.56);
+  box-shadow: inset 0 0 0 1px rgba(62, 199, 255, 0.16), 0 0 28px rgba(29, 157, 255, 0.08);
+}
+
+.opponent-zone.opponent-side {
+  background:
+    radial-gradient(circle at top right, rgba(255, 54, 102, 0.15), transparent 17rem),
+    linear-gradient(180deg, rgba(27, 13, 25, 0.97), rgba(13, 15, 28, 0.99));
+  border-color: rgba(255, 82, 106, 0.5);
+  box-shadow: inset 0 0 0 1px rgba(255, 82, 106, 0.14), 0 0 28px rgba(255, 39, 84, 0.07);
+}
+
+.side-label {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: rgba(8, 14, 25, 0.78);
+}
+
+.local-side .side-label {
+  color: #88e8ff;
+  border: 1px solid rgba(88, 221, 255, 0.42);
+  box-shadow: 0 0 18px rgba(54, 196, 255, 0.1);
+}
+
+.opponent-side .side-label {
+  color: #ff8a9f;
+  border: 1px solid rgba(255, 96, 121, 0.42);
+  box-shadow: 0 0 18px rgba(255, 63, 96, 0.09);
+}
+
+.side-label::after {
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.match-zone.side-must-act .side-label::after {
+  content: "A JOUER";
+}
+
+.match-zone.side-locked .side-label::after {
+  content: "VERROUILLE";
+}
+
+.local-side.side-must-act .side-label::after {
+  color: #d7fbff;
+  border: 1px solid rgba(99, 230, 255, 0.35);
+}
+
+.opponent-side.side-must-act .side-label::after {
+  color: #ffd4dc;
+  border: 1px solid rgba(255, 115, 138, 0.35);
+}
+
 .zone-header {
   display: grid;
   gap: 8px;
@@ -514,11 +583,21 @@ button:disabled {
 }
 
 .identity-card.local {
-  box-shadow: inset 0 0 0 1px rgba(113, 82, 255, 0.2);
+  border-color: rgba(79, 205, 255, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(72, 205, 255, 0.2);
 }
 
 .identity-card.opponent {
-  box-shadow: inset 0 0 0 1px rgba(255, 107, 107, 0.16);
+  border-color: rgba(255, 92, 116, 0.36);
+  box-shadow: inset 0 0 0 1px rgba(255, 92, 116, 0.16);
+}
+
+.identity-card.local .identity-role {
+  color: #66dcff;
+}
+
+.identity-card.opponent .identity-role {
+  color: #ff6f88;
 }
 
 .identity-top {
@@ -564,6 +643,24 @@ button:disabled {
   align-content: center;
   gap: 6px;
   border-style: dashed;
+}
+
+.zone-status-card.your-turn {
+  border-color: rgba(82, 219, 255, 0.56);
+  background: linear-gradient(180deg, rgba(15, 45, 66, 0.86), rgba(8, 14, 26, 0.96));
+  box-shadow: inset 0 0 0 1px rgba(82, 219, 255, 0.12);
+}
+
+.zone-status-card.waiting {
+  border-color: rgba(255, 137, 92, 0.42);
+  background: linear-gradient(180deg, rgba(55, 29, 27, 0.78), rgba(8, 14, 26, 0.96));
+}
+
+.zone-status-card.opponent-ready {
+  border-style: solid;
+  border-color: rgba(255, 119, 150, 0.5);
+  background: linear-gradient(180deg, rgba(58, 21, 42, 0.8), rgba(8, 14, 26, 0.96));
+  box-shadow: inset 0 0 0 1px rgba(255, 98, 132, 0.12);
 }
 
 .zone-status-card.revealed {
@@ -833,8 +930,8 @@ button:disabled {
 
 .battle-resolution {
   display: grid;
-  gap: 10px;
-  min-height: 260px;
+  gap: 12px;
+  min-height: 300px;
   overflow: hidden;
   position: relative;
   background:
@@ -848,6 +945,15 @@ button:disabled {
   animation: battleFadeIn 260ms ease-out both;
 }
 
+.battle-resolution::after {
+  content: "";
+  position: absolute;
+  inset: auto 12% 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 205, 89, 0.45), transparent);
+  opacity: 0.75;
+}
+
 .battle-resolution-title {
   display: flex;
   align-items: end;
@@ -857,10 +963,14 @@ button:disabled {
 
 .battle-resolution-title h2 {
   margin: 0;
+  font-size: clamp(1.25rem, 2vw, 1.8rem);
 }
 
 .battle-resolution-title p {
   margin: 0;
+  font-size: 0.96rem;
+  max-width: 620px;
+  text-align: right;
 }
 
 .battle-board {
@@ -882,6 +992,15 @@ button:disabled {
   border: 1px solid rgba(96, 125, 184, 0.48);
   box-shadow: 0 18px 34px rgba(4, 8, 18, 0.28);
   transition: transform 260ms ease, opacity 260ms ease, filter 260ms ease, box-shadow 260ms ease;
+}
+
+.battle-phase-intro .battle-card {
+  animation: battleCardsEnter 520ms ease-out both;
+}
+
+.battle-phase-pills .battle-card,
+.battle-phase-attack .battle-card {
+  border-color: rgba(94, 166, 255, 0.58);
 }
 
 .battle-card.winner {
@@ -969,6 +1088,32 @@ button:disabled {
   border: 1px solid rgba(81, 105, 151, 0.48);
 }
 
+.battle-stat.important {
+  border-color: rgba(84, 193, 255, 0.58);
+  background: linear-gradient(180deg, rgba(24, 46, 78, 0.9), rgba(7, 14, 27, 0.92));
+}
+
+.battle-stat.pills-stat {
+  animation: battleStatReveal 360ms ease both;
+}
+
+.battle-stat.pills-stat.player-2,
+.battle-stat.overload-stat.player-2 {
+  animation-delay: 260ms;
+}
+
+.battle-stat.attack-stat {
+  border-color: rgba(255, 205, 89, 0.62);
+  background: linear-gradient(180deg, rgba(78, 55, 22, 0.82), rgba(13, 16, 27, 0.94));
+}
+
+.battle-stat.overload-stat {
+  grid-column: span 2;
+  border-color: rgba(255, 106, 130, 0.54);
+  background: linear-gradient(180deg, rgba(75, 25, 43, 0.78), rgba(13, 16, 27, 0.94));
+  animation: battleStatReveal 360ms ease both;
+}
+
 .battle-stat span {
   display: block;
   color: #91a4cc;
@@ -983,9 +1128,37 @@ button:disabled {
   font-size: 1rem;
 }
 
+.battle-stat.important strong,
+.battle-stat.attack-stat strong {
+  color: #eef7ff;
+  font-size: clamp(1.2rem, 2vw, 1.62rem);
+  line-height: 1;
+}
+
+.battle-stat.attack-stat strong {
+  color: #ffe680;
+}
+
 .battle-card-text {
   display: grid;
   gap: 6px;
+}
+
+.battle-winner-call {
+  justify-self: center;
+  padding: 10px 18px;
+  border-radius: 999px;
+  color: #d9ffe9;
+  background: linear-gradient(135deg, rgba(64, 227, 159, 0.22), rgba(96, 143, 255, 0.18));
+  border: 1px solid rgba(139, 240, 191, 0.52);
+  font-size: clamp(1.05rem, 2vw, 1.45rem);
+  font-weight: 950;
+  text-align: center;
+  animation: battlePop 320ms ease both;
+}
+
+.battle-phase-winner .battle-winner-call {
+  box-shadow: 0 0 30px rgba(63, 224, 161, 0.16);
 }
 
 .battle-damage-pop {
@@ -995,7 +1168,7 @@ button:disabled {
   color: #fff4c5;
   background: linear-gradient(135deg, rgba(255, 91, 107, 0.22), rgba(255, 205, 89, 0.18));
   border: 1px solid rgba(255, 205, 89, 0.45);
-  font-size: 1rem;
+  font-size: clamp(1.08rem, 2.1vw, 1.55rem);
   font-weight: 900;
   animation: battlePop 320ms ease both;
 }
@@ -1006,6 +1179,16 @@ button:disabled {
   justify-content: center;
   gap: 7px;
   animation: battleStatsIn 320ms ease both;
+}
+
+.battle-effects .badge {
+  font-size: 0.86rem;
+  padding: 7px 10px;
+}
+
+.battle-phase-effects .battle-card-text {
+  border-radius: 12px;
+  background: rgba(7, 12, 22, 0.42);
 }
 
 @keyframes battleFadeIn {
@@ -1027,6 +1210,28 @@ button:disabled {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes battleCardsEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes battleStatReveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -1072,6 +1277,31 @@ button:disabled {
   overflow: hidden;
 }
 
+.card-side-badge {
+  position: absolute;
+  z-index: 2;
+  top: 7px;
+  right: 7px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(5, 10, 18, 0.82);
+  backdrop-filter: blur(6px);
+}
+
+.card-side-badge.local {
+  color: #8defff;
+  border: 1px solid rgba(97, 223, 255, 0.5);
+}
+
+.card-side-badge.opponent {
+  color: #ff8aa0;
+  border: 1px solid rgba(255, 104, 130, 0.48);
+}
+
 .match-card.clan-pulse-404,
 .selection-card-detail.clan-pulse-404 {
   border-color: rgba(176, 93, 255, 0.58);
@@ -1111,6 +1341,22 @@ button:disabled {
   box-shadow: 0 16px 26px rgba(3, 8, 18, 0.28);
 }
 
+.match-card.local-card {
+  box-shadow: inset 0 0 0 1px rgba(74, 209, 255, 0.22);
+}
+
+.match-card.opponent-card {
+  box-shadow: inset 0 0 0 1px rgba(255, 88, 119, 0.2);
+}
+
+.match-card.local-card.clickable:hover {
+  box-shadow: inset 0 0 0 1px rgba(88, 228, 255, 0.34), 0 14px 28px rgba(26, 151, 255, 0.16);
+}
+
+.match-card.opponent-card.clickable:hover {
+  box-shadow: inset 0 0 0 1px rgba(255, 98, 122, 0.32), 0 14px 28px rgba(255, 46, 89, 0.12);
+}
+
 .match-card.disabled {
   cursor: not-allowed;
 }
@@ -1123,6 +1369,40 @@ button:disabled {
 .match-card.revealed {
   border-color: rgba(255, 205, 89, 0.95);
   box-shadow: 0 0 0 2px rgba(255, 205, 89, 0.16);
+}
+
+.match-card.local-card.selected {
+  border-color: rgba(91, 220, 255, 0.98);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 215, 94, 0.26),
+    0 0 0 2px rgba(91, 220, 255, 0.24),
+    0 0 28px rgba(255, 210, 74, 0.12),
+    0 18px 32px rgba(7, 18, 36, 0.36);
+}
+
+.match-card.opponent-card.revealed {
+  border-color: rgba(255, 128, 72, 0.98);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 66, 104, 0.26),
+    0 0 0 2px rgba(255, 128, 72, 0.2),
+    0 0 26px rgba(255, 64, 90, 0.14);
+}
+
+.match-card.local-card.locked {
+  border-color: rgba(100, 222, 255, 0.9);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 214, 91, 0.22),
+    0 0 0 2px rgba(100, 222, 255, 0.18),
+    0 0 24px rgba(51, 184, 255, 0.12);
+}
+
+.match-card.opponent-card.locked,
+.match-card.opponent-card.revealed.locked {
+  border-color: rgba(255, 128, 72, 0.98);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 82, 116, 0.26),
+    0 0 0 2px rgba(255, 128, 72, 0.2),
+    0 0 28px rgba(255, 54, 94, 0.14);
 }
 
 .match-card.played {
@@ -1411,8 +1691,93 @@ button:disabled {
 }
 
 .banner-text {
+  position: relative;
+  padding: 11px 14px 11px 42px;
+  border-radius: 14px;
+  border: 1px solid rgba(92, 121, 180, 0.4);
+  background: linear-gradient(90deg, rgba(14, 24, 42, 0.88), rgba(9, 15, 28, 0.72));
+  color: #dce8ff;
   font-size: 1.12rem;
   font-weight: 700;
+  line-height: 1.35;
+}
+
+.banner-text::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  transform: translateY(-50%);
+  background: #8ea7d8;
+  box-shadow: 0 0 16px rgba(142, 167, 216, 0.34);
+}
+
+.banner-text.your-turn {
+  color: #dffaff;
+  border-color: rgba(82, 219, 255, 0.55);
+  background:
+    radial-gradient(circle at left, rgba(62, 203, 255, 0.2), transparent 18rem),
+    linear-gradient(90deg, rgba(14, 45, 65, 0.92), rgba(9, 16, 29, 0.74));
+}
+
+.banner-text.your-turn::before {
+  background: #5bdcff;
+  box-shadow: 0 0 18px rgba(91, 220, 255, 0.68);
+}
+
+.banner-text.waiting {
+  color: #ffe2d5;
+  border-color: rgba(255, 137, 92, 0.5);
+  background:
+    radial-gradient(circle at left, rgba(255, 119, 74, 0.18), transparent 18rem),
+    linear-gradient(90deg, rgba(55, 29, 27, 0.88), rgba(9, 16, 29, 0.74));
+}
+
+.banner-text.waiting::before {
+  background: #ff8f5d;
+  box-shadow: 0 0 18px rgba(255, 143, 93, 0.58);
+}
+
+.banner-text.opponent-ready {
+  color: #ffd8e1;
+  border-color: rgba(255, 102, 143, 0.52);
+  background:
+    radial-gradient(circle at left, rgba(255, 61, 108, 0.18), transparent 18rem),
+    linear-gradient(90deg, rgba(58, 21, 42, 0.9), rgba(9, 16, 29, 0.74));
+}
+
+.banner-text.opponent-ready::before {
+  background: #ff5f86;
+  box-shadow: 0 0 18px rgba(255, 95, 134, 0.58);
+}
+
+.banner-text.revealed {
+  color: #fff2bf;
+  border-color: rgba(255, 205, 89, 0.58);
+  background:
+    radial-gradient(circle at left, rgba(255, 205, 89, 0.2), transparent 18rem),
+    linear-gradient(90deg, rgba(67, 48, 18, 0.9), rgba(9, 16, 29, 0.74));
+}
+
+.banner-text.revealed::before {
+  background: #ffd159;
+  box-shadow: 0 0 18px rgba(255, 209, 89, 0.62);
+}
+
+.banner-text.resolving {
+  color: #efe4ff;
+  border-color: rgba(178, 123, 255, 0.54);
+  background:
+    radial-gradient(circle at left, rgba(173, 103, 255, 0.2), transparent 18rem),
+    linear-gradient(90deg, rgba(45, 28, 68, 0.9), rgba(9, 16, 29, 0.74));
+}
+
+.banner-text.resolving::before {
+  background: #b47cff;
+  box-shadow: 0 0 18px rgba(180, 124, 255, 0.6);
 }
 
 #pills-value {
@@ -1487,9 +1852,13 @@ button:disabled {
 
 @media (prefers-reduced-motion: reduce) {
   .battle-resolution.active,
+  .battle-phase-intro .battle-card,
   .battle-card.loser,
   .battle-card-stats,
+  .battle-stat.pills-stat,
+  .battle-stat.overload-stat,
   .battle-damage-pop,
+  .battle-winner-call,
   .battle-effects {
     animation: none;
   }

@@ -18,8 +18,12 @@ OVERLOAD_DAMAGE_BONUS = 3
 
 
 def compute_attack(card: Card, pills_committed: int) -> int:
-    """Compute attack from card power and spent pills."""
-    return card.power * pills_committed
+    """Compute attack from card power and attack pills.
+
+    A card always fights with a base multiplier of 1, so playing 0 pill still
+    produces attack equal to its power.
+    """
+    return card.power * (pills_committed + 1)
 
 
 def validate_hand(hand: list[Card]) -> None:

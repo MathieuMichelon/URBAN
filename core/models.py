@@ -243,6 +243,7 @@ class GameState:
     history: list[RoundResult] = field(default_factory=list)
     status: GameStatus = GameStatus.IN_PROGRESS
     winner_id: int | None = None
+    starting_initiative_player_id: int = 1
 
     def __post_init__(self) -> None:
         """Validate the global game state."""
@@ -252,6 +253,9 @@ class GameState:
         if self.current_round < 1:
             raise InvalidGameSetupError("Current round must start at 1 or greater.")
 
+        if self.starting_initiative_player_id not in {1, 2}:
+            raise InvalidGameSetupError("Starting initiative player must be player 1 or 2.")
+
     @property
     def is_over(self) -> bool:
         """Return whether the match has finished."""
@@ -260,7 +264,9 @@ class GameState:
     @property
     def initiative_player_id(self) -> int:
         """Return which player has courage on the current round."""
-        return 1 if self.current_round % 2 == 1 else 2
+        if self.current_round % 2 == 1:
+            return self.starting_initiative_player_id
+        return 2 if self.starting_initiative_player_id == 1 else 1
 
     @property
     def previous_round_winner_id(self) -> int | None:

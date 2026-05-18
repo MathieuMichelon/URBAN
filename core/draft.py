@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass, field
 from itertools import combinations
 import random
@@ -18,6 +19,7 @@ DRAFT_MIN_STAR_DISTRIBUTION = {
     2: 3,
     1: 2,
 }
+DRAFT_MIN_CLAN_DISTRIBUTION = 2
 
 
 @dataclass(frozen=True, slots=True)
@@ -122,16 +124,26 @@ def build_draft_offer(cards: list[Card], *, seed: str | int | None = None) -> li
         )
 
     generator = random.Random(seed)
-    if _roster_supports_star_distribution(cards):
-        offer = _build_balanced_star_offer(cards, generator)
-        if _offer_supports_valid_team(offer):
-            return offer
+    roster_clans = _validate_roster_supports_clan_distribution(cards)
+    require_star_distribution = _roster_supports_star_distribution(cards)
 
-    for _ in range(200):
+    if require_star_distribution:
+        for _ in range(100):
+            offer = _build_balanced_offer(cards, generator, roster_clans=roster_clans)
+            if (
+                offer is not None
+                and _offer_supports_valid_team(offer)
+                and _offer_matches_star_distribution(offer)
+                and _offer_matches_clan_distribution(offer, required_clans=roster_clans)
+            ):
+                return offer
+
+    for _ in range(2000):
         offer = list(generator.sample(cards, DRAFT_OFFER_SIZE))
-        if _offer_supports_valid_team(offer) and (
-            not _roster_supports_star_distribution(cards)
-            or _offer_matches_star_distribution(offer)
+        if (
+            _offer_supports_valid_team(offer)
+            and (not require_star_distribution or _offer_matches_star_distribution(offer))
+            and _offer_matches_clan_distribution(offer, required_clans=roster_clans)
         ):
             return offer
 
@@ -219,16 +231,77 @@ def _offer_matches_star_distribution(cards: list[Card]) -> bool:
     )
 
 
-def _build_balanced_star_offer(cards: list[Card], generator: random.Random) -> list[Card]:
-    """Sample a 10-card offer with enough 1, 2, and 3-star cards to make draft choices interesting."""
+def _offer_matches_clan_distribution(cards: list[Card], *, required_clans: set[str] | None = None) -> bool:
+    """Return whether one offer includes the minimum desired clan variety."""
+    clan_counts = Counter(card.clan for card in cards)
+    clans = required_clans if required_clans is not None else set(clan_counts)
+    return all(clan_counts[clan] >= DRAFT_MIN_CLAN_DISTRIBUTION for clan in clans)
+
+
+def _validate_roster_supports_clan_distribution(cards: list[Card]) -> set[str]:
+    """Return roster clans or raise when the draft clan minimum cannot be satisfied."""
+    clan_counts = Counter(card.clan for card in cards)
+    roster_clans = set(clan_counts)
+    if len(roster_clans) * DRAFT_MIN_CLAN_DISTRIBUTION > DRAFT_OFFER_SIZE:
+        raise InvalidGameSetupError(
+            f"A {DRAFT_OFFER_SIZE}-card draft offer cannot include at least "
+            f"{DRAFT_MIN_CLAN_DISTRIBUTION} cards for each of {len(roster_clans)} clans."
+        )
+
+    missing_clans = sorted(
+        clan
+        for clan, count in clan_counts.items()
+        if count < DRAFT_MIN_CLAN_DISTRIBUTION
+    )
+    if missing_clans:
+        joined_clans = ", ".join(missing_clans)
+        raise InvalidGameSetupError(
+            f"The roster must contain at least {DRAFT_MIN_CLAN_DISTRIBUTION} cards "
+            f"for each clan to build a draft offer. Missing: {joined_clans}."
+        )
+
+    return roster_clans
+
+
+def _build_balanced_offer(
+    cards: list[Card],
+    generator: random.Random,
+    *,
+    roster_clans: set[str],
+) -> list[Card] | None:
+    """Sample a 10-card offer with enough clan and star variety."""
     selected: list[Card] = []
     selected_ids: set[str] = set()
 
-    for stars, minimum in DRAFT_MIN_STAR_DISTRIBUTION.items():
-        bucket = [card for card in cards if card.stars == stars]
-        picked = generator.sample(bucket, minimum)
+    for clan in sorted(roster_clans):
+        bucket = [card for card in cards if card.clan == clan]
+        picked = generator.sample(bucket, DRAFT_MIN_CLAN_DISTRIBUTION)
         selected.extend(picked)
         selected_ids.update(card.id for card in picked)
+
+    for stars, minimum in DRAFT_MIN_STAR_DISTRIBUTION.items():
+        current_count = sum(1 for card in selected if card.stars == stars)
+        needed = minimum - current_count
+        if needed <= 0:
+            continue
+
+        if len(selected) + needed > DRAFT_OFFER_SIZE:
+            return None
+
+        bucket = [
+            card
+            for card in cards
+            if card.stars == stars and card.id not in selected_ids
+        ]
+        if len(bucket) < needed:
+            return None
+
+        picked = generator.sample(bucket, needed)
+        selected.extend(picked)
+        selected_ids.update(card.id for card in picked)
+
+    if len(selected) > DRAFT_OFFER_SIZE:
+        return None
 
     remaining_pool = [card for card in cards if card.id not in selected_ids]
     selected.extend(generator.sample(remaining_pool, DRAFT_OFFER_SIZE - len(selected)))

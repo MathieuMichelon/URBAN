@@ -33,7 +33,7 @@ def test_create_game_computes_active_clan_bonuses_from_team_composition(card_fac
         card_factory("n3", clan="Neon"),
     ]
 
-    state = engine.create_game(player_1_hand, player_2_hand)
+    state = engine.create_game(player_1_hand, player_2_hand, starting_initiative_player_id=1)
 
     assert state.get_player(1).active_clan_bonuses == {"Neon"}
     assert state.get_player(2).active_clan_bonuses == {"Wild"}
@@ -67,7 +67,7 @@ def test_attack_calculation_applies_power_attack_and_bonus_modifiers(card_factor
         card_factory("p2c3", clan="Else"),
         card_factory("p2c4", clan="Else"),
     ]
-    state = engine.create_game(player_1_hand, player_2_hand)
+    state = engine.create_game(player_1_hand, player_2_hand, starting_initiative_player_id=1)
 
     result = engine.play_round(
         state=state,
@@ -75,8 +75,8 @@ def test_attack_calculation_applies_power_attack_and_bonus_modifiers(card_factor
         player_2_selection=RoundSelection("p2c1", 2),
     )
 
-    assert result.player_1_attack == 23
-    assert result.player_2_attack == 10
+    assert result.player_1_attack == 30
+    assert result.player_2_attack == 15
     assert result.winner_id == 1
 
 
@@ -111,7 +111,7 @@ def test_courage_and_revenge_triggers_activate_in_the_right_round_context(card_f
         card_factory("p2c3", power=3, damage=1),
         card_factory("p2c4"),
     ]
-    state = engine.create_game(player_1_hand, player_2_hand)
+    state = engine.create_game(player_1_hand, player_2_hand, starting_initiative_player_id=1)
 
     first_round = engine.play_round(
         state=state,
@@ -124,9 +124,9 @@ def test_courage_and_revenge_triggers_activate_in_the_right_round_context(card_f
         player_2_selection=RoundSelection("revenge", 1),
     )
 
-    assert first_round.player_1_attack == 6
+    assert first_round.player_1_attack == 12
     assert first_round.winner_id == 1
-    assert second_round.player_2_attack == 7
+    assert second_round.player_2_attack == 14
     assert second_round.winner_id == 2
 
 
@@ -169,8 +169,8 @@ def test_stop_opponent_power_disables_unprotected_power_effects(card_factory) ->
         player_2_selection=RoundSelection("boosted", 2),
     )
 
-    assert result.player_1_attack == 10
-    assert result.player_2_attack == 8
+    assert result.player_1_attack == 15
+    assert result.player_2_attack == 12
     assert result.winner_id == 1
 
 
@@ -213,8 +213,8 @@ def test_stop_opponent_bonus_disables_unprotected_bonus_effects(card_factory) ->
         player_2_selection=RoundSelection("bonus_user", 2),
     )
 
-    assert result.player_1_attack == 12
-    assert result.player_2_attack == 10
+    assert result.player_1_attack == 18
+    assert result.player_2_attack == 15
     assert result.winner_id == 1
 
 
@@ -261,8 +261,8 @@ def test_protection_bonus_blocks_stop_opponent_bonus(card_factory) -> None:
         player_2_selection=RoundSelection("protected_bonus_user", 2),
     )
 
-    assert result.player_1_attack == 12
-    assert result.player_2_attack == 16
+    assert result.player_1_attack == 18
+    assert result.player_2_attack == 21
     assert result.winner_id == 2
 
 
@@ -309,8 +309,8 @@ def test_protection_power_blocks_stop_opponent_power(card_factory) -> None:
         player_2_selection=RoundSelection("protected", 2),
     )
 
-    assert result.player_1_attack == 10
-    assert result.player_2_attack == 16
+    assert result.player_1_attack == 15
+    assert result.player_2_attack == 24
     assert result.winner_id == 2
 
 

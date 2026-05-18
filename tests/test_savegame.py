@@ -134,6 +134,7 @@ def test_import_state_rejects_invalid_save_payload(card_factory) -> None:
 def _assert_states_equal(left: GameState, right: GameState) -> None:
     """Assert that two game states represent the same match snapshot."""
     assert left.current_round == right.current_round
+    assert left.starting_initiative_player_id == right.starting_initiative_player_id
     assert left.status == right.status
     assert left.winner_id == right.winner_id
     assert left.history == right.history
