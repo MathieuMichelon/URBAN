@@ -102,6 +102,7 @@ class StateSnapshotPayload(ProtocolModel):
     players: list[PlayerStatePayload] = Field(default_factory=list)
     history: list[RoundResultPayload] = Field(default_factory=list)
     end_reason: str | None = None
+    rematch_ready_player_ids: list[int] = Field(default_factory=list)
 
 
 class ErrorPayload(ProtocolModel):
@@ -309,6 +310,15 @@ class ClientRequestStateMessage(MessageEnvelope):
     player_id: int | None = None
 
 
+class ClientRequestRematchMessage(MessageEnvelope):
+    """`request_rematch` command."""
+
+    type: Literal["request_rematch"]
+    payload: EmptyPayload = Field(default_factory=EmptyPayload)
+    room_id: str
+    player_id: int | None = None
+
+
 class ServerRoomCreatedMessage(MessageEnvelope):
     """`room_created` event."""
 
@@ -429,6 +439,7 @@ ClientMessage = Annotated[
         | ClientConfirmSelectionMessage
         | ClientPingMessage
         | ClientRequestStateMessage
+        | ClientRequestRematchMessage
     ),
     Field(discriminator="type"),
 ]

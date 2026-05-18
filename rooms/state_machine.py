@@ -69,6 +69,8 @@ class OnlineRoom:
     round_drafts: dict[int, DraftSelection] = field(default_factory=dict)
     end_reason: str | None = None
     abandonment_winner_id: int | None = None
+    rematch_ready_player_ids: set[int] = field(default_factory=set)
+    draft_generation: int = 0
 
     @property
     def initiative_player_id(self) -> int | None:
@@ -106,6 +108,14 @@ class DisconnectOutcome:
     opponent_player_id: int | None
     room_cancelled: bool
     winner_by_abandon: int | None
+
+
+@dataclass(frozen=True, slots=True)
+class RematchOutcome:
+    """Describe whether one rematch request restarted the room."""
+
+    ready_player_id: int
+    rematch_started: bool
 
 
 class RoomStateMachine:
@@ -233,7 +243,7 @@ class RoomStateMachine:
                 self._transition_player(room_player, PlayerRoomState.IN_ROOM)
 
         if room.game_state is not None and room.game_state.is_over:
-            self._finish_game(room, end_reason="completed")
+            self._finish_game(room, end_reason=self._completed_end_reason(room))
             return ConfirmSelectionOutcome(ready_player_id=player_id, round_result=result, game_finished=True)
 
         self._begin_round_selection(room)
@@ -277,6 +287,28 @@ class RoomStateMachine:
             room_cancelled=False,
             winner_by_abandon=None,
         )
+
+    def request_rematch(self, room: OnlineRoom, *, player_id: int) -> RematchOutcome:
+        """Mark one player ready for another match and restart drafting when both players agree."""
+        self._require_match_state(room, {MatchState.GAME_OVER})
+        player = self._player(room, player_id)
+        self._require_player_state(player, {PlayerRoomState.IN_ROOM})
+
+        connected_player_ids = {
+            room_player.player_id
+            for room_player in room.players.values()
+            if room_player.state is not PlayerRoomState.DISCONNECTED
+        }
+        if connected_player_ids != {1, 2}:
+            raise RoomClosedError("Both players must be connected to start a rematch.")
+
+        room.rematch_ready_player_ids.add(player_id)
+        if room.rematch_ready_player_ids != {1, 2}:
+            return RematchOutcome(ready_player_id=player_id, rematch_started=False)
+
+        self._reset_for_rematch(room)
+        self._start_draft(room)
+        return RematchOutcome(ready_player_id=player_id, rematch_started=True)
 
     def snapshot_for(self, room: OnlineRoom, *, local_player_id: int) -> StateSnapshotPayload:
         """Build the only authoritative client-facing snapshot."""
@@ -385,6 +417,7 @@ class RoomStateMachine:
             players=players_payload,
             history=history,
             end_reason=room.end_reason,
+            rematch_ready_player_ids=sorted(room.rematch_ready_player_ids),
         )
 
     def _confirm_draft(self, room: OnlineRoom, player: RoomPlayer) -> ConfirmSelectionOutcome:
@@ -446,7 +479,9 @@ class RoomStateMachine:
 
     def _start_draft(self, room: OnlineRoom) -> None:
         """Create a shared draft offer and move both players into draft selection."""
-        room.draft_phase = DraftPhase(build_draft_offer(room.cards, seed=room.room_id))
+        room.draft_phase = DraftPhase(build_draft_offer(room.cards, seed=f"{room.room_id}:{room.draft_generation}"))
+        room.draft_generation += 1
+        room.rematch_ready_player_ids.clear()
         self._transition_match(room, MatchState.DRAFTING)
         for player in room.players.values():
             self._transition_player(player, PlayerRoomState.SELECTING)
@@ -459,6 +494,10 @@ class RoomStateMachine:
         teams = room.draft_phase.build_locked_teams()
         room.game_state = room.engine.create_game(player_1_hand=teams[1], player_2_hand=teams[2])
         room.draft_phase = None
+        room.round_drafts = {}
+        room.end_reason = None
+        room.abandonment_winner_id = None
+        room.rematch_ready_player_ids.clear()
 
         for player in room.players.values():
             if player.state is not PlayerRoomState.DISCONNECTED:
@@ -482,6 +521,22 @@ class RoomStateMachine:
             if player.state is not PlayerRoomState.DISCONNECTED:
                 self._transition_player(player, PlayerRoomState.IN_ROOM)
 
+    def _completed_end_reason(self, room: OnlineRoom) -> str:
+        """Return the explicit completed-game reason exposed to the frontend."""
+        if room.game_state is None:
+            return "completed"
+        if any(player.hit_points == 0 for player in room.game_state.players.values()):
+            return "knockout"
+        return "score"
+
+    def _reset_for_rematch(self, room: OnlineRoom) -> None:
+        """Clear completed-match state while preserving room seats and session tokens."""
+        room.draft_phase = None
+        room.game_state = None
+        room.round_drafts = {}
+        room.end_reason = None
+        room.abandonment_winner_id = None
+
     def _declare_winner_by_abandon(self, room: OnlineRoom, *, winner_id: int) -> None:
         """Project a forfeit win into the underlying authoritative game state."""
         room.abandonment_winner_id = winner_id
@@ -503,7 +558,7 @@ class RoomStateMachine:
             MatchState.ROUND_SELECTION: {MatchState.ROUND_LOCKED, MatchState.ROUND_RESOLUTION, MatchState.GAME_OVER},
             MatchState.ROUND_LOCKED: {MatchState.ROUND_RESOLUTION, MatchState.GAME_OVER},
             MatchState.ROUND_RESOLUTION: {MatchState.ROUND_SELECTION, MatchState.GAME_OVER},
-            MatchState.GAME_OVER: set(),
+            MatchState.GAME_OVER: {MatchState.DRAFTING},
         }
 
         if new_state not in allowed_transitions[current]:

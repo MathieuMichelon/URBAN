@@ -55,6 +55,13 @@ const elements = {
   selectionDetail: document.querySelector("#selection-detail"),
   selectionControls: document.querySelector("#selection-controls"),
   battleResolution: document.querySelector("#battle-resolution"),
+  matchEndPanel: document.querySelector("#match-end-panel"),
+  matchEndTitle: document.querySelector("#match-end-title"),
+  matchEndReason: document.querySelector("#match-end-reason"),
+  matchEndScore: document.querySelector("#match-end-score"),
+  matchEndRematchStatus: document.querySelector("#match-end-rematch-status"),
+  rematchButton: document.querySelector("#rematch-button"),
+  returnHomeButtonInline: document.querySelector("#return-home-button-inline"),
   playerZone: document.querySelector(".player-zone"),
   opponentZone: document.querySelector(".opponent-zone"),
   localHand: document.querySelector("#local-hand"),
@@ -250,6 +257,75 @@ function buildSelectionProjection(localPlayer, selectedCard) {
   };
 }
 
+function playerLabel(player) {
+  if (!player) {
+    return "Joueur inconnu";
+  }
+  return `${player.name || `Joueur ${player.player_id}`} (P${player.player_id})`;
+}
+
+function buildGameOverSummary(snapshot) {
+  const players = snapshot?.players ?? [];
+  const localPlayer = players.find((player) => player.player_id === snapshot?.local_player_id);
+  const winner = players.find((player) => player.player_id === snapshot?.winner_id);
+  const loser = players.find((player) => player.player_id !== snapshot?.winner_id);
+  const player1 = players.find((player) => player.player_id === 1);
+  const player2 = players.find((player) => player.player_id === 2);
+  const isLocalWinner = snapshot?.winner_id !== null && snapshot?.winner_id === snapshot?.local_player_id;
+  const title = snapshot?.winner_id === null
+    ? "Match nul"
+    : isLocalWinner ? "Victoire" : "Défaite";
+
+  let reason = "Partie terminée.";
+  if (snapshot?.end_reason === "opponent_disconnected") {
+    reason = winner
+      ? `${playerLabel(winner)} gagne par abandon : l'adversaire s'est déconnecté.`
+      : "Partie terminée par déconnexion.";
+  } else if (snapshot?.end_reason === "knockout") {
+    reason = loser
+      ? `KO de ${playerLabel(loser)}. ${winner ? playerLabel(winner) : "Le gagnant"} remporte la partie.`
+      : "Victoire par KO.";
+  } else if (snapshot?.end_reason === "score") {
+    reason = winner && player1 && player2
+      ? `${playerLabel(winner)} gagne aux PV : ${player1.hit_points ?? 0} PV contre ${player2.hit_points ?? 0} PV.`
+      : "Victoire aux PV.";
+  } else if (snapshot?.winner_id === null) {
+    reason = player1 && player2
+      ? `Egalité finale : ${player1.hit_points ?? 0} PV contre ${player2.hit_points ?? 0} PV.`
+      : "Egalité finale.";
+  }
+
+  const scoreLines = players.map((player) => ({
+    label: player.player_id === localPlayer?.player_id ? "Toi" : "Adversaire",
+    name: playerLabel(player),
+    hp: player.hit_points ?? "-",
+    pills: player.pills ?? "-",
+    isWinner: player.player_id === snapshot?.winner_id,
+  }));
+
+  const readyIds = snapshot?.rematch_ready_player_ids ?? [];
+  const localReady = readyIds.includes(snapshot?.local_player_id);
+  const opponent = players.find((player) => player.player_id !== snapshot?.local_player_id);
+  const opponentReady = opponent ? readyIds.includes(opponent.player_id) : false;
+  const canRequestRematch = snapshot?.match_state === "game_over"
+    && players.length === 2
+    && players.every((player) => player.connected)
+    && !localReady;
+  const rematchStatus = players.length < 2
+    ? "Revanche indisponible : il manque un joueur."
+    : !players.every((player) => player.connected)
+      ? "Revanche indisponible tant que l'autre joueur est déconnecté."
+      : localReady && opponentReady
+        ? "Les deux joueurs ont demandé une revanche. Nouveau draft en cours..."
+        : localReady
+          ? "Revanche demandée. En attente de l'autre joueur."
+          : opponentReady
+            ? "L'adversaire veut rejouer. Clique sur Rejouer pour relancer."
+            : "Les deux joueurs peuvent relancer directement une partie dans cette room.";
+
+  return { title, reason, scoreLines, rematchStatus, canRequestRematch };
+}
+
 function getTurnStatusMessage(snapshot, localPlayer, opponent) {
   if (!snapshot) {
     return { text: "En attente de la partie.", tone: "waiting" };
@@ -273,10 +349,8 @@ function getTurnStatusMessage(snapshot, localPlayer, opponent) {
   }
 
   if (matchState === "game_over") {
-    const result = snapshot.winner_id === null
-      ? "Partie annulée."
-      : snapshot.winner_id === snapshot.local_player_id ? "Victoire." : "Défaite.";
-    return { text: result, tone: snapshot.winner_id === snapshot.local_player_id ? "your-turn" : "waiting" };
+    const summary = buildGameOverSummary(snapshot);
+    return { text: summary.reason, tone: snapshot.winner_id === snapshot.local_player_id ? "your-turn" : "waiting" };
   }
 
   const localReady = Boolean(localPlayer?.ready);
@@ -495,9 +569,6 @@ function handleServerMessage(message) {
       addLog(`Round ${payload.round_result.round_number} résolu.`);
       break;
     case "game_finished":
-      if (state.resolution.active) {
-        clearRoundResolutionAnimation();
-      }
       state.snapshot = payload.state;
       addLog(payload.winner_id ? `Partie terminée. Gagnant: joueur ${payload.winner_id}.` : "Partie annulée ou sans gagnant.");
       break;
@@ -1344,12 +1415,13 @@ function renderBattleResolution(localPlayer, opponent) {
   elements.battleResolution.innerHTML = "";
   const roundResult = state.resolution.roundResult;
   const active = Boolean(state.resolution.active && roundResult);
+  const gameOver = state.snapshot?.match_state === "game_over";
   elements.battleResolution.classList.toggle("hidden", !active);
   elements.battleResolution.classList.toggle("active", active);
   ["intro", "pills", "attack", "winner", "effects"].forEach((phase) => {
     elements.battleResolution.classList.toggle(`battle-phase-${phase}`, active && state.resolution.step === phase);
   });
-  elements.selectionStage.classList.toggle("hidden", active);
+  elements.selectionStage.classList.toggle("hidden", active || gameOver);
 
   if (!active) {
     return;
@@ -1445,6 +1517,36 @@ function renderBattleResolution(localPlayer, opponent) {
   }
 }
 
+function renderMatchEndPanel() {
+  const snapshot = state.snapshot;
+  const visible = Boolean(snapshot?.match_state === "game_over" && !state.resolution.active);
+  elements.matchEndPanel.classList.toggle("hidden", !visible);
+
+  if (!visible) {
+    return;
+  }
+
+  const summary = buildGameOverSummary(snapshot);
+  elements.matchEndTitle.textContent = summary.title;
+  elements.matchEndReason.textContent = summary.reason;
+  elements.matchEndRematchStatus.textContent = summary.rematchStatus;
+  elements.rematchButton.disabled = !summary.canRequestRematch;
+  elements.rematchButton.textContent = summary.canRequestRematch ? "Rejouer" : "En attente";
+
+  elements.matchEndScore.innerHTML = "";
+  summary.scoreLines.forEach((line) => {
+    const row = document.createElement("div");
+    row.className = `match-end-score-row ${line.isWinner ? "winner" : ""}`.trim();
+    row.append(
+      makeBadge(line.label, line.isWinner ? "ready" : "state"),
+      document.createTextNode(line.name),
+      makeBadge(`${line.hp} PV`),
+      makeBadge(`${line.pills} pills`),
+    );
+    elements.matchEndScore.appendChild(row);
+  });
+}
+
 function updateViewVisibility() {
   const snapshot = state.snapshot;
   const matchState = snapshot?.match_state ?? null;
@@ -1465,8 +1567,8 @@ function updateViewVisibility() {
     return;
   }
 
-  if (matchState === "game_over" && !showingResolution) {
-    elements.endView.classList.remove("hidden");
+  if (matchState === "game_over") {
+    elements.gameView.classList.remove("hidden");
     return;
   }
 
@@ -1547,12 +1649,9 @@ function renderBanner() {
   }
 
   if (snapshot.match_state === "game_over") {
-    const victory = snapshot.winner_id === null ? "Partie annulée." : snapshot.winner_id === snapshot.local_player_id ? "Victoire." : "Défaite.";
-    elements.endBanner.textContent = victory;
-    elements.endSummary.textContent = [
-      `Gagnant: ${snapshot.winner_id ?? "aucun"}`,
-      snapshot.end_reason ? `Motif: ${snapshot.end_reason}` : null,
-    ].filter(Boolean).join(" | ");
+    const summary = buildGameOverSummary(snapshot);
+    elements.endBanner.textContent = summary.title;
+    elements.endSummary.textContent = summary.reason;
     return;
   }
 }
@@ -1572,6 +1671,18 @@ function renderSelection() {
 
   const localPlayer = state.snapshot.players.find((player) => player.player_id === state.snapshot.local_player_id);
   if (!localPlayer) {
+    return;
+  }
+
+  if (state.snapshot.match_state === "game_over") {
+    elements.selectionInfo.textContent = "Partie terminée.";
+    elements.selectionDetail.innerHTML = "";
+    elements.selectionControls.classList.add("hidden");
+    elements.confirmButton.disabled = true;
+    elements.pillsInput.disabled = true;
+    elements.overloadInput.disabled = true;
+    elements.overloadInput.checked = false;
+    elements.overloadMeta.textContent = "";
     return;
   }
 
@@ -1630,9 +1741,12 @@ function renderSelection() {
 function togglePhasePanels() {
   const matchState = state.snapshot?.match_state;
   const drafting = matchState === "drafting";
+  const gameOver = matchState === "game_over";
 
   elements.draftPanel.classList.toggle("hidden", !drafting);
   elements.matchShell.classList.toggle("hidden", drafting);
+  elements.selectionStage.classList.toggle("hidden", Boolean(gameOver || state.resolution.active));
+  elements.matchEndPanel.classList.toggle("hidden", !gameOver || state.resolution.active);
 }
 
 function render() {
@@ -1681,6 +1795,7 @@ function render() {
     elements.opponentHand.innerHTML = "";
   }
   renderBattleResolution(localPlayer, opponent);
+  renderMatchEndPanel();
   renderSelection();
 }
 
@@ -1803,6 +1918,16 @@ elements.returnHomeButton.addEventListener("click", () => {
   clearRoundResolutionAnimation();
   clearPersistedSession();
   render();
+});
+elements.returnHomeButtonInline.addEventListener("click", () => {
+  state.snapshot = null;
+  resetMatchInteraction();
+  clearRoundResolutionAnimation();
+  clearPersistedSession();
+  render();
+});
+elements.rematchButton.addEventListener("click", () => {
+  sendMessage("request_rematch", {});
 });
 elements.pillsInput.addEventListener("input", (event) => {
   if (!state.interaction.selectedCardId) {

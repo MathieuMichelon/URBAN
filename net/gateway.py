@@ -14,6 +14,7 @@ from net.protocol import (
     ClientJoinRoomMessage,
     ClientMessage,
     ClientPingMessage,
+    ClientRequestRematchMessage,
     ClientRequestStateMessage,
     ClientSelectCardMessage,
     ClientSetOverloadMessage,
@@ -190,6 +191,9 @@ class WebSocketGateway:
             return
         if isinstance(message, ClientRequestStateMessage):
             await self._handle_request_state(connection, message)
+            return
+        if isinstance(message, ClientRequestRematchMessage):
+            await self._handle_request_rematch(connection, message)
             return
         if isinstance(message, ClientPingMessage):
             await self._handle_ping(connection)
@@ -397,6 +401,12 @@ class WebSocketGateway:
         """Return the latest authoritative snapshot to the caller."""
         room_id, player_id = self._require_bound_player(connection, message.room_id, message.player_id)
         await self._send_state_snapshot(connection, await self._room_manager.snapshot_for(room_id, player_id=player_id))
+
+    async def _handle_request_rematch(self, connection: ClientConnection, message: ClientRequestRematchMessage) -> None:
+        """Mark one player ready for rematch and restart drafting when both agree."""
+        room_id, player_id = self._require_bound_player(connection, message.room_id, message.player_id)
+        room, _outcome = await self._room_manager.request_rematch(room_id, player_id=player_id)
+        await self._broadcast_state_snapshots(room.room_id, player_ids=sorted(room.players))
 
     async def _handle_ping(self, connection: ClientConnection) -> None:
         """Reply to a heartbeat ping."""

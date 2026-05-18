@@ -1191,6 +1191,74 @@ button:disabled {
   background: rgba(7, 12, 22, 0.42);
 }
 
+.match-end-panel {
+  display: grid;
+  gap: 14px;
+  min-height: 300px;
+  align-content: center;
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(255, 205, 89, 0.18), transparent 18rem),
+    radial-gradient(circle at 20% 80%, rgba(75, 219, 255, 0.14), transparent 18rem),
+    linear-gradient(180deg, rgba(13, 22, 39, 0.98), rgba(7, 12, 22, 0.99));
+  border-color: rgba(255, 205, 89, 0.5);
+  box-shadow: 0 0 34px rgba(255, 205, 89, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.match-end-kicker {
+  margin: 0;
+  color: #ffd772;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.match-end-panel h2 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 0.95;
+}
+
+.match-end-reason {
+  margin: 0 auto;
+  max-width: 760px;
+  color: #e8efff;
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  line-height: 1.45;
+}
+
+.match-end-score {
+  display: grid;
+  gap: 8px;
+  max-width: 720px;
+  width: 100%;
+  justify-self: center;
+}
+
+.match-end-score-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  color: #cfdcf7;
+  background: rgba(9, 15, 27, 0.72);
+  border: 1px solid rgba(85, 111, 165, 0.42);
+}
+
+.match-end-score-row.winner {
+  color: #eafff3;
+  border-color: rgba(92, 235, 154, 0.52);
+  background: linear-gradient(90deg, rgba(39, 129, 91, 0.24), rgba(9, 15, 27, 0.72));
+}
+
+.match-end-panel .button-row {
+  justify-content: center;
+}
+
 @keyframes battleFadeIn {
   from {
     opacity: 0;

@@ -12,6 +12,7 @@ from rooms.state_machine import (
     DisconnectOutcome,
     JoinRoomOutcome,
     OnlineRoom,
+    RematchOutcome,
     RoomNotFoundError,
     RoomPlayer,
     RoomStateMachine,
@@ -77,6 +78,13 @@ class RoomManager:
         room = await self.get_room(room_id)
         async with self._locks[room_id]:
             outcome = self._state_machine.confirm_selection(room, player_id=player_id)
+            return room, outcome
+
+    async def request_rematch(self, room_id: str, *, player_id: int) -> tuple[OnlineRoom, RematchOutcome]:
+        """Mark one player ready to replay and restart the room when both agree."""
+        room = await self.get_room(room_id)
+        async with self._locks[room_id]:
+            outcome = self._state_machine.request_rematch(room, player_id=player_id)
             return room, outcome
 
     async def disconnect_player(self, room_id: str, *, player_id: int) -> tuple[OnlineRoom, DisconnectOutcome]:
