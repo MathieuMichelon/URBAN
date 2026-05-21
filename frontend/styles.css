@@ -466,9 +466,10 @@ button:disabled {
 
 .draft-layout {
   display: grid;
-  gap: 18px;
-  grid-template-columns: 1.5fr 1fr;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) clamp(260px, 28vw, 360px);
   margin-top: 16px;
+  align-items: start;
 }
 
 .match-shell {
@@ -1695,13 +1696,15 @@ button:disabled {
 
 .draft-column {
   display: grid;
-  gap: 14px;
+  gap: 10px;
+  align-content: start;
+  min-width: 0;
 }
 
 .team-summary {
   display: grid;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .compact-summary {
@@ -1710,9 +1713,9 @@ button:disabled {
 
 .team-summary-card {
   display: grid;
-  gap: 12px;
-  padding: 14px;
-  border-radius: 18px;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 14px;
   background: rgba(16, 23, 39, 0.78);
   border: 1px solid rgba(70, 86, 122, 0.55);
 }
@@ -1721,32 +1724,33 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .team-summary-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .team-summary-roster {
   display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 7px;
+  grid-template-columns: 1fr;
 }
 
 .team-summary-item {
   display: grid;
-  gap: 8px;
-  padding: 12px;
-  border-radius: 16px;
+  gap: 5px;
+  padding: 8px;
+  border-radius: 12px;
   background: rgba(24, 36, 60, 0.88);
   border: 1px solid rgba(77, 96, 140, 0.42);
 }
 
 .team-summary-bonus {
-  font-size: 0.84rem;
+  font-size: 0.76rem;
   font-weight: 700;
 }
 
@@ -1760,6 +1764,48 @@ button:disabled {
 
 .team-summary-empty {
   color: #9baacc;
+}
+
+#draft-team-meta {
+  max-width: 34ch;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+#draft-lock-button {
+  justify-self: start;
+  width: min(100%, 220px);
+  min-height: 44px;
+  padding-inline: 14px;
+}
+
+#draft-team.compact-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+#draft-team .card {
+  gap: 8px;
+  padding: 9px;
+  border-radius: 14px;
+}
+
+#draft-team .card img {
+  aspect-ratio: 16 / 10;
+  object-fit: contain;
+}
+
+#draft-team .card-details,
+#draft-team .card-footer-row {
+  display: none;
+}
+
+#draft-team .card-stat-chip {
+  padding: 7px 8px;
+}
+
+#draft-team .card-name {
+  font-size: 0.88rem;
 }
 
 .event-log {
