@@ -85,12 +85,12 @@
         </article>
 
         <section id="match-shell" class="match-shell full-width">
-          <article class="panel match-zone player-zone">
+          <article class="panel match-zone opponent-zone">
             <div class="zone-header">
-              <div id="player-identity" class="identity-panel"></div>
-              <div id="player-status" class="zone-status-panel"></div>
+              <div id="opponent-identity" class="identity-panel"></div>
+              <div id="opponent-status" class="zone-status-panel"></div>
             </div>
-            <div id="local-hand" class="match-hand-grid"></div>
+            <div id="opponent-hand" class="match-hand-grid"></div>
           </article>
 
           <section class="center-zone">
@@ -110,6 +110,7 @@
                 </div>
               </div>
               <p id="game-banner" class="banner-text">En attente de la partie.</p>
+              <div id="round-history" class="round-history" aria-label="Historique des rounds"></div>
               <div id="summary-content" class="muted"></div>
             </article>
 
@@ -119,23 +120,36 @@
                 <div id="selection-detail" class="selection-detail-panel"></div>
                 <div id="selection-controls" class="selection-controls hidden">
                   <div class="selection-controls-header">
-                    <h2>Engager des pills</h2>
+                    <div>
+                      <span class="eyebrow">Console tactique</span>
+                      <h2>Engager des pills</h2>
+                    </div>
                     <button id="reset-selection-button" type="button" class="secondary-button">Réinitialiser</button>
                   </div>
-                  <label id="pills-control" class="pill-control">
-                    <span class="muted">Pills à engager</span>
-                    <input id="pills-input" type="range" min="0" max="12" value="0" disabled>
-                  </label>
-                  <div id="pills-value">0</div>
+                  <div class="pills-console">
+                    <div class="pills-counter">
+                      <span class="pills-counter-label">Pills attaque</span>
+                      <div class="pills-stepper">
+                        <button id="pills-minus-button" type="button" class="pill-step-button" aria-label="Retirer une pill">−</button>
+                        <div id="pills-value">0</div>
+                        <button id="pills-plus-button" type="button" class="pill-step-button" aria-label="Ajouter une pill">+</button>
+                      </div>
+                    </div>
+                    <label id="pills-control" class="pill-control">
+                      <span class="muted">Ajustement fin</span>
+                      <input id="pills-input" type="range" min="0" max="12" value="0" disabled>
+                    </label>
+                  </div>
                   <label class="overload-control">
                     <input id="overload-input" type="checkbox" disabled>
-                    <span>
+                    <span class="overload-shell">
+                      <span class="overload-kicker">Danger</span>
                       <strong>Overload</strong>
-                      <small>Overload : -2 pills, +3 dégâts si victoire</small>
+                      <small>-2 pills, +3 dégâts si victoire</small>
                     </span>
                   </label>
-                  <div id="overload-meta" class="muted"></div>
-                  <div class="button-row">
+                  <div id="overload-meta" class="selection-preview-grid muted"></div>
+                  <div class="button-row combat-action-row">
                     <button id="confirm-button" disabled>Confirmer</button>
                   </div>
                 </div>
@@ -146,21 +160,22 @@
                 <h2 id="match-end-title">Partie terminée</h2>
                 <p id="match-end-reason" class="match-end-reason"></p>
                 <div id="match-end-score" class="match-end-score"></div>
+                <div id="match-end-cards" class="match-end-cards"></div>
                 <div id="match-end-rematch-status" class="muted"></div>
                 <div class="button-row">
                   <button id="rematch-button" type="button">Rejouer</button>
-                  <button id="return-home-button-inline" type="button" class="secondary-button">Quitter</button>
+                  <button id="return-home-button-inline" type="button" class="secondary-button">Retour au lobby</button>
                 </div>
               </article>
             </div>
           </section>
 
-          <article class="panel match-zone opponent-zone">
+          <article class="panel match-zone player-zone">
             <div class="zone-header">
-              <div id="opponent-identity" class="identity-panel"></div>
-              <div id="opponent-status" class="zone-status-panel"></div>
+              <div id="player-identity" class="identity-panel"></div>
+              <div id="player-status" class="zone-status-panel"></div>
             </div>
-            <div id="opponent-hand" class="match-hand-grid"></div>
+            <div id="local-hand" class="match-hand-grid"></div>
           </article>
         </section>
       </div>

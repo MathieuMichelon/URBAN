@@ -34,6 +34,8 @@ const elements = {
   pingButton: document.querySelector("#ping-button"),
   pillsInput: document.querySelector("#pills-input"),
   pillsValue: document.querySelector("#pills-value"),
+  pillsMinusButton: document.querySelector("#pills-minus-button"),
+  pillsPlusButton: document.querySelector("#pills-plus-button"),
   overloadInput: document.querySelector("#overload-input"),
   overloadMeta: document.querySelector("#overload-meta"),
   connectionStatus: document.querySelector("#connection-status"),
@@ -59,6 +61,7 @@ const elements = {
   matchEndTitle: document.querySelector("#match-end-title"),
   matchEndReason: document.querySelector("#match-end-reason"),
   matchEndScore: document.querySelector("#match-end-score"),
+  matchEndCards: document.querySelector("#match-end-cards"),
   matchEndRematchStatus: document.querySelector("#match-end-rematch-status"),
   rematchButton: document.querySelector("#rematch-button"),
   returnHomeButtonInline: document.querySelector("#return-home-button-inline"),
@@ -74,6 +77,7 @@ const elements = {
   lobbyRoomId: document.querySelector("#lobby-room-id"),
   lobbyMatchState: document.querySelector("#lobby-match-state"),
   gameBanner: document.querySelector("#game-banner"),
+  roundHistory: document.querySelector("#round-history"),
   endBanner: document.querySelector("#end-banner"),
   endSummary: document.querySelector("#end-summary"),
   eventLog: document.querySelector("#event-log"),
@@ -295,11 +299,17 @@ function buildGameOverSummary(snapshot) {
       : "Egalité finale.";
   }
 
+  const roundsWonByPlayer = (playerId) => (snapshot?.history ?? [])
+    .filter((roundResult) => roundResult.winner_id === playerId).length;
+
   const scoreLines = players.map((player) => ({
     label: player.player_id === localPlayer?.player_id ? "Toi" : "Adversaire",
     name: playerLabel(player),
     hp: player.hit_points ?? "-",
     pills: player.pills ?? "-",
+    roundsWon: roundsWonByPlayer(player.player_id),
+    cardsPlayed: player.played_card_ids?.length ?? 0,
+    playedCardIds: player.played_card_ids ?? [],
     isWinner: player.player_id === snapshot?.winner_id,
   }));
 
@@ -328,24 +338,24 @@ function buildGameOverSummary(snapshot) {
 
 function getTurnStatusMessage(snapshot, localPlayer, opponent) {
   if (!snapshot) {
-    return { text: "En attente de la partie.", tone: "waiting" };
+    return { text: "⏳ En attente de la partie.", tone: "waiting" };
   }
 
   const matchState = snapshot.match_state;
   if (matchState === "waiting_for_players") {
-    return { text: "En attente d'un second joueur.", tone: "waiting" };
+    return { text: "⏳ En attente d'un second joueur.", tone: "waiting" };
   }
 
   if (matchState === "drafting") {
     const lockedCount = snapshot.draft_locked_player_ids?.length ?? 0;
     return {
-      text: `Draft en cours : compose 4 cartes pour 8 stars max. Equipes verrouillées : ${lockedCount}/2.`,
+      text: `⚡ Draft : compose ton équipe. Verrouillées ${lockedCount}/2.`,
       tone: "your-turn",
     };
   }
 
   if (matchState === "round_resolution" || state.resolution.active) {
-    return { text: "Les deux joueurs ont confirmé, résolution du round...", tone: "resolving" };
+    return { text: "⚔️ Les deux joueurs ont choisi, résolution du round.", tone: "resolving" };
   }
 
   if (matchState === "game_over") {
@@ -356,54 +366,61 @@ function getTurnStatusMessage(snapshot, localPlayer, opponent) {
   const localReady = Boolean(localPlayer?.ready);
   const opponentReady = Boolean(opponent?.ready);
   const opponentCardRevealed = Boolean(opponent?.draft_card_id);
-  const localSelected = Boolean(state.interaction.selectedCardId || localPlayer?.draft_card_id);
+  const selectedCard = selectedCardFor(localPlayer);
+  const localSelected = Boolean(selectedCard);
   const localCanSelect = localPlayer?.player_state === "selecting";
   const localHasInitiative = snapshot.initiative_player_id === snapshot.local_player_id;
 
   if (localReady && opponentReady) {
-    return { text: "Les deux joueurs ont confirmé, résolution du round...", tone: "resolving" };
+    return { text: "⚔️ Les deux joueurs ont choisi, résolution du round.", tone: "resolving" };
   }
 
   if (localReady) {
-    return { text: "En attente du choix adverse. Ta carte est verrouillée côté serveur.", tone: "waiting" };
+    return { text: "🔒 Choix verrouillé, en attente de l'adversaire.", tone: "waiting" };
   }
 
   if (opponentReady && opponentCardRevealed) {
     return {
-      text: "Carte adverse révélée : l'adversaire a confirmé, à toi de répondre.",
+      text: "👁️ Carte adverse révélée. À toi de répondre.",
       tone: "revealed",
     };
   }
 
   if (opponentReady) {
     return {
-      text: "L'adversaire a choisi une carte. Elle reste cachée tant qu'elle n'est pas révélée par l'initiative.",
+      text: "🔒 L'adversaire a verrouillé une carte cachée.",
       tone: "opponent-ready",
     };
   }
 
   if (!localCanSelect && !localHasInitiative) {
     return {
-      text: "En attente du choix adverse : l'adversaire a l'initiative et doit confirmer en premier.",
+      text: "⏳ L'adversaire réfléchit...",
       tone: "waiting",
     };
   }
 
   if (localSelected) {
+    if (state.interaction.pillsPreview === 0) {
+      return {
+        text: `💊 Carte sélectionnée : ${selectedCard.name}. Choisis tes pills.`,
+        tone: "your-turn",
+      };
+    }
     return {
-      text: localHasInitiative ? "Tu dois confirmer ton choix. Tu as l'initiative." : "Tu dois confirmer ton choix.",
-      tone: "your-turn",
+      text: `✅ ${selectedCard.name} prête. Tu dois confirmer ton choix.`,
+      tone: "confirming",
     };
   }
 
   if (localCanSelect) {
     return {
-      text: localHasInitiative ? "À toi de choisir une carte. Tu as l'initiative." : "À toi de choisir une carte.",
+      text: localHasInitiative ? "⚡ À toi de choisir une carte." : "🎴 À toi de choisir une carte.",
       tone: "your-turn",
     };
   }
 
-  return { text: "En attente du choix adverse.", tone: "waiting" };
+  return { text: "⏳ L'adversaire réfléchit...", tone: "waiting" };
 }
 
 function formatTotalPillCost(projection) {
@@ -411,6 +428,52 @@ function formatTotalPillCost(projection) {
     return String(projection.attackPills);
   }
   return `${projection.attackPills} + ${projection.overloadCost} = ${projection.totalCost}`;
+}
+
+function renderSelectionPreview(projection, showControls) {
+  elements.overloadMeta.innerHTML = "";
+  if (!showControls) {
+    return;
+  }
+
+  const remainingPills = Math.max(0, projection.availablePills - projection.totalCost);
+  const previewItems = [
+    ["Coût total", formatTotalPillCost(projection), `sur ${projection.availablePills} pills`],
+    ["Attaque prévue", projection.projectedAttack, "calcul local affiché"],
+    ["Dégâts prévus", projection.projectedDamage, projection.overloadActive ? "+3 Overload inclus" : "sans Overload"],
+    ["Après confirmation", `${remainingPills}`, "pills restantes"],
+  ];
+
+  previewItems.forEach(([label, value, hint]) => {
+    const tile = document.createElement("div");
+    tile.className = "selection-preview-tile";
+
+    const tileLabel = document.createElement("span");
+    tileLabel.textContent = label;
+
+    const tileValue = document.createElement("strong");
+    tileValue.textContent = value;
+
+    const tileHint = document.createElement("small");
+    tileHint.textContent = hint;
+
+    tile.append(tileLabel, tileValue, tileHint);
+    elements.overloadMeta.appendChild(tile);
+  });
+}
+
+function updatePillsPreview(nextValue) {
+  if (!state.interaction.selectedCardId || !state.snapshot) {
+    return;
+  }
+  const localPlayer = state.snapshot.players.find((player) => player.player_id === state.snapshot.local_player_id);
+  const rawPills = Number(nextValue);
+  const pills = Math.max(0, Math.min(maxAttackPillsFor(localPlayer), Number.isFinite(rawPills) ? rawPills : 0));
+  state.interaction.pillsPreview = pills;
+  elements.pillsInput.value = String(pills);
+  elements.pillsValue.textContent = String(pills);
+  sendMessage("set_pills", { pills });
+  render();
 }
 
 function syncInteractionWithSnapshot() {
@@ -993,7 +1056,7 @@ function createCardHeader(card, variant) {
 
   const starLabel = document.createElement("span");
   starLabel.className = `${variant}-card-stars-label`;
-  starLabel.textContent = `${card.stars} star${card.stars > 1 ? "s" : ""}`;
+  starLabel.textContent = `${card.stars} étoile${card.stars > 1 ? "s" : ""}`;
 
   stars.append(starCount, starLabel);
   header.append(titleBlock, stars);
@@ -1020,8 +1083,8 @@ function createCardStats(card, variant) {
   const stats = document.createElement("div");
   stats.className = `${variant}-card-stats`;
   stats.append(
-    createReadableStatChip("Power", card.power, "power"),
-    createReadableStatChip("Damage", card.damage, "damage"),
+    createReadableStatChip("Puissance", card.power, "power"),
+    createReadableStatChip("Dégâts", card.damage, "damage"),
   );
   return stats;
 }
@@ -1033,13 +1096,13 @@ function createCardTextGroup(card, variant, bonusActive) {
   const ability = document.createElement("div");
   ability.className = `${variant}-card-section`;
   ability.append(
-    createDetailRow("Ability", card.power_text, `${variant}-ability-row`),
+    createDetailRow("Pouvoir", card.power_text, `${variant}-ability-row`),
   );
 
   const bonus = document.createElement("div");
   bonus.className = `${variant}-card-section ${bonusActive ? "bonus-active" : "bonus-inactive"}`;
   bonus.append(
-    createDetailRow("Clan bonus", card.bonus_text, `${variant}-bonus-row card-bonus ${bonusActive ? "active" : "inactive"}`),
+    createDetailRow("Bonus clan", card.bonus_text, `${variant}-bonus-row card-bonus ${bonusActive ? "active" : "inactive"}`),
   );
 
   const info = card.info
@@ -1281,8 +1344,34 @@ function createBattleStat(label, value) {
   return stat;
 }
 
+function formatSignedValue(value) {
+  const numericValue = Number(value ?? 0);
+  return numericValue > 0 ? `+${numericValue}` : String(numericValue);
+}
+
+function buildBattleOutcomeMessage(roundResult, player1Card, player2Card) {
+  const tiedAttack = roundResult.player_1_attack === roundResult.player_2_attack;
+  const winnerCard = roundResult.winner_id === 1 ? player1Card : roundResult.winner_id === 2 ? player2Card : null;
+
+  if (!winnerCard) {
+    return tiedAttack ? "Égalité : aucun dégât infligé." : "Aucun vainqueur sur ce round.";
+  }
+
+  const winnerName = winnerCard.name;
+  const damageText = roundResult.damage_dealt > 0
+    ? ` et inflige ${roundResult.damage_dealt} dégâts`
+    : "";
+  const lifeGain = roundResult.winner_id === 1
+    ? Math.max(0, roundResult.life_swing_player_1 ?? 0)
+    : Math.max(0, roundResult.life_swing_player_2 ?? 0);
+  const lifeText = lifeGain > 0 ? ` et récupère ${lifeGain} PV` : "";
+  const initiativeText = tiedAttack ? "Égalité d'attaque : avantage à l'initiative. " : "";
+
+  return `${initiativeText}${winnerName} remporte le round${damageText}${lifeText}.`;
+}
+
 function createBattleCard(card, options) {
-  const { playerLabel, playerId, pills, attack, overload, outcomeClass } = options;
+  const { playerLabel, playerId, pills, attack, overload, outcomeClass, lifeSwing = 0 } = options;
   const cardNode = document.createElement("article");
   cardNode.className = ["battle-card", outcomeClass, `clan-${slugifyClan(card.clan)}`].filter(Boolean).join(" ");
 
@@ -1332,9 +1421,23 @@ function createBattleCard(card, options) {
   }
 
   if (battleStepAtLeast("attack")) {
+    const formulaStat = createBattleStat("Calcul attaque", `${card.power} × (${pills} + 1)`);
+    formulaStat.classList.add("formula-stat");
+    stats.append(formulaStat);
+
+    const bonusStat = createBattleStat(card.bonus_active ? "Bonus actif" : "Bonus inactif", card.bonus_text || "-");
+    bonusStat.classList.add(card.bonus_active ? "bonus-on-stat" : "bonus-off-stat");
+    stats.append(bonusStat);
+
     const attackStat = createBattleStat("Attaque totale", attack);
     attackStat.classList.add("important", "attack-stat");
     stats.append(attackStat);
+  }
+
+  if (battleStepAtLeast("effects")) {
+    const lifeStat = createBattleStat("Variation PV", formatSignedValue(lifeSwing));
+    lifeStat.classList.add(lifeSwing >= 0 ? "life-gain-stat" : "life-loss-stat");
+    stats.append(lifeStat);
   }
 
   const text = document.createElement("div");
@@ -1360,8 +1463,11 @@ function battleOutcomeClass(roundResult, playerId) {
 
 function buildBattleEffects(roundResult, player1Card, player2Card) {
   const effects = [];
+  const tiedAttack = roundResult.player_1_attack === roundResult.player_2_attack;
   if (roundResult.winner_id === null || roundResult.winner_id === undefined) {
-    effects.push("Égalité : aucun effet de victoire ou défaite.");
+    effects.push(tiedAttack ? "Égalité : aucun vainqueur officiel." : "Aucun vainqueur officiel.");
+  } else if (tiedAttack) {
+    effects.push("Égalité d'attaque : avantage à l'initiative.");
   }
 
   if (roundResult.life_swing_player_1) {
@@ -1443,11 +1549,11 @@ function renderBattleResolution(localPlayer, opponent) {
   const phaseCopy = {
     intro: "Les combattants entrent en scène.",
     pills: "Pills d'attaque révélées officiellement. Overload reste séparé du calcul d'attaque.",
-    attack: "Attaque totale officielle calculée par le serveur.",
+    attack: "Calcul d'attaque officiel : puissance, pills, bonus, total.",
     winner: roundResult.winner_id === null || roundResult.winner_id === undefined
       ? "Égalité : aucune carte ne prend l'avantage."
-      : `${localLabel(roundResult.winner_id)} remporte l'affrontement.`,
-    effects: "Dégâts et effets appliqués au nouvel état officiel.",
+      : buildBattleOutcomeMessage(roundResult, player1Card, player2Card),
+    effects: buildBattleOutcomeMessage(roundResult, player1Card, player2Card),
     done: "Résolution terminée.",
   };
 
@@ -1469,13 +1575,14 @@ function renderBattleResolution(localPlayer, opponent) {
       pills: roundResult.player_1_pills_committed ?? 0,
       attack: roundResult.player_1_attack,
       overload: Boolean(roundResult.player_1_overload),
+      lifeSwing: roundResult.life_swing_player_1 ?? 0,
       outcomeClass: revealOutcome ? battleOutcomeClass(roundResult, 1) : "",
     }),
   );
 
   const versus = document.createElement("div");
   versus.className = "battle-versus";
-  versus.textContent = "VS";
+  versus.innerHTML = "<span>VS</span>";
   board.appendChild(versus);
 
   board.append(
@@ -1485,6 +1592,7 @@ function renderBattleResolution(localPlayer, opponent) {
       pills: roundResult.player_2_pills_committed ?? 0,
       attack: roundResult.player_2_attack,
       overload: Boolean(roundResult.player_2_overload),
+      lifeSwing: roundResult.life_swing_player_2 ?? 0,
       outcomeClass: revealOutcome ? battleOutcomeClass(roundResult, 2) : "",
     }),
   );
@@ -1496,7 +1604,7 @@ function renderBattleResolution(localPlayer, opponent) {
     winnerCall.className = "battle-winner-call";
     winnerCall.textContent = roundResult.winner_id === null || roundResult.winner_id === undefined
       ? "Égalité"
-      : `${localLabel(roundResult.winner_id)} gagne`;
+      : buildBattleOutcomeMessage(roundResult, player1Card, player2Card);
     elements.battleResolution.appendChild(winnerCall);
   }
 
@@ -1510,9 +1618,12 @@ function renderBattleResolution(localPlayer, opponent) {
 
     const damage = document.createElement("div");
     damage.className = "battle-damage-pop";
-    damage.textContent = roundResult.winner_id === null || roundResult.winner_id === undefined
-      ? "Dégâts infligés : 0"
-      : `Dégâts infligés : ${roundResult.damage_dealt}`;
+    const pv1 = formatSignedValue(roundResult.life_swing_player_1 ?? 0);
+    const pv2 = formatSignedValue(roundResult.life_swing_player_2 ?? 0);
+    damage.innerHTML = `
+      <strong>Dégâts infligés : ${roundResult.winner_id === null || roundResult.winner_id === undefined ? 0 : roundResult.damage_dealt}</strong>
+      <span>PV J1 ${pv1} · PV J2 ${pv2}</span>
+    `;
     elements.battleResolution.appendChild(damage);
   }
 }
@@ -1537,13 +1648,59 @@ function renderMatchEndPanel() {
   summary.scoreLines.forEach((line) => {
     const row = document.createElement("div");
     row.className = `match-end-score-row ${line.isWinner ? "winner" : ""}`.trim();
-    row.append(
+    const heading = document.createElement("div");
+    heading.className = "match-end-score-heading";
+    heading.append(
       makeBadge(line.label, line.isWinner ? "ready" : "state"),
       document.createTextNode(line.name),
-      makeBadge(`${line.hp} PV`),
-      makeBadge(`${line.pills} pills`),
     );
+
+    const stats = document.createElement("div");
+    stats.className = "match-end-stat-grid";
+    [
+      ["PV finaux", line.hp],
+      ["Pills", line.pills],
+      ["Rounds gagnés", line.roundsWon],
+      ["Cartes jouées", `${line.cardsPlayed}/4`],
+    ].forEach(([label, value]) => {
+      const item = document.createElement("div");
+      item.className = "match-end-stat";
+      const statLabel = document.createElement("span");
+      statLabel.textContent = label;
+      const statValue = document.createElement("strong");
+      statValue.textContent = value;
+      item.append(statLabel, statValue);
+      stats.appendChild(item);
+    });
+
+    row.append(heading, stats);
     elements.matchEndScore.appendChild(row);
+  });
+
+  elements.matchEndCards.innerHTML = "";
+  summary.scoreLines.forEach((line) => {
+    const block = document.createElement("div");
+    block.className = "match-end-card-block";
+
+    const title = document.createElement("strong");
+    title.textContent = `${line.label} · cartes jouées`;
+
+    const cards = document.createElement("div");
+    cards.className = "match-end-card-list";
+    const playedCards = line.playedCardIds.map((cardId) => findCardInSnapshot(cardId));
+    if (playedCards.length === 0) {
+      const empty = document.createElement("span");
+      empty.className = "match-end-empty-card";
+      empty.textContent = "Aucune carte jouée";
+      cards.appendChild(empty);
+    } else {
+      playedCards.forEach((card) => {
+        cards.appendChild(createRoundHistoryCard(card, card.name));
+      });
+    }
+
+    block.append(title, cards);
+    elements.matchEndCards.appendChild(block);
   });
 }
 
@@ -1578,6 +1735,7 @@ function updateViewVisibility() {
 function renderSummary() {
   if (!state.snapshot) {
     elements.summaryContent.textContent = "En attente d'un état de room.";
+    renderRoundHistory();
     elements.lobbyRoomId.textContent = "-";
     elements.lobbyMatchState.textContent = "-";
     elements.roomStatus.textContent = "Aucune room";
@@ -1610,10 +1768,11 @@ function renderSummary() {
     `Prêts : ${snapshot.pending_player_ids.join(", ") || "aucun"}`,
     snapshot.end_reason ? `Fin: ${snapshot.end_reason}` : null,
   ].filter(Boolean).join(" | ");
+  renderRoundHistory();
 }
 
 function renderBanner() {
-  const bannerTones = ["your-turn", "waiting", "opponent-ready", "revealed", "resolving"];
+  const bannerTones = ["your-turn", "waiting", "opponent-ready", "revealed", "confirming", "resolving", "error"];
   elements.gameBanner.classList.remove(...bannerTones);
 
   if (!state.snapshot) {
@@ -1656,6 +1815,102 @@ function renderBanner() {
   }
 }
 
+function createRoundHistoryCard(card, sideLabel) {
+  const cardNode = document.createElement("div");
+  cardNode.className = "round-history-card";
+
+  if (card?.illustration) {
+    const image = document.createElement("img");
+    image.src = `/${card.illustration}`;
+    image.alt = card.name;
+    cardNode.appendChild(image);
+  } else {
+    const fallback = document.createElement("div");
+    fallback.className = "round-history-card-fallback";
+    fallback.textContent = "?";
+    cardNode.appendChild(fallback);
+  }
+
+  const name = document.createElement("span");
+  name.textContent = card?.name ?? "Carte inconnue";
+
+  const side = document.createElement("small");
+  side.textContent = sideLabel;
+
+  cardNode.append(name, side);
+  return cardNode;
+}
+
+function renderRoundHistory() {
+  elements.roundHistory.innerHTML = "";
+  const snapshot = state.snapshot;
+  const localPlayerId = snapshot?.local_player_id;
+  const history = snapshot?.history ?? [];
+
+  for (let roundNumber = 1; roundNumber <= 4; roundNumber += 1) {
+    const roundResult = history.find((result) => result.round_number === roundNumber);
+    const slot = document.createElement("article");
+    slot.className = `round-history-slot ${roundResult ? "played" : "empty"}`;
+
+    const header = document.createElement("div");
+    header.className = "round-history-header";
+
+    const roundLabel = document.createElement("strong");
+    roundLabel.textContent = `R${roundNumber}`;
+
+    const status = document.createElement("span");
+    status.textContent = roundResult ? "Terminé" : "À venir";
+
+    header.append(roundLabel, status);
+    slot.appendChild(header);
+
+    if (!roundResult) {
+      const empty = document.createElement("div");
+      empty.className = "round-history-empty";
+      empty.textContent = "Emplacement vide";
+      slot.appendChild(empty);
+      elements.roundHistory.appendChild(slot);
+      continue;
+    }
+
+    const localPlayedAsP1 = localPlayerId === 1;
+    const localCardId = localPlayedAsP1 ? roundResult.player_1_card_id : roundResult.player_2_card_id;
+    const opponentCardId = localPlayedAsP1 ? roundResult.player_2_card_id : roundResult.player_1_card_id;
+    const localCard = findCardInSnapshot(localCardId);
+    const opponentCard = findCardInSnapshot(opponentCardId);
+    const localWon = roundResult.winner_id === localPlayerId;
+    const opponentWon = roundResult.winner_id && roundResult.winner_id !== localPlayerId;
+    const winnerText = roundResult.winner_id === null || roundResult.winner_id === undefined
+      ? "Égalité"
+      : localWon
+        ? "Victoire"
+        : "Défaite";
+
+    slot.classList.add(localWon ? "won" : opponentWon ? "lost" : "tie");
+
+    const cards = document.createElement("div");
+    cards.className = "round-history-cards";
+    cards.append(
+      createRoundHistoryCard(localCard, "Toi"),
+      createRoundHistoryCard(opponentCard, "Adv."),
+    );
+
+    const footer = document.createElement("div");
+    footer.className = "round-history-footer";
+
+    const winner = document.createElement("span");
+    winner.className = "round-history-winner";
+    winner.textContent = winnerText;
+
+    const damage = document.createElement("span");
+    damage.textContent = `${roundResult.damage_dealt ?? 0} dégâts`;
+
+    footer.append(winner, damage);
+    slot.append(cards, footer);
+    elements.roundHistory.appendChild(slot);
+  }
+}
+
 function renderSelection() {
   if (!state.snapshot) {
     elements.selectionInfo.textContent = "Click a card to choose pills.";
@@ -1663,9 +1918,11 @@ function renderSelection() {
     elements.selectionControls.classList.add("hidden");
     elements.confirmButton.disabled = true;
     elements.pillsInput.disabled = true;
+    elements.pillsMinusButton.disabled = true;
+    elements.pillsPlusButton.disabled = true;
     elements.overloadInput.disabled = true;
     elements.overloadInput.checked = false;
-    elements.overloadMeta.textContent = "";
+    elements.overloadMeta.innerHTML = "";
     return;
   }
 
@@ -1680,9 +1937,11 @@ function renderSelection() {
     elements.selectionControls.classList.add("hidden");
     elements.confirmButton.disabled = true;
     elements.pillsInput.disabled = true;
+    elements.pillsMinusButton.disabled = true;
+    elements.pillsPlusButton.disabled = true;
     elements.overloadInput.disabled = true;
     elements.overloadInput.checked = false;
-    elements.overloadMeta.textContent = "";
+    elements.overloadMeta.innerHTML = "";
     return;
   }
 
@@ -1690,9 +1949,11 @@ function renderSelection() {
     elements.confirmButton.textContent = localPlayer.draft_locked ? "Equipe verrouillée" : "Verrouiller l'équipe";
     elements.selectionControls.classList.add("hidden");
     elements.pillsInput.disabled = true;
+    elements.pillsMinusButton.disabled = true;
+    elements.pillsPlusButton.disabled = true;
     elements.overloadInput.disabled = true;
     elements.overloadInput.checked = false;
-    elements.overloadMeta.textContent = "";
+    elements.overloadMeta.innerHTML = "";
     elements.confirmButton.disabled = localPlayer.player_state !== "selecting" || localPlayer.draft_locked;
     elements.selectionInfo.textContent = [
       `Equipe ${localPlayer.draft_selected_cards.length}/${state.snapshot.draft_team_size ?? 4}`,
@@ -1710,6 +1971,7 @@ function renderSelection() {
   normalizeSelectionInteraction(localPlayer, selectedCard);
   const maxPills = maxAttackPillsFor(localPlayer);
   const projection = buildSelectionProjection(localPlayer, selectedCard);
+  const canAdjustPills = Boolean(canAct && showControls);
 
   elements.confirmButton.textContent = "Confirmer";
   elements.pillsInput.max = String(maxPills);
@@ -1717,17 +1979,11 @@ function renderSelection() {
   elements.pillsValue.textContent = String(state.interaction.pillsPreview);
   elements.overloadInput.checked = state.interaction.overloadPreview;
   elements.overloadInput.disabled = !canAct || !showControls || !canAffordOverload;
-  elements.overloadMeta.textContent = showControls
-    ? [
-      `Pills attaque : ${projection.attackPills}`,
-      `Overload : ${projection.overloadActive ? `+${OVERLOAD_PILL_COST}` : "inactif"}`,
-      `Coût total : ${formatTotalPillCost(projection)}/${projection.availablePills}`,
-      `Attaque prévue : ${projection.projectedAttack}`,
-      `Dégâts prévus : ${projection.projectedDamage}`,
-    ].join(" | ")
-    : "";
+  renderSelectionPreview(projection, showControls);
   elements.selectionControls.classList.toggle("hidden", !showControls);
-  elements.pillsInput.disabled = !canAct || !showControls;
+  elements.pillsInput.disabled = !canAdjustPills;
+  elements.pillsMinusButton.disabled = !canAdjustPills || state.interaction.pillsPreview <= 0;
+  elements.pillsPlusButton.disabled = !canAdjustPills || state.interaction.pillsPreview >= maxPills;
   state.interaction.confirmEnabled = Boolean(showControls && canAct);
   elements.confirmButton.disabled = !state.interaction.confirmEnabled;
   elements.resetSelectionButton.disabled = !showControls;
@@ -1933,14 +2189,13 @@ elements.pillsInput.addEventListener("input", (event) => {
   if (!state.interaction.selectedCardId) {
     return;
   }
-  const localPlayer = state.snapshot?.players.find((player) => player.player_id === state.snapshot.local_player_id);
-  const rawPills = Number(event.target.value);
-  const pills = Math.max(0, Math.min(maxAttackPillsFor(localPlayer), Number.isFinite(rawPills) ? rawPills : 0));
-  state.interaction.pillsPreview = pills;
-  event.target.value = String(pills);
-  elements.pillsValue.textContent = String(pills);
-  sendMessage("set_pills", { pills });
-  render();
+  updatePillsPreview(event.target.value);
+});
+elements.pillsMinusButton.addEventListener("click", () => {
+  updatePillsPreview(state.interaction.pillsPreview - 1);
+});
+elements.pillsPlusButton.addEventListener("click", () => {
+  updatePillsPreview(state.interaction.pillsPreview + 1);
 });
 elements.overloadInput.addEventListener("change", (event) => {
   if (!state.interaction.selectedCardId) {
