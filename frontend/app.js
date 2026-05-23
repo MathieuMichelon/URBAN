@@ -49,6 +49,7 @@ const elements = {
   draftTeamSummary: document.querySelector("#draft-team-summary"),
   draftLockButton: document.querySelector("#draft-lock-button"),
   matchShell: document.querySelector("#match-shell"),
+  centerZone: document.querySelector(".center-zone"),
   roundValue: document.querySelector("#round-value"),
   initiativeValue: document.querySelector("#initiative-value"),
   matchStateValue: document.querySelector("#match-state-value"),
@@ -91,7 +92,19 @@ const elements = {
   pillsControl: document.querySelector("#pills-control"),
 };
 
+function ensureMatchPerspectiveLayout() {
+  if (!elements.matchShell || !elements.playerZone || !elements.centerZone || !elements.opponentZone) {
+    return;
+  }
+
+  elements.playerZone.style.order = "1";
+  elements.centerZone.style.order = "2";
+  elements.opponentZone.style.order = "3";
+}
+
 function ensureMatchSideChrome() {
+  ensureMatchPerspectiveLayout();
+
   const sides = [
     { element: elements.playerZone, sideClass: "local-side", label: "TES CARTES" },
     { element: elements.opponentZone, sideClass: "opponent-side", label: "CARTES ADVERSAIRE" },
@@ -159,7 +172,7 @@ function persistSession() {
   if (!state.roomId || !state.playerId || !state.sessionToken) {
     return;
   }
-  localStorage.setItem(
+  sessionStorage.setItem(
     SESSION_STORAGE_KEY,
     JSON.stringify({
       roomId: state.roomId,
@@ -168,11 +181,12 @@ function persistSession() {
       sessionToken: state.sessionToken,
     }),
   );
+  localStorage.removeItem(SESSION_STORAGE_KEY);
 }
 
 function loadPersistedSession() {
   try {
-    const raw = localStorage.getItem(SESSION_STORAGE_KEY);
+    const raw = sessionStorage.getItem(SESSION_STORAGE_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -180,6 +194,7 @@ function loadPersistedSession() {
 }
 
 function clearPersistedSession() {
+  sessionStorage.removeItem(SESSION_STORAGE_KEY);
   localStorage.removeItem(SESSION_STORAGE_KEY);
 }
 
@@ -2006,6 +2021,7 @@ function togglePhasePanels() {
 }
 
 function render() {
+  ensureMatchPerspectiveLayout();
   updateViewVisibility();
   togglePhasePanels();
   renderSummary();
