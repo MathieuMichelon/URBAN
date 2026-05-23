@@ -596,11 +596,11 @@ button:disabled {
 }
 
 .opponent-zone {
-  align-self: start;
+  align-self: end;
 }
 
 .player-zone {
-  align-self: end;
+  align-self: start;
 }
 
 .player-zone.local-side {
