@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass, field
 import secrets
 
@@ -12,8 +13,10 @@ from core.errors import InvalidMoveError, NotEnoughPillsError, SelectionAlreadyS
 from core.models import Card, GameState, RoundResult, RoundSelection
 from core.rules import OVERLOAD_PILL_COST, validate_round_selection
 from core.serialization import serialize_round_result
-from net.protocol import CardPayload, PlayerStatePayload, RoundResultPayload, StateSnapshotPayload
+from net.protocol import CardPayload, ClanPayload, PlayerStatePayload, RoundResultPayload, StateSnapshotPayload
 from rooms.states import MatchState, PlayerRoomState
+
+CLAN_SELECTION_SIZE = 3
 
 
 class RoomStateError(Exception):
@@ -45,6 +48,16 @@ class DraftSelection:
     overload: bool = False
 
 
+@dataclass(frozen=True, slots=True)
+class ClanOption:
+    """One selectable clan option for the pre-draft phase."""
+
+    id: str
+    name: str
+    bonus_text: str
+    description: str = ""
+
+
 @dataclass(slots=True)
 class RoomPlayer:
     """Runtime metadata and state for one room participant."""
@@ -62,8 +75,12 @@ class OnlineRoom:
     room_id: str
     cards: list[Card]
     engine: GameEngine
+    clan_options: list[ClanOption]
     players: dict[int, RoomPlayer] = field(default_factory=dict)
+    selected_clans_by_player: dict[int, list[str]] = field(default_factory=lambda: {1: [], 2: []})
+    clan_selection_locked: dict[int, bool] = field(default_factory=lambda: {1: False, 2: False})
     draft_phase: DraftPhase | None = None
+    draft_phases: dict[int, DraftPhase] = field(default_factory=dict)
     game_state: GameState | None = None
     match_state: MatchState = MatchState.WAITING_FOR_PLAYERS
     round_drafts: dict[int, DraftSelection] = field(default_factory=dict)
@@ -121,9 +138,21 @@ class RematchOutcome:
 class RoomStateMachine:
     """Single place where every room and player transition is defined."""
 
-    def create_room(self, room_id: str, *, cards: list[Card], player_name: str) -> tuple[OnlineRoom, RoomPlayer]:
+    def create_room(
+        self,
+        room_id: str,
+        *,
+        cards: list[Card],
+        clan_options: list[ClanOption] | None = None,
+        player_name: str,
+    ) -> tuple[OnlineRoom, RoomPlayer]:
         """Create a new room with its first player in lobby state."""
-        room = OnlineRoom(room_id=room_id, cards=list(cards), engine=GameEngine())
+        room = OnlineRoom(
+            room_id=room_id,
+            cards=list(cards),
+            clan_options=list(clan_options or _derive_clan_options(cards)),
+            engine=GameEngine(),
+        )
         player = self._create_player(player_id=1, player_name=player_name)
         room.players[player.player_id] = player
         self._transition_player(player, PlayerRoomState.IN_LOBBY)
@@ -146,19 +175,47 @@ class RoomStateMachine:
         self._transition_player(player, PlayerRoomState.IN_LOBBY)
 
         if len(room.players) == 2:
-            self._start_draft(room)
+            self._start_clan_selection(room)
 
         return JoinRoomOutcome(player=player, resumed=False, game_started=room.game_state is not None)
+
+    def select_clans(self, room: OnlineRoom, *, player_id: int, clan_ids: list[str]) -> bool:
+        """Lock one player's pre-draft clan selection."""
+        self._require_match_state(room, {MatchState.CLAN_SELECTION})
+        player = self._player(room, player_id)
+        self._require_player_state(player, {PlayerRoomState.SELECTING})
+        if room.clan_selection_locked.get(player_id, False):
+            raise InvalidMoveError("This clan selection is already locked.")
+
+        normalized_ids = list(dict.fromkeys(clan_ids))
+        if len(normalized_ids) != CLAN_SELECTION_SIZE:
+            raise InvalidMoveError(f"Select exactly {CLAN_SELECTION_SIZE} clans before locking.")
+
+        valid_clan_ids = {option.id for option in room.clan_options}
+        unknown_ids = [clan_id for clan_id in normalized_ids if clan_id not in valid_clan_ids]
+        if unknown_ids:
+            raise InvalidMoveError(f"Unknown clan selection: {', '.join(unknown_ids)}.")
+
+        room.selected_clans_by_player[player_id] = normalized_ids
+        room.clan_selection_locked[player_id] = True
+        self._transition_player(player, PlayerRoomState.LOCKED)
+
+        if not all(room.clan_selection_locked.get(expected_id, False) for expected_id in (1, 2)):
+            return False
+
+        self._start_draft(room)
+        return True
 
     def select_card(self, room: OnlineRoom, *, player_id: int, card_id: str) -> None:
         """Update one player's draft card or round card based on the current phase."""
         player = self._player(room, player_id)
 
+        if room.match_state is MatchState.CLAN_SELECTION:
+            raise RoomClosedError("Lock clan selection before selecting draft cards.")
+
         if room.match_state is MatchState.DRAFTING:
             self._require_player_state(player, {PlayerRoomState.SELECTING})
-            if room.draft_phase is None:
-                raise RoomClosedError("Draft phase is not initialized.")
-            room.draft_phase.toggle_card(player_id, card_id)
+            self._draft_phase_for_player(room, player_id).toggle_card(player_id, card_id)
             return
 
         self._require_match_state(room, {MatchState.ROUND_SELECTION, MatchState.ROUND_LOCKED})
@@ -307,7 +364,7 @@ class RoomStateMachine:
             return RematchOutcome(ready_player_id=player_id, rematch_started=False)
 
         self._reset_for_rematch(room)
-        self._start_draft(room)
+        self._start_clan_selection(room)
         return RematchOutcome(ready_player_id=player_id, rematch_started=True)
 
     def snapshot_for(self, room: OnlineRoom, *, local_player_id: int) -> StateSnapshotPayload:
@@ -323,12 +380,13 @@ class RoomStateMachine:
                 for result in room.game_state.history
             ]
 
-        if room.draft_phase is not None:
-            draft_offer = [self._card_payload(card, bonus_active=False) for card in room.draft_phase.offer]
+        local_draft_phase = room.draft_phases.get(local_player_id)
+        if local_draft_phase is not None:
+            draft_offer = [self._card_payload(card, bonus_active=False) for card in local_draft_phase.offer]
             draft_locked_player_ids = [
                 player_id
-                for player_id, seat in room.draft_phase.seats.items()
-                if seat.locked
+                for player_id, phase in room.draft_phases.items()
+                if phase.seats[player_id].locked
             ]
 
         for player_id in sorted(room.players):
@@ -344,9 +402,10 @@ class RoomStateMachine:
             draft_locked = False
             draft_is_valid = False
 
-            if room.draft_phase is not None:
-                selected_cards = room.draft_phase.selected_cards(player_id)
-                validation = room.draft_phase.validation_for(player_id)
+            draft_phase = room.draft_phases.get(player_id)
+            if draft_phase is not None:
+                selected_cards = draft_phase.selected_cards(player_id)
+                validation = draft_phase.validation_for(player_id)
                 preview_by_id = {
                     preview.card_id: preview
                     for preview in validation.selected_card_previews
@@ -358,7 +417,7 @@ class RoomStateMachine:
                     )
                     for card in selected_cards
                 ]
-                draft_locked = room.draft_phase.seats[player_id].locked
+                draft_locked = draft_phase.seats[player_id].locked
                 draft_is_valid = validation.is_valid
                 if room.game_state is None:
                     team_stars = validation.total_stars
@@ -394,6 +453,8 @@ class RoomStateMachine:
                     draft_selected_cards=draft_selected_cards,
                     draft_locked=draft_locked,
                     draft_is_valid=draft_is_valid,
+                    selected_clans=room.selected_clans_by_player.get(player_id, []),
+                    clan_selection_locked=room.clan_selection_locked.get(player_id, False),
                 )
             )
 
@@ -410,10 +471,19 @@ class RoomStateMachine:
                 for player_id, room_player in room.players.items()
                 if room_player.state is PlayerRoomState.LOCKED
             ),
+            clan_options=[self._clan_payload(clan) for clan in room.clan_options],
+            selected_clans_by_player={
+                str(player_id): list(room.selected_clans_by_player.get(player_id, []))
+                for player_id in sorted(room.players)
+            },
+            clan_selection_locked={
+                str(player_id): room.clan_selection_locked.get(player_id, False)
+                for player_id in sorted(room.players)
+            },
             draft_offer=draft_offer,
             draft_locked_player_ids=draft_locked_player_ids,
-            draft_team_size=TEAM_SIZE if room.draft_phase is not None else None,
-            draft_star_cap=TEAM_STAR_CAP if room.draft_phase is not None else None,
+            draft_team_size=TEAM_SIZE if room.draft_phases else None,
+            draft_star_cap=TEAM_STAR_CAP if room.draft_phases else None,
             players=players_payload,
             history=history,
             end_reason=room.end_reason,
@@ -425,13 +495,14 @@ class RoomStateMachine:
         self._require_match_state(room, {MatchState.DRAFTING})
         self._require_player_state(player, {PlayerRoomState.SELECTING})
 
-        if room.draft_phase is None:
-            raise RoomClosedError("Draft phase is not initialized.")
-
-        room.draft_phase.lock_team(player.player_id)
+        draft_phase = self._draft_phase_for_player(room, player.player_id)
+        draft_phase.lock_team(player.player_id)
         self._transition_player(player, PlayerRoomState.LOCKED)
 
-        if not room.draft_phase.teams_ready():
+        if not all(
+            phase.seats[player_id].locked
+            for player_id, phase in room.draft_phases.items()
+        ):
             return ConfirmSelectionOutcome(
                 ready_player_id=player.player_id,
                 round_result=None,
@@ -460,8 +531,13 @@ class RoomStateMachine:
 
             if room.match_state is MatchState.WAITING_FOR_PLAYERS:
                 self._transition_player(player, PlayerRoomState.IN_LOBBY)
+            elif room.match_state is MatchState.CLAN_SELECTION:
+                if room.clan_selection_locked.get(player.player_id, False):
+                    self._transition_player(player, PlayerRoomState.LOCKED)
+                else:
+                    self._transition_player(player, PlayerRoomState.SELECTING)
             elif room.match_state is MatchState.DRAFTING:
-                draft_phase = room.draft_phase
+                draft_phase = room.draft_phases.get(player.player_id)
                 if draft_phase is not None and draft_phase.seats[player.player_id].locked:
                     self._transition_player(player, PlayerRoomState.LOCKED)
                 else:
@@ -477,9 +553,27 @@ class RoomStateMachine:
 
         raise PlayerNotInRoomError("Session token is not valid for this room.")
 
+    def _start_clan_selection(self, room: OnlineRoom) -> None:
+        """Move both players into the pre-draft clan selection phase."""
+        room.selected_clans_by_player = {1: [], 2: []}
+        room.clan_selection_locked = {1: False, 2: False}
+        self._transition_match(room, MatchState.CLAN_SELECTION)
+        for player in room.players.values():
+            if player.state is not PlayerRoomState.DISCONNECTED:
+                self._transition_player(player, PlayerRoomState.SELECTING)
+
     def _start_draft(self, room: OnlineRoom) -> None:
         """Create a shared draft offer and move both players into draft selection."""
-        room.draft_phase = DraftPhase(build_draft_offer(room.cards, seed=f"{room.room_id}:{room.draft_generation}"))
+        room.draft_phase = None
+        room.draft_phases = {
+            player_id: DraftPhase(
+                build_draft_offer(
+                    self._cards_for_selected_clans(room, player_id),
+                    seed=f"{room.room_id}:{room.draft_generation}:{player_id}",
+                )
+            )
+            for player_id in (1, 2)
+        }
         room.draft_generation += 1
         room.rematch_ready_player_ids.clear()
         self._transition_match(room, MatchState.DRAFTING)
@@ -488,12 +582,16 @@ class RoomStateMachine:
 
     def _start_match_from_draft(self, room: OnlineRoom) -> None:
         """Create the live game state from both locked draft teams."""
-        if room.draft_phase is None:
+        if set(room.draft_phases) != {1, 2}:
             raise RoomClosedError("Draft phase is not initialized.")
 
-        teams = room.draft_phase.build_locked_teams()
+        teams = {
+            player_id: self._draft_phase_for_player(room, player_id).selected_cards(player_id)
+            for player_id in (1, 2)
+        }
         room.game_state = room.engine.create_game(player_1_hand=teams[1], player_2_hand=teams[2])
         room.draft_phase = None
+        room.draft_phases = {}
         room.round_drafts = {}
         room.end_reason = None
         room.abandonment_winner_id = None
@@ -532,8 +630,11 @@ class RoomStateMachine:
     def _reset_for_rematch(self, room: OnlineRoom) -> None:
         """Clear completed-match state while preserving room seats and session tokens."""
         room.draft_phase = None
+        room.draft_phases = {}
         room.game_state = None
         room.round_drafts = {}
+        room.selected_clans_by_player = {1: [], 2: []}
+        room.clan_selection_locked = {1: False, 2: False}
         room.end_reason = None
         room.abandonment_winner_id = None
 
@@ -553,12 +654,13 @@ class RoomStateMachine:
             return
 
         allowed_transitions = {
-            MatchState.WAITING_FOR_PLAYERS: {MatchState.DRAFTING, MatchState.GAME_OVER},
+            MatchState.WAITING_FOR_PLAYERS: {MatchState.CLAN_SELECTION, MatchState.GAME_OVER},
+            MatchState.CLAN_SELECTION: {MatchState.DRAFTING, MatchState.GAME_OVER},
             MatchState.DRAFTING: {MatchState.ROUND_SELECTION, MatchState.GAME_OVER},
             MatchState.ROUND_SELECTION: {MatchState.ROUND_LOCKED, MatchState.ROUND_RESOLUTION, MatchState.GAME_OVER},
             MatchState.ROUND_LOCKED: {MatchState.ROUND_RESOLUTION, MatchState.GAME_OVER},
             MatchState.ROUND_RESOLUTION: {MatchState.ROUND_SELECTION, MatchState.GAME_OVER},
-            MatchState.GAME_OVER: {MatchState.DRAFTING},
+            MatchState.GAME_OVER: {MatchState.CLAN_SELECTION},
         }
 
         if new_state not in allowed_transitions[current]:
@@ -612,6 +714,26 @@ class RoomStateMachine:
         draft = room.round_drafts[player_id]
         return RoundSelection(card_id=draft.card_id or "", pills_committed=draft.pills_committed, overload=draft.overload)
 
+    def _draft_phase_for_player(self, room: OnlineRoom, player_id: int) -> DraftPhase:
+        """Return one player's private draft phase."""
+        try:
+            return room.draft_phases[player_id]
+        except KeyError as error:
+            raise RoomClosedError(f"Draft phase is not initialized for player {player_id}.") from error
+
+    def _cards_for_selected_clans(self, room: OnlineRoom, player_id: int) -> list[Card]:
+        """Filter the card catalog to the clans locked by one player."""
+        selected_clan_ids = set(room.selected_clans_by_player.get(player_id, []))
+        clan_id_by_name = {option.name: option.id for option in room.clan_options}
+        filtered_cards = [
+            card
+            for card in room.cards
+            if clan_id_by_name.get(card.clan) in selected_clan_ids
+        ]
+        if not filtered_cards:
+            raise InvalidMoveError(f"Player {player_id} has no draft cards for the selected clans.")
+        return filtered_cards
+
     def _require_match_state(self, room: OnlineRoom, allowed_states: set[MatchState]) -> None:
         """Guard one room action by match state."""
         if room.match_state not in allowed_states:
@@ -651,3 +773,40 @@ class RoomStateMachine:
             illustration=card.illustration,
             bonus_active=bonus_active,
         )
+
+    def _clan_payload(self, clan: ClanOption) -> ClanPayload:
+        """Build the protocol clan payload for one selectable clan."""
+        return ClanPayload(
+            id=clan.id,
+            name=clan.name,
+            bonus_text=clan.bonus_text,
+            description=clan.description,
+        )
+
+
+def _derive_clan_options(cards: list[Card]) -> list[ClanOption]:
+    """Create clan choices from card data when no source metadata is available."""
+    clan_counts = Counter(card.clan for card in cards)
+    options: list[ClanOption] = []
+    for clan_name in sorted(clan_counts):
+        first_card = next(card for card in cards if card.clan == clan_name)
+        options.append(
+            ClanOption(
+                id=_slugify_clan(clan_name),
+                name=clan_name,
+                bonus_text=first_card.bonus_text,
+                description="",
+            )
+        )
+    return options
+
+
+def _slugify_clan(value: str) -> str:
+    """Fallback clan id generator kept local to the room state layer."""
+    import re
+    import unicodedata
+
+    normalized = unicodedata.normalize("NFKD", value)
+    ascii_value = "".join(char for char in normalized if not unicodedata.combining(char))
+    ascii_value = ascii_value.replace("'", "").replace("’", "")
+    return re.sub(r"[^a-z0-9]+", "_", ascii_value.lower()).strip("_")

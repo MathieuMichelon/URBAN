@@ -434,16 +434,24 @@ button:disabled {
   letter-spacing: 0.04em;
 }
 
-.clan-pulse-404 .clan-icon {
-  background: rgba(176, 93, 255, 0.3);
+.clan-solaires .clan-icon {
+  background: rgba(245, 202, 86, 0.3);
 }
 
-.clan-verdelune .clan-icon {
-  background: rgba(84, 210, 137, 0.24);
+.clan-corsaires-du-port .clan-icon {
+  background: rgba(87, 166, 216, 0.3);
 }
 
-.clan-bastion-9 .clan-icon {
-  background: rgba(85, 170, 255, 0.28);
+.clan-palmeros .clan-icon {
+  background: rgba(193, 127, 194, 0.28);
+}
+
+.clan-egoutiers .clan-icon {
+  background: rgba(132, 188, 85, 0.28);
+}
+
+.clan-jardiniers-de-beton .clan-icon {
+  background: rgba(97, 191, 124, 0.24);
 }
 
 .card-stat-row {
@@ -2085,34 +2093,54 @@ button:disabled {
   border: 1px solid rgba(255, 104, 130, 0.48);
 }
 
-.match-card.clan-pulse-404,
-.selection-card-detail.clan-pulse-404 {
-  border-color: rgba(176, 93, 255, 0.58);
+.match-card.clan-solaires,
+.selection-card-detail.clan-solaires {
+  border-color: rgba(243, 201, 88, 0.58);
 }
 
-.match-card.clan-verdelune,
-.selection-card-detail.clan-verdelune {
-  border-color: rgba(84, 210, 137, 0.54);
+.match-card.clan-corsaires-du-port,
+.selection-card-detail.clan-corsaires-du-port {
+  border-color: rgba(88, 170, 214, 0.56);
 }
 
-.match-card.clan-bastion-9,
-.selection-card-detail.clan-bastion-9 {
-  border-color: rgba(85, 170, 255, 0.56);
+.match-card.clan-palmeros,
+.selection-card-detail.clan-palmeros {
+  border-color: rgba(190, 124, 196, 0.56);
 }
 
-.match-card.clan-pulse-404::before,
-.selection-card-detail.clan-pulse-404::before {
-  background: linear-gradient(180deg, #ca75ff, #6f5cff);
+.match-card.clan-egoutiers,
+.selection-card-detail.clan-egoutiers {
+  border-color: rgba(133, 190, 86, 0.54);
 }
 
-.match-card.clan-verdelune::before,
-.selection-card-detail.clan-verdelune::before {
-  background: linear-gradient(180deg, #7ce79f, #2ea765);
+.match-card.clan-jardiniers-de-beton,
+.selection-card-detail.clan-jardiniers-de-beton {
+  border-color: rgba(92, 182, 112, 0.54);
 }
 
-.match-card.clan-bastion-9::before,
-.selection-card-detail.clan-bastion-9::before {
-  background: linear-gradient(180deg, #91d8ff, #4394ff);
+.match-card.clan-solaires::before,
+.selection-card-detail.clan-solaires::before {
+  background: linear-gradient(180deg, #ffe196, #c7962d);
+}
+
+.match-card.clan-corsaires-du-port::before,
+.selection-card-detail.clan-corsaires-du-port::before {
+  background: linear-gradient(180deg, #9fdcff, #3d85c5);
+}
+
+.match-card.clan-palmeros::before,
+.selection-card-detail.clan-palmeros::before {
+  background: linear-gradient(180deg, #d89ae0, #8b58a6);
+}
+
+.match-card.clan-egoutiers::before,
+.selection-card-detail.clan-egoutiers::before {
+  background: linear-gradient(180deg, #b7ef7c, #5d9e3d);
+}
+
+.match-card.clan-jardiniers-de-beton::before,
+.selection-card-detail.clan-jardiniers-de-beton::before {
+  background: linear-gradient(180deg, #97e0a1, #3c8f54);
 }
 
 .match-card.clickable {

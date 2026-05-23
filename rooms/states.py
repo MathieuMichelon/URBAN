@@ -7,6 +7,7 @@ class MatchState(str, Enum):
     """Authoritative state machine for one multiplayer match."""
 
     WAITING_FOR_PLAYERS = "waiting_for_players"
+    CLAN_SELECTION = "clan_selection"
     DRAFTING = "drafting"
     ROUND_SELECTION = "round_selection"
     ROUND_LOCKED = "round_locked"

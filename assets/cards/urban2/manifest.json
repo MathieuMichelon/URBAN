@@ -1,0 +1,710 @@
+{
+  "version": 1,
+  "source_roster": "assets/data/urban2_personnages_base.json",
+  "grid": {
+    "rows": 2,
+    "columns": 5
+  },
+  "entries": [
+    {
+      "card_id": "solario",
+      "card_name": "Solario",
+      "clan_id": "solaires",
+      "clan_name": "Solaïres",
+      "source_sheet": "assets/clans/solaires.png",
+      "grid_position": {
+        "row": 1,
+        "column": 1,
+        "position": "R1C1",
+        "order": 1
+      },
+      "output_path": "assets/cards/urban2/solaires/solario.png"
+    },
+    {
+      "card_id": "mira_lux",
+      "card_name": "Mira Lux",
+      "clan_id": "solaires",
+      "clan_name": "Solaïres",
+      "source_sheet": "assets/clans/solaires.png",
+      "grid_position": {
+        "row": 1,
+        "column": 2,
+        "position": "R1C2",
+        "order": 2
+      },
+      "output_path": "assets/cards/urban2/solaires/mira_lux.png"
+    },
+    {
+      "card_id": "padre_helios",
+      "card_name": "Padre Hélios",
+      "clan_id": "solaires",
+      "clan_name": "Solaïres",
+      "source_sheet": "assets/clans/solaires.png",
+      "grid_position": {
+        "row": 1,
+        "column": 3,
+        "position": "R1C3",
+        "order": 3
+      },
+      "output_path": "assets/cards/urban2/solaires/padre_helios.png"
+    },
+    {
+      "card_id": "naya_brule_ciel",
+      "card_name": "Naya Brûle-Ciel",
+      "clan_id": "solaires",
+      "clan_name": "Solaïres",
+      "source_sheet": "assets/clans/solaires.png",
+      "grid_position": {
+        "row": 1,
+        "column": 4,
+        "position": "R1C4",
+        "order": 4
+      },
+      "output_path": "assets/cards/urban2/solaires/naya_brule_ciel.png"
+    },
+    {
+      "card_id": "corto_ray",
+      "card_name": "Corto Ray",
+      "clan_id": "solaires",
+      "clan_name": "Solaïres",
+      "source_sheet": "assets/clans/solaires.png",
+      "grid_position": {
+        "row": 1,
+        "column": 5,
+        "position": "R1C5",
+        "order": 5
+      },
+      "output_path": "assets/cards/urban2/solaires/corto_ray.png"
+    },
+    {
+      "card_id": "s_ur_celsius",
+      "card_name": "Sœur Celsius",
+      "clan_id": "solaires",
+      "clan_name": "Solaïres",
+      "source_sheet": "assets/clans/solaires.png",
+      "grid_position": {
+        "row": 2,
+        "column": 1,
+        "position": "R2C1",
+        "order": 6
+      },
+      "output_path": "assets/cards/urban2/solaires/s_ur_celsius.png"
+    },
+    {
+      "card_id": "apollo_jack",
+      "card_name": "Apollo Jack",
+      "clan_id": "solaires",
+      "clan_name": "Solaïres",
+      "source_sheet": "assets/clans/solaires.png",
+      "grid_position": {
+        "row": 2,
+        "column": 2,
+        "position": "R2C2",
+        "order": 7
+      },
+      "output_path": "assets/cards/urban2/solaires/apollo_jack.png"
+    },
+    {
+      "card_id": "icarette",
+      "card_name": "Icarette",
+      "clan_id": "solaires",
+      "clan_name": "Solaïres",
+      "source_sheet": "assets/clans/solaires.png",
+      "grid_position": {
+        "row": 2,
+        "column": 3,
+        "position": "R2C3",
+        "order": 8
+      },
+      "output_path": "assets/cards/urban2/solaires/icarette.png"
+    },
+    {
+      "card_id": "bronzo",
+      "card_name": "Bronzo",
+      "clan_id": "solaires",
+      "clan_name": "Solaïres",
+      "source_sheet": "assets/clans/solaires.png",
+      "grid_position": {
+        "row": 2,
+        "column": 4,
+        "position": "R2C4",
+        "order": 9
+      },
+      "output_path": "assets/cards/urban2/solaires/bronzo.png"
+    },
+    {
+      "card_id": "lumen_kid",
+      "card_name": "Lumen Kid",
+      "clan_id": "solaires",
+      "clan_name": "Solaïres",
+      "source_sheet": "assets/clans/solaires.png",
+      "grid_position": {
+        "row": 2,
+        "column": 5,
+        "position": "R2C5",
+        "order": 10
+      },
+      "output_path": "assets/cards/urban2/solaires/lumen_kid.png"
+    },
+    {
+      "card_id": "capitaine_mora",
+      "card_name": "Capitaine Mora",
+      "clan_id": "corsaires_du_port",
+      "clan_name": "Corsaires du Port",
+      "source_sheet": "assets/clans/corsaires.png",
+      "grid_position": {
+        "row": 1,
+        "column": 1,
+        "position": "R1C1",
+        "order": 1
+      },
+      "output_path": "assets/cards/urban2/corsaires_du_port/capitaine_mora.png"
+    },
+    {
+      "card_id": "rafa_lecumeur",
+      "card_name": "Rafa l’Écumeur",
+      "clan_id": "corsaires_du_port",
+      "clan_name": "Corsaires du Port",
+      "source_sheet": "assets/clans/corsaires.png",
+      "grid_position": {
+        "row": 1,
+        "column": 2,
+        "position": "R1C2",
+        "order": 2
+      },
+      "output_path": "assets/cards/urban2/corsaires_du_port/rafa_lecumeur.png"
+    },
+    {
+      "card_id": "tino_container",
+      "card_name": "Tino Container",
+      "clan_id": "corsaires_du_port",
+      "clan_name": "Corsaires du Port",
+      "source_sheet": "assets/clans/corsaires.png",
+      "grid_position": {
+        "row": 1,
+        "column": 3,
+        "position": "R1C3",
+        "order": 3
+      },
+      "output_path": "assets/cards/urban2/corsaires_du_port/tino_container.png"
+    },
+    {
+      "card_id": "gavio",
+      "card_name": "Gavio",
+      "clan_id": "corsaires_du_port",
+      "clan_name": "Corsaires du Port",
+      "source_sheet": "assets/clans/corsaires.png",
+      "grid_position": {
+        "row": 1,
+        "column": 4,
+        "position": "R1C4",
+        "order": 4
+      },
+      "output_path": "assets/cards/urban2/corsaires_du_port/gavio.png"
+    },
+    {
+      "card_id": "la_meduse",
+      "card_name": "La Méduse",
+      "clan_id": "corsaires_du_port",
+      "clan_name": "Corsaires du Port",
+      "source_sheet": "assets/clans/corsaires.png",
+      "grid_position": {
+        "row": 1,
+        "column": 5,
+        "position": "R1C5",
+        "order": 5
+      },
+      "output_path": "assets/cards/urban2/corsaires_du_port/la_meduse.png"
+    },
+    {
+      "card_id": "mako",
+      "card_name": "Mako",
+      "clan_id": "corsaires_du_port",
+      "clan_name": "Corsaires du Port",
+      "source_sheet": "assets/clans/corsaires.png",
+      "grid_position": {
+        "row": 2,
+        "column": 1,
+        "position": "R2C1",
+        "order": 6
+      },
+      "output_path": "assets/cards/urban2/corsaires_du_port/mako.png"
+    },
+    {
+      "card_id": "nina_balise",
+      "card_name": "Nina Balise",
+      "clan_id": "corsaires_du_port",
+      "clan_name": "Corsaires du Port",
+      "source_sheet": "assets/clans/corsaires.png",
+      "grid_position": {
+        "row": 2,
+        "column": 2,
+        "position": "R2C2",
+        "order": 7
+      },
+      "output_path": "assets/cards/urban2/corsaires_du_port/nina_balise.png"
+    },
+    {
+      "card_id": "jo_le_chalut",
+      "card_name": "Jo le Chalut",
+      "clan_id": "corsaires_du_port",
+      "clan_name": "Corsaires du Port",
+      "source_sheet": "assets/clans/corsaires.png",
+      "grid_position": {
+        "row": 2,
+        "column": 3,
+        "position": "R2C3",
+        "order": 8
+      },
+      "output_path": "assets/cards/urban2/corsaires_du_port/jo_le_chalut.png"
+    },
+    {
+      "card_id": "sierra_rouge",
+      "card_name": "Sierra Rouge",
+      "clan_id": "corsaires_du_port",
+      "clan_name": "Corsaires du Port",
+      "source_sheet": "assets/clans/corsaires.png",
+      "grid_position": {
+        "row": 2,
+        "column": 4,
+        "position": "R2C4",
+        "order": 9
+      },
+      "output_path": "assets/cards/urban2/corsaires_du_port/sierra_rouge.png"
+    },
+    {
+      "card_id": "ptit_kraken",
+      "card_name": "P’tit Kraken",
+      "clan_id": "corsaires_du_port",
+      "clan_name": "Corsaires du Port",
+      "source_sheet": "assets/clans/corsaires.png",
+      "grid_position": {
+        "row": 2,
+        "column": 5,
+        "position": "R2C5",
+        "order": 10
+      },
+      "output_path": "assets/cards/urban2/corsaires_du_port/ptit_kraken.png"
+    },
+    {
+      "card_id": "mamie_palma",
+      "card_name": "Mamie Palma",
+      "clan_id": "palmeros",
+      "clan_name": "Palmeros",
+      "source_sheet": "assets/clans/palmeros.jfif",
+      "grid_position": {
+        "row": 1,
+        "column": 1,
+        "position": "R1C1",
+        "order": 1
+      },
+      "output_path": "assets/cards/urban2/palmeros/mamie_palma.png"
+    },
+    {
+      "card_id": "gino_transat",
+      "card_name": "Gino Transat",
+      "clan_id": "palmeros",
+      "clan_name": "Palmeros",
+      "source_sheet": "assets/clans/palmeros.jfif",
+      "grid_position": {
+        "row": 1,
+        "column": 2,
+        "position": "R1C2",
+        "order": 2
+      },
+      "output_path": "assets/cards/urban2/palmeros/gino_transat.png"
+    },
+    {
+      "card_id": "suzette_357",
+      "card_name": "Suzette 357",
+      "clan_id": "palmeros",
+      "clan_name": "Palmeros",
+      "source_sheet": "assets/clans/palmeros.jfif",
+      "grid_position": {
+        "row": 1,
+        "column": 3,
+        "position": "R1C3",
+        "order": 3
+      },
+      "output_path": "assets/cards/urban2/palmeros/suzette_357.png"
+    },
+    {
+      "card_id": "jean_pool",
+      "card_name": "Jean-Pool",
+      "clan_id": "palmeros",
+      "clan_name": "Palmeros",
+      "source_sheet": "assets/clans/palmeros.jfif",
+      "grid_position": {
+        "row": 1,
+        "column": 4,
+        "position": "R1C4",
+        "order": 4
+      },
+      "output_path": "assets/cards/urban2/palmeros/jean_pool.png"
+    },
+    {
+      "card_id": "dona_rita",
+      "card_name": "Dona Rita",
+      "clan_id": "palmeros",
+      "clan_name": "Palmeros",
+      "source_sheet": "assets/clans/palmeros.jfif",
+      "grid_position": {
+        "row": 1,
+        "column": 5,
+        "position": "R1C5",
+        "order": 5
+      },
+      "output_path": "assets/cards/urban2/palmeros/dona_rita.png"
+    },
+    {
+      "card_id": "bichon",
+      "card_name": "Bichon",
+      "clan_id": "palmeros",
+      "clan_name": "Palmeros",
+      "source_sheet": "assets/clans/palmeros.jfif",
+      "grid_position": {
+        "row": 2,
+        "column": 1,
+        "position": "R2C1",
+        "order": 6
+      },
+      "output_path": "assets/cards/urban2/palmeros/bichon.png"
+    },
+    {
+      "card_id": "marcel_jackpot",
+      "card_name": "Marcel Jackpot",
+      "clan_id": "palmeros",
+      "clan_name": "Palmeros",
+      "source_sheet": "assets/clans/palmeros.jfif",
+      "grid_position": {
+        "row": 2,
+        "column": 2,
+        "position": "R2C2",
+        "order": 7
+      },
+      "output_path": "assets/cards/urban2/palmeros/marcel_jackpot.png"
+    },
+    {
+      "card_id": "tata_brigitte",
+      "card_name": "Tata Brigitte",
+      "clan_id": "palmeros",
+      "clan_name": "Palmeros",
+      "source_sheet": "assets/clans/palmeros.jfif",
+      "grid_position": {
+        "row": 2,
+        "column": 3,
+        "position": "R2C3",
+        "order": 8
+      },
+      "output_path": "assets/cards/urban2/palmeros/tata_brigitte.png"
+    },
+    {
+      "card_id": "oscar_riviera",
+      "card_name": "Oscar Riviera",
+      "clan_id": "palmeros",
+      "clan_name": "Palmeros",
+      "source_sheet": "assets/clans/palmeros.jfif",
+      "grid_position": {
+        "row": 2,
+        "column": 4,
+        "position": "R2C4",
+        "order": 9
+      },
+      "output_path": "assets/cards/urban2/palmeros/oscar_riviera.png"
+    },
+    {
+      "card_id": "madame_solange",
+      "card_name": "Madame Solange",
+      "clan_id": "palmeros",
+      "clan_name": "Palmeros",
+      "source_sheet": "assets/clans/palmeros.jfif",
+      "grid_position": {
+        "row": 2,
+        "column": 5,
+        "position": "R2C5",
+        "order": 10
+      },
+      "output_path": "assets/cards/urban2/palmeros/madame_solange.png"
+    },
+    {
+      "card_id": "mere_canal",
+      "card_name": "Mère Canal",
+      "clan_id": "egoutiers",
+      "clan_name": "Égoutiers",
+      "source_sheet": "assets/clans/egoutiers.png",
+      "grid_position": {
+        "row": 1,
+        "column": 1,
+        "position": "R1C1",
+        "order": 1
+      },
+      "output_path": "assets/cards/urban2/egoutiers/mere_canal.png"
+    },
+    {
+      "card_id": "ratiche",
+      "card_name": "Ratiche",
+      "clan_id": "egoutiers",
+      "clan_name": "Égoutiers",
+      "source_sheet": "assets/clans/egoutiers.png",
+      "grid_position": {
+        "row": 1,
+        "column": 2,
+        "position": "R1C2",
+        "order": 2
+      },
+      "output_path": "assets/cards/urban2/egoutiers/ratiche.png"
+    },
+    {
+      "card_id": "nox",
+      "card_name": "Nox",
+      "clan_id": "egoutiers",
+      "clan_name": "Égoutiers",
+      "source_sheet": "assets/clans/egoutiers.png",
+      "grid_position": {
+        "row": 1,
+        "column": 3,
+        "position": "R1C3",
+        "order": 3
+      },
+      "output_path": "assets/cards/urban2/egoutiers/nox.png"
+    },
+    {
+      "card_id": "boue_boue",
+      "card_name": "Boue-Boue",
+      "clan_id": "egoutiers",
+      "clan_name": "Égoutiers",
+      "source_sheet": "assets/clans/egoutiers.png",
+      "grid_position": {
+        "row": 1,
+        "column": 4,
+        "position": "R1C4",
+        "order": 4
+      },
+      "output_path": "assets/cards/urban2/egoutiers/boue_boue.png"
+    },
+    {
+      "card_id": "luma",
+      "card_name": "Luma",
+      "clan_id": "egoutiers",
+      "clan_name": "Égoutiers",
+      "source_sheet": "assets/clans/egoutiers.png",
+      "grid_position": {
+        "row": 1,
+        "column": 5,
+        "position": "R1C5",
+        "order": 5
+      },
+      "output_path": "assets/cards/urban2/egoutiers/luma.png"
+    },
+    {
+      "card_id": "docteur_moisi",
+      "card_name": "Docteur Moisi",
+      "clan_id": "egoutiers",
+      "clan_name": "Égoutiers",
+      "source_sheet": "assets/clans/egoutiers.png",
+      "grid_position": {
+        "row": 2,
+        "column": 1,
+        "position": "R2C1",
+        "order": 6
+      },
+      "output_path": "assets/cards/urban2/egoutiers/docteur_moisi.png"
+    },
+    {
+      "card_id": "gluon",
+      "card_name": "Gluon",
+      "clan_id": "egoutiers",
+      "clan_name": "Égoutiers",
+      "source_sheet": "assets/clans/egoutiers.png",
+      "grid_position": {
+        "row": 2,
+        "column": 2,
+        "position": "R2C2",
+        "order": 7
+      },
+      "output_path": "assets/cards/urban2/egoutiers/gluon.png"
+    },
+    {
+      "card_id": "madame_fuite",
+      "card_name": "Madame Fuite",
+      "clan_id": "egoutiers",
+      "clan_name": "Égoutiers",
+      "source_sheet": "assets/clans/egoutiers.png",
+      "grid_position": {
+        "row": 2,
+        "column": 3,
+        "position": "R2C3",
+        "order": 8
+      },
+      "output_path": "assets/cards/urban2/egoutiers/madame_fuite.png"
+    },
+    {
+      "card_id": "le_fossoyeur",
+      "card_name": "Le Fossoyeur",
+      "clan_id": "egoutiers",
+      "clan_name": "Égoutiers",
+      "source_sheet": "assets/clans/egoutiers.png",
+      "grid_position": {
+        "row": 2,
+        "column": 4,
+        "position": "R2C4",
+        "order": 9
+      },
+      "output_path": "assets/cards/urban2/egoutiers/le_fossoyeur.png"
+    },
+    {
+      "card_id": "triplure",
+      "card_name": "Triplure",
+      "clan_id": "egoutiers",
+      "clan_name": "Égoutiers",
+      "source_sheet": "assets/clans/egoutiers.png",
+      "grid_position": {
+        "row": 2,
+        "column": 5,
+        "position": "R2C5",
+        "order": 10
+      },
+      "output_path": "assets/cards/urban2/egoutiers/triplure.png"
+    },
+    {
+      "card_id": "oliva",
+      "card_name": "Oliva",
+      "clan_id": "jardiniers_de_beton",
+      "clan_name": "Jardiniers de Béton",
+      "source_sheet": "assets/clans/jardiniers.png",
+      "grid_position": {
+        "row": 1,
+        "column": 1,
+        "position": "R1C1",
+        "order": 1
+      },
+      "output_path": "assets/cards/urban2/jardiniers_de_beton/oliva.png"
+    },
+    {
+      "card_id": "marius_compost",
+      "card_name": "Marius Compost",
+      "clan_id": "jardiniers_de_beton",
+      "clan_name": "Jardiniers de Béton",
+      "source_sheet": "assets/clans/jardiniers.png",
+      "grid_position": {
+        "row": 1,
+        "column": 2,
+        "position": "R1C2",
+        "order": 2
+      },
+      "output_path": "assets/cards/urban2/jardiniers_de_beton/marius_compost.png"
+    },
+    {
+      "card_id": "figa",
+      "card_name": "Figa",
+      "clan_id": "jardiniers_de_beton",
+      "clan_name": "Jardiniers de Béton",
+      "source_sheet": "assets/clans/jardiniers.png",
+      "grid_position": {
+        "row": 1,
+        "column": 3,
+        "position": "R1C3",
+        "order": 3
+      },
+      "output_path": "assets/cards/urban2/jardiniers_de_beton/figa.png"
+    },
+    {
+      "card_id": "abeille",
+      "card_name": "Abeille",
+      "clan_id": "jardiniers_de_beton",
+      "clan_name": "Jardiniers de Béton",
+      "source_sheet": "assets/clans/jardiniers.png",
+      "grid_position": {
+        "row": 1,
+        "column": 4,
+        "position": "R1C4",
+        "order": 4
+      },
+      "output_path": "assets/cards/urban2/jardiniers_de_beton/abeille.png"
+    },
+    {
+      "card_id": "tomate_killer",
+      "card_name": "Tomate-Killer",
+      "clan_id": "jardiniers_de_beton",
+      "clan_name": "Jardiniers de Béton",
+      "source_sheet": "assets/clans/jardiniers.png",
+      "grid_position": {
+        "row": 1,
+        "column": 5,
+        "position": "R1C5",
+        "order": 5
+      },
+      "output_path": "assets/cards/urban2/jardiniers_de_beton/tomate_killer.png"
+    },
+    {
+      "card_id": "cactus_joe",
+      "card_name": "Cactus Joe",
+      "clan_id": "jardiniers_de_beton",
+      "clan_name": "Jardiniers de Béton",
+      "source_sheet": "assets/clans/jardiniers.png",
+      "grid_position": {
+        "row": 2,
+        "column": 1,
+        "position": "R2C1",
+        "order": 6
+      },
+      "output_path": "assets/cards/urban2/jardiniers_de_beton/cactus_joe.png"
+    },
+    {
+      "card_id": "rose_marie",
+      "card_name": "Rose-Marie",
+      "clan_id": "jardiniers_de_beton",
+      "clan_name": "Jardiniers de Béton",
+      "source_sheet": "assets/clans/jardiniers.png",
+      "grid_position": {
+        "row": 2,
+        "column": 2,
+        "position": "R2C2",
+        "order": 7
+      },
+      "output_path": "assets/cards/urban2/jardiniers_de_beton/rose_marie.png"
+    },
+    {
+      "card_id": "bambou",
+      "card_name": "Bambou",
+      "clan_id": "jardiniers_de_beton",
+      "clan_name": "Jardiniers de Béton",
+      "source_sheet": "assets/clans/jardiniers.png",
+      "grid_position": {
+        "row": 2,
+        "column": 3,
+        "position": "R2C3",
+        "order": 8
+      },
+      "output_path": "assets/cards/urban2/jardiniers_de_beton/bambou.png"
+    },
+    {
+      "card_id": "gaia_mecano",
+      "card_name": "Gaïa Mécano",
+      "clan_id": "jardiniers_de_beton",
+      "clan_name": "Jardiniers de Béton",
+      "source_sheet": "assets/clans/jardiniers.png",
+      "grid_position": {
+        "row": 2,
+        "column": 4,
+        "position": "R2C4",
+        "order": 9
+      },
+      "output_path": "assets/cards/urban2/jardiniers_de_beton/gaia_mecano.png"
+    },
+    {
+      "card_id": "mandragor",
+      "card_name": "Mandragor",
+      "clan_id": "jardiniers_de_beton",
+      "clan_name": "Jardiniers de Béton",
+      "source_sheet": "assets/clans/jardiniers.png",
+      "grid_position": {
+        "row": 2,
+        "column": 5,
+        "position": "R2C5",
+        "order": 10
+      },
+      "output_path": "assets/cards/urban2/jardiniers_de_beton/mandragor.png"
+    }
+  ]
+}

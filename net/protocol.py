@@ -39,6 +39,15 @@ class CardPayload(ProtocolModel):
     bonus_active: bool | None = None
 
 
+class ClanPayload(ProtocolModel):
+    """Selectable clan data sent before the draft."""
+
+    id: str
+    name: str
+    bonus_text: str
+    description: str = ""
+
+
 class RoundResultPayload(ProtocolModel):
     """Serializable round result sent by the authoritative backend."""
 
@@ -82,6 +91,8 @@ class PlayerStatePayload(ProtocolModel):
     draft_selected_cards: list[CardPayload] = Field(default_factory=list)
     draft_locked: bool = False
     draft_is_valid: bool = False
+    selected_clans: list[str] = Field(default_factory=list)
+    clan_selection_locked: bool = False
 
 
 class StateSnapshotPayload(ProtocolModel):
@@ -95,6 +106,9 @@ class StateSnapshotPayload(ProtocolModel):
     winner_id: int | None = None
     initiative_player_id: int | None = None
     pending_player_ids: list[int] = Field(default_factory=list)
+    clan_options: list[ClanPayload] = Field(default_factory=list)
+    selected_clans_by_player: dict[str, list[str]] = Field(default_factory=dict)
+    clan_selection_locked: dict[str, bool] = Field(default_factory=dict)
     draft_offer: list[CardPayload] = Field(default_factory=list)
     draft_locked_player_ids: list[int] = Field(default_factory=list)
     draft_team_size: int | None = None
@@ -146,6 +160,12 @@ class SelectCardPayload(ProtocolModel):
     """Payload used to update the drafted card."""
 
     card_id: str = Field(min_length=1)
+
+
+class SelectClansPayload(ProtocolModel):
+    """Payload used to lock the pre-draft clan selection."""
+
+    clan_ids: list[str] = Field(min_length=3, max_length=3)
 
 
 class SetPillsPayload(ProtocolModel):
@@ -252,6 +272,15 @@ class ClientJoinRoomMessage(MessageEnvelope):
 
     type: Literal["join_room"]
     payload: JoinRoomPayload
+    room_id: str
+    player_id: int | None = None
+
+
+class ClientSelectClansMessage(MessageEnvelope):
+    """`select_clans` command."""
+
+    type: Literal["select_clans"]
+    payload: SelectClansPayload
     room_id: str
     player_id: int | None = None
 
@@ -433,6 +462,7 @@ ClientMessage = Annotated[
     (
         ClientCreateRoomMessage
         | ClientJoinRoomMessage
+        | ClientSelectClansMessage
         | ClientSelectCardMessage
         | ClientSetPillsMessage
         | ClientSetOverloadMessage

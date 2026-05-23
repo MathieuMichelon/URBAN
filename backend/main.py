@@ -16,7 +16,7 @@ from rooms.manager import RoomManager
 def create_app(cards_path: str | Path | None = None) -> FastAPI:
     """Build a FastAPI app with a fresh room manager and WebSocket gateway."""
     project_root = Path(__file__).resolve().parents[1]
-    resolved_cards_path = Path(cards_path) if cards_path is not None else project_root / "data" / "cards.json"
+    resolved_cards_path = Path(cards_path) if cards_path is not None else project_root / "assets" / "data" / "urban2_personnages_base.json"
     frontend_root = project_root / "frontend"
     assets_root = project_root / "assets"
 

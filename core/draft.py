@@ -235,6 +235,13 @@ def _offer_matches_clan_distribution(cards: list[Card], *, required_clans: set[s
     """Return whether one offer includes the minimum desired clan variety."""
     clan_counts = Counter(card.clan for card in cards)
     clans = required_clans if required_clans is not None else set(clan_counts)
+    max_required_clans = DRAFT_OFFER_SIZE // DRAFT_MIN_CLAN_DISTRIBUTION
+    if len(clans) > max_required_clans:
+        return sum(
+            1
+            for clan in clans
+            if clan_counts[clan] >= DRAFT_MIN_CLAN_DISTRIBUTION
+        ) >= max_required_clans
     return all(clan_counts[clan] >= DRAFT_MIN_CLAN_DISTRIBUTION for clan in clans)
 
 
@@ -242,12 +249,6 @@ def _validate_roster_supports_clan_distribution(cards: list[Card]) -> set[str]:
     """Return roster clans or raise when the draft clan minimum cannot be satisfied."""
     clan_counts = Counter(card.clan for card in cards)
     roster_clans = set(clan_counts)
-    if len(roster_clans) * DRAFT_MIN_CLAN_DISTRIBUTION > DRAFT_OFFER_SIZE:
-        raise InvalidGameSetupError(
-            f"A {DRAFT_OFFER_SIZE}-card draft offer cannot include at least "
-            f"{DRAFT_MIN_CLAN_DISTRIBUTION} cards for each of {len(roster_clans)} clans."
-        )
-
     missing_clans = sorted(
         clan
         for clan, count in clan_counts.items()
@@ -272,8 +273,12 @@ def _build_balanced_offer(
     """Sample an offer with enough clan and star variety."""
     selected: list[Card] = []
     selected_ids: set[str] = set()
+    max_required_clans = DRAFT_OFFER_SIZE // DRAFT_MIN_CLAN_DISTRIBUTION
+    selected_roster_clans = sorted(roster_clans)
+    if len(selected_roster_clans) > max_required_clans:
+        selected_roster_clans = sorted(generator.sample(selected_roster_clans, max_required_clans))
 
-    for clan in sorted(roster_clans):
+    for clan in selected_roster_clans:
         bucket = [card for card in cards if card.clan == clan]
         picked = generator.sample(bucket, DRAFT_MIN_CLAN_DISTRIBUTION)
         selected.extend(picked)

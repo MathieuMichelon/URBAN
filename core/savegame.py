@@ -15,7 +15,7 @@ from core.errors import (
 )
 from core.models import Card, EffectCondition, EffectDefinition, GameState, PlayerState, RoundResult
 from core.rules import MAX_ROUNDS
-from core.serialization import serialize_card, serialize_poison, serialize_round_result
+from core.serialization import serialize_card, serialize_poison, serialize_regeneration, serialize_round_result
 
 SAVE_FORMAT = "urban_duel_save"
 SAVE_VERSION = 1
@@ -158,6 +158,7 @@ def _serialize_player(player: PlayerState) -> dict[str, object]:
         "played_card_ids": sorted(player.played_card_ids),
         "active_clan_bonuses": sorted(player.active_clan_bonuses),
         "poison": serialize_poison(player.poison),
+        "regeneration": serialize_regeneration(player.regeneration),
     }
 
 
@@ -206,6 +207,7 @@ def _deserialize_player(payload: object, *, expected_player_id: int) -> PlayerSt
             played_card_ids=played_ids,
             active_clan_bonuses=set(_read_optional_string_list(payload, key="active_clan_bonuses", context=f"player {expected_player_id}")),
             poison=_read_optional_poison(payload, key="poison", context=f"player {expected_player_id}"),
+            regeneration=_read_optional_regeneration(payload, key="regeneration", context=f"player {expected_player_id}"),
         )
     except InvalidGameSetupError as error:
         raise SaveGameFormatError(
@@ -363,6 +365,21 @@ def _read_optional_poison(payload: dict[str, object], *, key: str, context: str)
     return OngoingPoison(
         amount=_read_required_int(value, key="amount", context=f"{context}.{key}"),
         minimum_hit_points=_read_required_int(value, key="minimum_hit_points", context=f"{context}.{key}"),
+    )
+
+
+def _read_optional_regeneration(payload: dict[str, object], *, key: str, context: str):
+    """Read an optional regeneration object from a JSON payload."""
+    value = payload.get(key)
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        raise SaveGameFormatError(f"{context} field '{key}' must be a JSON object or null.")
+
+    from core.models import OngoingRegeneration
+
+    return OngoingRegeneration(
+        amount=_read_required_int(value, key="amount", context=f"{context}.{key}"),
     )
 
 

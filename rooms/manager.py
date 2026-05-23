@@ -7,7 +7,9 @@ from pathlib import Path
 import secrets
 
 from data.card_repository import load_cards
+from data.urban2_loader import load_urban2_roster
 from rooms.state_machine import (
+    ClanOption,
     ConfirmSelectionOutcome,
     DisconnectOutcome,
     JoinRoomOutcome,
@@ -24,7 +26,9 @@ class RoomManager:
 
     def __init__(self, cards_path: str | Path) -> None:
         """Load the shared card catalog once and keep a central state machine."""
-        self._cards = load_cards(cards_path)
+        self._cards_path = Path(cards_path)
+        self._cards = load_cards(self._cards_path)
+        self._clan_options = self._load_clan_options(self._cards_path)
         self._rooms: dict[str, OnlineRoom] = {}
         self._locks: dict[str, asyncio.Lock] = {}
         self._registry_lock = asyncio.Lock()
@@ -34,7 +38,12 @@ class RoomManager:
         """Create a new room with its first player."""
         async with self._registry_lock:
             room_id = self._generate_room_id()
-            room, player = self._state_machine.create_room(room_id, cards=self._cards, player_name=player_name)
+            room, player = self._state_machine.create_room(
+                room_id,
+                cards=self._cards,
+                clan_options=self._clan_options,
+                player_name=player_name,
+            )
             self._rooms[room_id] = room
             self._locks[room_id] = asyncio.Lock()
             return room, player
@@ -57,6 +66,13 @@ class RoomManager:
         room = await self.get_room(room_id)
         async with self._locks[room_id]:
             self._state_machine.select_card(room, player_id=player_id, card_id=card_id)
+            return room
+
+    async def select_clans(self, room_id: str, *, player_id: int, clan_ids: list[str]) -> OnlineRoom:
+        """Lock the selected clans for one player before the draft."""
+        room = await self.get_room(room_id)
+        async with self._locks[room_id]:
+            self._state_machine.select_clans(room, player_id=player_id, clan_ids=clan_ids)
             return room
 
     async def set_pills(self, room_id: str, *, player_id: int, pills: int) -> OnlineRoom:
@@ -124,3 +140,19 @@ class RoomManager:
             room_id = secrets.token_hex(3).upper()
             if room_id not in self._rooms:
                 return room_id
+
+    def _load_clan_options(self, cards_path: Path) -> list[ClanOption] | None:
+        """Load rich clan metadata when the active cards file is an Urban 2 source."""
+        try:
+            roster = load_urban2_roster(cards_path)
+        except Exception:
+            return None
+        return [
+            ClanOption(
+                id=clan.id,
+                name=clan.display_name,
+                bonus_text=clan.bonus_text,
+                description=clan.description,
+            )
+            for clan in roster.clans
+        ]

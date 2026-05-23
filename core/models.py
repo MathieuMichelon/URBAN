@@ -21,6 +21,7 @@ SUPPORTED_EFFECT_TYPES = {
     "life_gain",
     "life_loss",
     "poison",
+    "regeneration",
     "pill_gain",
     "pill_steal",
     "stop_opponent_power",
@@ -157,6 +158,18 @@ class OngoingPoison:
 
 
 @dataclass(slots=True)
+class OngoingRegeneration:
+    """Persistent regeneration applied at end of each round."""
+
+    amount: int
+
+    def __post_init__(self) -> None:
+        """Validate regeneration values."""
+        if self.amount <= 0:
+            raise InvalidGameSetupError("Regeneration amount must be greater than 0.")
+
+
+@dataclass(slots=True)
 class PlayerState:
     """Track resources and cards for one player."""
 
@@ -167,6 +180,7 @@ class PlayerState:
     played_card_ids: set[str] = field(default_factory=set)
     active_clan_bonuses: set[str] = field(default_factory=set)
     poison: OngoingPoison | None = None
+    regeneration: OngoingRegeneration | None = None
 
     def __post_init__(self) -> None:
         """Validate player state on creation."""

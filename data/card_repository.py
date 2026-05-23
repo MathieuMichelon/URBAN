@@ -43,6 +43,16 @@ def load_card_set(path: str | Path) -> CardSet:
             f"Card set file '{json_path.name}' must contain a JSON object at the root."
         )
 
+    if _is_urban2_source_payload(raw_payload):
+        from data.urban2_loader import load_urban2_roster
+
+        urban2_roster = load_urban2_roster(json_path)
+        return CardSet(
+            set_id=urban2_roster.set_id,
+            name=urban2_roster.name,
+            cards=urban2_roster.cards,
+        )
+
     missing_keys = REQUIRED_SET_KEYS - set(raw_payload)
     if missing_keys:
         joined_keys = ", ".join(sorted(missing_keys))
@@ -73,6 +83,11 @@ def load_card_set(path: str | Path) -> CardSet:
 def load_cards(path: str | Path) -> list[Card]:
     """Load cards from a card set JSON file."""
     return load_card_set(path).cards
+
+
+def _is_urban2_source_payload(payload: dict[str, object]) -> bool:
+    """Return whether the JSON uses the new Urban 2 source shape."""
+    return isinstance(payload.get("metadata"), dict) and isinstance(payload.get("clans"), list) and isinstance(payload.get("characters"), list)
 
 
 def _read_json_file(path: Path) -> object:

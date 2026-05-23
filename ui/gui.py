@@ -100,7 +100,7 @@ class GameWindow:
         self.card_catalog = load_cards(self.cards_path)
         self.engine = GameEngine()
         self.ai_provider = ai_provider or HeuristicAIChoiceProvider()
-        self.asset_root = self.cards_path.parent.parent
+        self.asset_root = Path(__file__).resolve().parents[1]
         self._illustration_cache: dict[str, pygame.Surface | None] = {}
 
         self.state: GameState | None = None
@@ -1690,9 +1690,11 @@ class GameWindow:
     def _card_accent(self, card: Card, fallback: Color) -> Color:
         """Return a clan-driven accent color that stays readable across the HUD."""
         clan_palette = {
-            "Pulse 404": ACCENT_PURPLE,
-            "Verdelune": ACCENT_GREEN,
-            "Bastion-9": ACCENT_BLUE,
+            "Solaïres": ACCENT_GOLD,
+            "Corsaires du Port": ACCENT_TEAL,
+            "Palmeros": ACCENT_PURPLE,
+            "Égoutiers": ACCENT_GREEN,
+            "Jardiniers de Béton": ACCENT_BLUE,
         }
         return clan_palette.get(card.clan, fallback)
 

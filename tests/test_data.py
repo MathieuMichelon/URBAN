@@ -1,4 +1,4 @@
-"""Unit tests for card set loading."""
+"""Unit tests for active card-set loading."""
 
 from collections import Counter
 from pathlib import Path
@@ -9,74 +9,47 @@ from core.errors import CardSetFormatError, CardSetLoadError
 from data.card_repository import load_card_set, load_cards
 
 
-LEGACY_ACTIVE_ROSTER_IDS = {
-    "blade",
-    "nyra",
-    "brakk",
-    "sola",
-    "luna",
-    "selen",
-    "vextor",
-    "orkan",
-}
+ACTIVE_URBAN2_PATH = Path(__file__).resolve().parents[1] / "assets" / "data" / "urban2_personnages_base.json"
 
 
-def test_load_card_set_reads_example_catalog_metadata() -> None:
-    """The example catalog should expose both set metadata and card objects."""
-    project_root = Path(__file__).resolve().parents[1]
+def test_load_card_set_reads_active_urban2_roster_metadata() -> None:
+    """The runtime roster should now come from the Urban 2 source file."""
+    card_set = load_card_set(ACTIVE_URBAN2_PATH)
 
-    card_set = load_card_set(project_root / "data" / "cards.json")
-
-    assert card_set.set_id == "urban_duel_roster_v2"
-    assert card_set.name == "Urban Duel 30 Character Roster"
-    assert len(card_set.cards) == 30
-    assert {card.clan for card in card_set.cards} == {"Pulse 404", "Verdelune", "Bastion-9"}
+    assert card_set.set_id == "urban2_personnages_base"
+    assert card_set.name == "Urban 2 Personnages Base"
+    assert len(card_set.cards) == 50
     assert min(card.stars for card in card_set.cards) == 1
     assert max(card.stars for card in card_set.cards) == 3
 
 
-def test_load_cards_returns_domain_cards_from_a_set_file() -> None:
-    """The convenience loader should return only Card objects."""
-    project_root = Path(__file__).resolve().parents[1]
+def test_load_cards_returns_active_urban2_cards() -> None:
+    """The convenience loader should resolve the active 50-card Urban 2 roster."""
+    cards = load_cards(ACTIVE_URBAN2_PATH)
 
-    cards = load_cards(project_root / "data" / "cards.json")
-
-    assert len(cards) == 30
-    assert any(card.power_text for card in cards)
-    assert any(card.bonus_text for card in cards)
-    assert any(card.bonus_effects for card in cards)
+    assert len(cards) == 50
+    assert all(card.power_text for card in cards)
+    assert all(card.bonus_text for card in cards)
+    assert all(card.illustration.startswith("assets/cards/urban2/") for card in cards)
 
 
-def test_load_card_set_uses_only_the_new_active_roster_ids() -> None:
-    """The runtime roster should no longer expose legacy active character ids."""
-    project_root = Path(__file__).resolve().parents[1]
-
-    card_set = load_card_set(project_root / "data" / "cards.json")
-    active_ids = {card.id for card in card_set.cards}
-
-    assert len(active_ids) == 30
-    assert active_ids.isdisjoint(LEGACY_ACTIVE_ROSTER_IDS)
-
-
-def test_load_card_set_contains_three_clans_with_ten_cards_each() -> None:
-    """The migrated roster should be evenly distributed across the 3 clans."""
-    project_root = Path(__file__).resolve().parents[1]
-
-    card_set = load_card_set(project_root / "data" / "cards.json")
+def test_load_card_set_contains_five_clans_with_ten_cards_each() -> None:
+    """The active roster should be evenly split across the five new clans."""
+    card_set = load_card_set(ACTIVE_URBAN2_PATH)
     cards_per_clan = Counter(card.clan for card in card_set.cards)
 
     assert cards_per_clan == {
-        "Pulse 404": 10,
-        "Verdelune": 10,
-        "Bastion-9": 10,
+        "Solaïres": 10,
+        "Corsaires du Port": 10,
+        "Palmeros": 10,
+        "Égoutiers": 10,
+        "Jardiniers de Béton": 10,
     }
 
 
 def test_load_card_set_keeps_clan_bonus_data_consistent_per_clan() -> None:
     """Each clan should resolve to one shared bonus definition across its cards."""
-    project_root = Path(__file__).resolve().parents[1]
-
-    card_set = load_card_set(project_root / "data" / "cards.json")
+    card_set = load_card_set(ACTIVE_URBAN2_PATH)
     bonus_texts_by_clan: dict[str, set[str]] = {}
     bonus_effect_signatures_by_clan: dict[str, set[tuple[tuple[str, str, str, int, int | None], ...]]] = {}
 
@@ -88,26 +61,29 @@ def test_load_card_set_keeps_clan_bonus_data_consistent_per_clan() -> None:
                 for effect in card.bonus_effects
             )
         )
-        assert card.illustration.startswith("assets/cards/")
         assert card.info
         assert card.power_effects or card.bonus_effects
 
     assert bonus_texts_by_clan == {
-        "Pulse 404": {"+8 Attaque"},
-        "Verdelune": {"Victoire : +2 Vie"},
-        "Bastion-9": {"+2 Dégâts"},
+        "Solaïres": {"+2 Puissance"},
+        "Corsaires du Port": {"Victoire : Vol 1 pill"},
+        "Palmeros": {"-2 dégâts adverses, min. 1"},
+        "Égoutiers": {"Victoire : Poison 2, min. 4"},
+        "Jardiniers de Béton": {"Victoire : Régénération 2"},
     }
     assert bonus_effect_signatures_by_clan == {
-        "Pulse 404": {(("passive", "self", "attack_modifier", 8, None),)},
-        "Verdelune": {(("victory", "self", "life_gain", 2, None),)},
-        "Bastion-9": {(("passive", "self", "damage_modifier", 2, None),)},
+        "Solaïres": {(("passive", "self", "power_modifier", 2, None),)},
+        "Corsaires du Port": {(("victory", "opponent", "pill_steal", 1, None),)},
+        "Palmeros": {(("passive", "opponent", "damage_modifier", -2, 1),)},
+        "Égoutiers": {(("victory", "opponent", "poison", 2, 4),)},
+        "Jardiniers de Béton": {(("victory", "self", "regeneration", 2, None),)},
     }
 
 
-def test_load_card_set_resolves_generated_illustration_paths() -> None:
-    """Every runtime illustration path should point to a generated card art file."""
+def test_load_card_set_resolves_generated_urban2_illustration_paths() -> None:
+    """Every runtime illustration path should point to a generated Urban 2 image."""
     project_root = Path(__file__).resolve().parents[1]
-    card_set = load_card_set(project_root / "data" / "cards.json")
+    card_set = load_card_set(ACTIVE_URBAN2_PATH)
 
     for card in card_set.cards:
         assert (project_root / card.illustration).exists()
@@ -131,7 +107,7 @@ def test_load_card_set_raises_clear_error_for_invalid_json(tmp_path: Path) -> No
 
 
 def test_load_card_set_rejects_missing_required_root_keys(tmp_path: Path) -> None:
-    """A card set file must expose the required root structure."""
+    """A legacy card set file must expose the required root structure."""
     invalid_set_path = tmp_path / "invalid_cards.json"
     invalid_set_path.write_text('{"set_id": "starter", "cards": []}', encoding="utf-8")
 

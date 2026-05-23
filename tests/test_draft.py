@@ -22,6 +22,10 @@ def test_build_draft_offer_returns_balanced_cards_and_supports_a_legal_team(samp
     offer = build_draft_offer(sample_cards, seed="ROOM42")
     star_counts = Counter(card.stars for card in offer)
     clan_counts = Counter(card.clan for card in offer)
+    required_clan_buckets = min(
+        len({card.clan for card in sample_cards}),
+        DRAFT_OFFER_SIZE // DRAFT_MIN_CLAN_DISTRIBUTION,
+    )
 
     assert len(offer) == DRAFT_OFFER_SIZE
     assert len({card.id for card in offer}) == DRAFT_OFFER_SIZE
@@ -29,10 +33,11 @@ def test_build_draft_offer_returns_balanced_cards_and_supports_a_legal_team(samp
         star_counts[stars] >= minimum
         for stars, minimum in DRAFT_MIN_STAR_DISTRIBUTION.items()
     )
-    assert all(
-        clan_counts[clan] >= DRAFT_MIN_CLAN_DISTRIBUTION
+    assert sum(
+        1
         for clan in {card.clan for card in sample_cards}
-    )
+        if clan_counts[clan] >= DRAFT_MIN_CLAN_DISTRIBUTION
+    ) >= required_clan_buckets
     assert any(
         sum(card.stars for card in team) <= TEAM_STAR_CAP
         for team in combinations(offer, TEAM_SIZE)
@@ -41,6 +46,11 @@ def test_build_draft_offer_returns_balanced_cards_and_supports_a_legal_team(samp
 
 def test_build_draft_offer_consistently_keeps_size_uniqueness_stars_clans_and_legal_team(sample_cards) -> None:
     """Draft offers should combine all balancing constraints without duplicates."""
+    required_clan_buckets = min(
+        len({card.clan for card in sample_cards}),
+        DRAFT_OFFER_SIZE // DRAFT_MIN_CLAN_DISTRIBUTION,
+    )
+
     for seed in range(20):
         offer = build_draft_offer(sample_cards, seed=seed)
         star_counts = Counter(card.stars for card in offer)
@@ -52,10 +62,11 @@ def test_build_draft_offer_consistently_keeps_size_uniqueness_stars_clans_and_le
             star_counts[stars] >= minimum
             for stars, minimum in DRAFT_MIN_STAR_DISTRIBUTION.items()
         )
-        assert all(
-            clan_counts[clan] >= DRAFT_MIN_CLAN_DISTRIBUTION
+        assert sum(
+            1
             for clan in {card.clan for card in sample_cards}
-        )
+            if clan_counts[clan] >= DRAFT_MIN_CLAN_DISTRIBUTION
+        ) >= required_clan_buckets
         assert any(
             sum(card.stars for card in team) <= TEAM_STAR_CAP
             for team in combinations(offer, TEAM_SIZE)

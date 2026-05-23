@@ -8,8 +8,9 @@ Jeu de cartes 1v1 en Python 3.12 avec :
 - gestion de room/matchmaking dans `rooms/` ;
 - frontend navigateur léger en HTML/CSS/JS dans `frontend/` ;
 - prototype Pygame local toujours disponible dans `ui/` ;
-- draft partagé en début de match ;
-- roster actif de 30 personnages ;
+- sélection de 3 clans avant le draft ;
+- draft filtré par clans choisis ;
+- roster actif de 50 personnages ;
 - clans, bonus de clan, étoiles et pouvoirs data-driven.
 
 ## Installation
@@ -97,6 +98,8 @@ Le serveur reste la seule source de vérité :
 Machine d'état de partie centralisée dans [rooms/state_machine.py](C:/Users/Mathiu/Documents/URBAN/rooms/state_machine.py:1) :
 
 - `waiting_for_players`
+- `clan_selection`
+- `drafting`
 - `round_selection`
 - `round_locked`
 - `round_resolution`
@@ -117,15 +120,17 @@ La passerelle WebSocket ne décide aucune transition métier ; elle délègue au
 
 1. Un joueur ouvre le frontend et se connecte au WebSocket.
 2. Il crée une room ou rejoint une room existante.
-3. Quand le second joueur rejoint, le serveur ouvre un draft partagé de 10 cartes.
-4. Chaque joueur compose une équipe de 4 cartes avec un total d’étoiles `<= 8`.
-5. Une fois les deux équipes verrouillées, la partie démarre.
-6. Chaque joueur choisit ensuite une carte et un nombre de pills.
-7. Le backend n’expose jamais les pills adverses avant la résolution.
-8. Le joueur qui a l’initiative confirme d’abord ; sa carte devient visible pour l’autre.
-9. Quand les deux confirmations sont reçues, le serveur résout le round.
-10. Le serveur diffuse le résultat officiel puis, en fin de partie, le gagnant.
-11. En cas de déconnexion pendant la partie ou pendant le draft, l’adversaire gagne par abandon ; en lobby, la session peut être reprise si le token de session est encore valide.
+3. Quand le second joueur rejoint, le serveur ouvre une phase de sélection de clans.
+4. Chaque joueur verrouille exactement 3 clans parmi les 5 disponibles.
+5. Le serveur construit ensuite un draft privé de 12 cartes pour chaque joueur à partir de ses clans choisis.
+6. Chaque joueur compose une équipe de 4 cartes avec un total d’étoiles `<= 8`.
+7. Une fois les deux équipes verrouillées, la partie démarre.
+8. Chaque joueur choisit ensuite une carte et un nombre de pills.
+9. Le backend n’expose jamais les pills adverses avant la résolution.
+10. Le joueur qui a l’initiative confirme d’abord ; sa carte devient visible pour l’autre.
+11. Quand les deux confirmations sont reçues, le serveur résout le round.
+12. Le serveur diffuse le résultat officiel puis, en fin de partie, le gagnant.
+13. En cas de déconnexion pendant la partie ou pendant le draft, l’adversaire gagne par abandon ; en lobby, la session peut être reprise si le token de session est encore valide.
 
 ## Protocole WebSocket JSON
 
@@ -147,6 +152,7 @@ Les schémas Pydantic sont définis dans [net/protocol.py](C:/Users/Mathiu/Docum
 
 - `create_room`
 - `join_room`
+- `select_clans`
 - `select_card`
 - `set_pills`
 - `confirm_selection`
@@ -170,6 +176,17 @@ Exemples :
   "room_id": "ABC123",
   "payload": {
     "player_name": "Bob"
+  }
+}
+```
+
+```json
+{
+  "type": "select_clans",
+  "room_id": "ABC123",
+  "player_id": 1,
+  "payload": {
+    "clan_ids": ["solaires", "corsaires_du_port", "palmeros"]
   }
 }
 ```
@@ -247,4 +264,4 @@ python -m pytest tests/test_draft.py tests/test_effects.py
 - le frontend ne connaît aucune règle de résolution ;
 - les messages utilisateur sont validés par Pydantic ;
 - la room réseau utilise un backend autoritaire en mémoire ;
-- les cartes et illustrations viennent de `data/cards.json` et `assets/`.
+- les cartes et illustrations viennent de `assets/data/urban2_personnages_base.json` et `assets/`.

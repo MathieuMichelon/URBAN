@@ -6,7 +6,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 
 from core.enums import RoundOutcome
-from core.models import Card, EffectDefinition, GameState, OngoingPoison, PlayerState
+from core.models import Card, EffectDefinition, GameState, OngoingPoison, OngoingRegeneration, PlayerState
 
 PRE_FIGHT_RESOLUTION_ORDER = (
     "collect_pre_fight_sources",
@@ -20,7 +20,7 @@ PRE_FIGHT_RESOLUTION_ORDER = (
 POST_FIGHT_RESOLUTION_ORDER = (
     "collect_post_fight_sources",
     "apply_victory_and_defeat_effects",
-    "apply_poison_end_of_round",
+    "apply_end_of_round_persistent_effects",
 )
 
 TRIGGER_LABELS = {
@@ -38,6 +38,7 @@ EFFECT_TYPE_LABELS = {
     "life_gain": "Life +{value}",
     "life_loss": "Opponent life -{value}",
     "poison": "Poison {value}",
+    "regeneration": "Regeneration {value}",
     "pill_gain": "Pills +{value}",
     "pill_steal": "Steal {value} pill",
     "stop_opponent_power": "Stop opponent power",
@@ -200,7 +201,7 @@ def apply_round_aftermath(
 
     ledger = PostRoundLedger()
     _apply_post_fight_effects(state, fighter_1, fighter_2, winner_id=winner_id, loser_id=loser_id, ledger=ledger)
-    _apply_poison_end_of_round(state, ledger)
+    _apply_end_of_round_persistent_effects(state, ledger)
     return ledger
 
 
@@ -248,21 +249,22 @@ def _apply_post_fight_effects(
             _apply_post_effect(actor, opponent, effect, ledger=ledger)
 
 
-def _apply_poison_end_of_round(state: GameState, ledger: PostRoundLedger) -> None:
-    """Apply persistent poison after victory and defeat effects."""
+def _apply_end_of_round_persistent_effects(state: GameState, ledger: PostRoundLedger) -> None:
+    """Apply persistent poison and regeneration after victory and defeat effects."""
     for player_id in (1, 2):
         player = state.get_player(player_id)
         poison = player.poison
-        if poison is None:
-            continue
+        if poison is not None:
+            next_hit_points = max(poison.minimum_hit_points, player.hit_points - poison.amount)
+            damage = max(0, player.hit_points - next_hit_points)
+            if damage > 0:
+                player.hit_points = next_hit_points
+                ledger.life_swing[player_id] -= damage
 
-        next_hit_points = max(poison.minimum_hit_points, player.hit_points - poison.amount)
-        damage = max(0, player.hit_points - next_hit_points)
-        if damage == 0:
-            continue
-
-        player.hit_points = next_hit_points
-        ledger.life_swing[player_id] -= damage
+        regeneration = player.regeneration
+        if regeneration is not None:
+            player.hit_points += regeneration.amount
+            ledger.life_swing[player_id] += regeneration.amount
 
 
 def _collect_effect_sources(
@@ -335,6 +337,7 @@ def _apply_stat_modifiers(
             "life_gain",
             "life_loss",
             "poison",
+            "regeneration",
             "pill_gain",
             "pill_steal",
         }:
@@ -399,10 +402,14 @@ def _apply_post_effect(
         return
 
     if effect.effect_type == "poison":
-        current_poison = target_player.poison
         minimum = effect.minimum or 0
-        if current_poison is None or effect.value > current_poison.amount:
+        if target_player.poison is None:
             target_player.poison = OngoingPoison(effect.value, minimum)
+        return
+
+    if effect.effect_type == "regeneration":
+        if target_player.regeneration is None:
+            target_player.regeneration = OngoingRegeneration(effect.value)
 
 
 def _source_enabled(fighter: FighterEffects, source_kind: str) -> bool:

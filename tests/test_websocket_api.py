@@ -1,5 +1,6 @@
 """End-to-end tests for the FastAPI WebSocket multiplayer backend."""
 
+from collections import Counter
 from itertools import combinations
 from pathlib import Path
 
@@ -9,20 +10,7 @@ from backend.main import create_app
 from core.draft import DRAFT_OFFER_SIZE
 
 
-BALANCED_TEST_ROSTER_IDS = [
-    "glitch",
-    "hexa",
-    "nova_byte",
-    "pix",
-    "boulon",
-    "magna",
-    "atlas",
-    "cendre",
-    "brin",
-    "aster",
-    "chene",
-    "mousse",
-]
+ACTIVE_URBAN2_PATH = Path(__file__).resolve().parents[1] / "assets" / "data" / "urban2_personnages_base.json"
 
 
 def _first_valid_team_ids(draft_offer: list[dict[str, object]]) -> list[str]:
@@ -33,17 +21,37 @@ def _first_valid_team_ids(draft_offer: list[dict[str, object]]) -> list[str]:
     raise AssertionError("Expected the draft offer to contain a legal team.")
 
 
-def _configure_room_cards(app, room_id: str, card_ids: list[str]) -> None:
-    """Replace the room roster before the second player joins to stabilize the shared draft pool."""
-    room_manager = app.state.room_manager
-    room = room_manager._rooms[room_id]
-    cards_by_id = {card.id: card for card in room_manager._cards}
-    room.cards = [cards_by_id[card_id] for card_id in card_ids]
+def _first_invalid_star_cap_team_ids(draft_offer: list[dict[str, object]]) -> list[str]:
+    """Return the first over-cap team from a draft offer payload."""
+    for team in combinations(draft_offer, 4):
+        if sum(card["stars"] for card in team) > 8:
+            return [card["id"] for card in team]
+    raise AssertionError("Expected the draft offer to contain an illegal team.")
 
 
-def test_two_players_can_create_draft_join_and_resolve_one_round() -> None:
-    """The backend should run draft, match start, and one full round through WebSockets."""
-    app = create_app(Path(__file__).resolve().parents[1] / "data" / "cards.json")
+def _team_ids_with_active_bonus(draft_offer: list[dict[str, object]]) -> list[str]:
+    """Return the first legal team that activates at least one clan bonus."""
+    for team in combinations(draft_offer, 4):
+        if sum(card["stars"] for card in team) > 8:
+            continue
+        if any(count >= 2 for count in Counter(card["clan"] for card in team).values()):
+            return [card["id"] for card in team]
+    raise AssertionError("Expected a legal team with an active clan bonus.")
+
+
+def _first_three_clan_ids(snapshot_payload: dict[str, object]) -> list[str]:
+    """Return the first selectable three-clan combination from a clan snapshot."""
+    return [clan["id"] for clan in snapshot_payload["clan_options"][:3]]
+
+
+def _last_three_clan_ids(snapshot_payload: dict[str, object]) -> list[str]:
+    """Return a different selectable three-clan combination from a clan snapshot."""
+    return [clan["id"] for clan in snapshot_payload["clan_options"][2:5]]
+
+
+def test_two_players_can_select_clans_draft_and_resolve_one_round() -> None:
+    """The backend should run clan selection, private draft, match start, and one full round."""
+    app = create_app(ACTIVE_URBAN2_PATH)
 
     with TestClient(app) as client:
         with client.websocket_connect("/ws") as ws_1:
@@ -52,12 +60,6 @@ def test_two_players_can_create_draft_join_and_resolve_one_round() -> None:
             assert room_created["type"] == "room_created"
             room_id = room_created["room_id"]
             lobby_session_token = room_created["payload"]["session_token"]
-
-            _configure_room_cards(
-                app,
-                room_id,
-                BALANCED_TEST_ROSTER_IDS,
-            )
 
             initial_snapshot = ws_1.receive_json()
             assert initial_snapshot["type"] == "state_snapshot"
@@ -81,16 +83,31 @@ def test_two_players_can_create_draft_join_and_resolve_one_round() -> None:
                 assert player_joined["type"] == "player_joined"
                 assert player_joined["payload"]["joined_player_name"] == "Bob"
 
+                clan_snapshot_2 = ws_2.receive_json()
+                clan_snapshot_1 = ws_1.receive_json()
+                assert clan_snapshot_1["type"] == "state_snapshot"
+                assert clan_snapshot_2["type"] == "state_snapshot"
+                assert clan_snapshot_1["payload"]["match_state"] == "clan_selection"
+
+                clan_ids = _first_three_clan_ids(clan_snapshot_1["payload"])
+                ws_1.send_json({"type": "select_clans", "room_id": room_id, "payload": {"clan_ids": clan_ids}})
+                locked_snapshot_1 = ws_1.receive_json()
+                locked_snapshot_2 = ws_2.receive_json()
+                assert locked_snapshot_1["payload"]["match_state"] == "clan_selection"
+                assert locked_snapshot_1["payload"]["players"][0]["clan_selection_locked"] is True
+                assert locked_snapshot_1["payload"]["players"][1]["clan_selection_locked"] is False
+
+                ws_2.send_json({"type": "select_clans", "room_id": room_id, "payload": {"clan_ids": clan_ids}})
                 draft_snapshot_2 = ws_2.receive_json()
                 draft_snapshot_1 = ws_1.receive_json()
-                assert draft_snapshot_1["type"] == "state_snapshot"
-                assert draft_snapshot_2["type"] == "state_snapshot"
                 assert draft_snapshot_1["payload"]["match_state"] == "drafting"
                 assert len(draft_snapshot_1["payload"]["draft_offer"]) == DRAFT_OFFER_SIZE
+                assert len(draft_snapshot_2["payload"]["draft_offer"]) == DRAFT_OFFER_SIZE
 
-                team_ids = _first_valid_team_ids(draft_snapshot_1["payload"]["draft_offer"])
+                team_ids_1 = _first_valid_team_ids(draft_snapshot_1["payload"]["draft_offer"])
+                team_ids_2 = _first_valid_team_ids(draft_snapshot_2["payload"]["draft_offer"])
 
-                for card_id in team_ids:
+                for card_id in team_ids_1:
                     ws_1.send_json({"type": "select_card", "room_id": room_id, "payload": {"card_id": card_id}})
                     ws_1.receive_json()
                     ws_2.receive_json()
@@ -106,7 +123,7 @@ def test_two_players_can_create_draft_join_and_resolve_one_round() -> None:
                 ws_1.receive_json()
                 ws_2.receive_json()
 
-                for card_id in team_ids:
+                for card_id in team_ids_2:
                     ws_2.send_json({"type": "select_card", "room_id": room_id, "payload": {"card_id": card_id}})
                     ws_2.receive_json()
                     ws_1.receive_json()
@@ -191,7 +208,7 @@ def test_two_players_can_create_draft_join_and_resolve_one_round() -> None:
 
 def test_invalid_action_returns_error_message() -> None:
     """Invalid gameplay actions should produce explicit protocol errors."""
-    app = create_app(Path(__file__).resolve().parents[1] / "data" / "cards.json")
+    app = create_app(ACTIVE_URBAN2_PATH)
 
     with TestClient(app) as client:
         with client.websocket_connect("/ws") as ws_1:
@@ -203,6 +220,14 @@ def test_invalid_action_returns_error_message() -> None:
                 ws_2.send_json({"type": "join_room", "room_id": room_id, "payload": {"player_name": "Bob"}})
                 ws_2.receive_json()
                 ws_1.receive_json()
+                clan_snapshot_2 = ws_2.receive_json()
+                clan_snapshot_1 = ws_1.receive_json()
+                clan_ids = _first_three_clan_ids(clan_snapshot_1["payload"])
+
+                ws_1.send_json({"type": "select_clans", "room_id": room_id, "payload": {"clan_ids": clan_ids}})
+                ws_1.receive_json()
+                ws_2.receive_json()
+                ws_2.send_json({"type": "select_clans", "room_id": room_id, "payload": {"clan_ids": clan_ids}})
                 ws_2.receive_json()
                 ws_1.receive_json()
 
@@ -214,7 +239,7 @@ def test_invalid_action_returns_error_message() -> None:
 
 def test_opponent_disconnect_is_broadcast_cleanly() -> None:
     """The remaining player should be notified when the opponent disconnects."""
-    app = create_app(Path(__file__).resolve().parents[1] / "data" / "cards.json")
+    app = create_app(ACTIVE_URBAN2_PATH)
 
     with TestClient(app) as client:
         with client.websocket_connect("/ws") as ws_1:
@@ -239,72 +264,83 @@ def test_opponent_disconnect_is_broadcast_cleanly() -> None:
             assert finished["type"] == "game_finished"
 
 
-def test_draft_selection_and_bonus_preview_are_synchronized_over_websocket() -> None:
-    """Draft selections should broadcast the shared pool and bonus preview state to both players."""
-    app = create_app(Path(__file__).resolve().parents[1] / "data" / "cards.json")
+def test_clan_selection_and_private_draft_offer_are_synchronized_over_websocket() -> None:
+    """Clan choices should gate the draft and each player should see only their own pool."""
+    app = create_app(ACTIVE_URBAN2_PATH)
 
     with TestClient(app) as client:
         with client.websocket_connect("/ws") as ws_1:
             ws_1.send_json({"type": "create_room", "payload": {"player_name": "Alice"}})
             room_created = ws_1.receive_json()
             room_id = room_created["room_id"]
-            _configure_room_cards(
-                app,
-                room_id,
-                BALANCED_TEST_ROSTER_IDS,
-            )
             ws_1.receive_json()
 
             with client.websocket_connect("/ws") as ws_2:
                 ws_2.send_json({"type": "join_room", "room_id": room_id, "payload": {"player_name": "Bob"}})
                 ws_2.receive_json()
                 ws_1.receive_json()
+                clan_snapshot_2 = ws_2.receive_json()
+                clan_snapshot_1 = ws_1.receive_json()
+
+                clan_ids_1 = _first_three_clan_ids(clan_snapshot_1["payload"])
+                clan_ids_2 = _last_three_clan_ids(clan_snapshot_2["payload"])
+                clan_names_by_id = {
+                    clan["id"]: clan["name"]
+                    for clan in clan_snapshot_1["payload"]["clan_options"]
+                }
+
+                ws_1.send_json({"type": "select_clans", "room_id": room_id, "payload": {"clan_ids": clan_ids_1}})
+                ws_1.receive_json()
+                ws_2.receive_json()
+                ws_2.send_json({"type": "select_clans", "room_id": room_id, "payload": {"clan_ids": clan_ids_2}})
                 draft_snapshot_2 = ws_2.receive_json()
                 draft_snapshot_1 = ws_1.receive_json()
 
-                assert [card["id"] for card in draft_snapshot_1["payload"]["draft_offer"]] == [
-                    card["id"] for card in draft_snapshot_2["payload"]["draft_offer"]
-                ]
+                assert {
+                    card["clan"] for card in draft_snapshot_1["payload"]["draft_offer"]
+                } <= {clan_names_by_id[clan_id] for clan_id in clan_ids_1}
+                assert {
+                    card["clan"] for card in draft_snapshot_2["payload"]["draft_offer"]
+                } <= {clan_names_by_id[clan_id] for clan_id in clan_ids_2}
 
-                ws_1.send_json({"type": "select_card", "room_id": room_id, "payload": {"card_id": "glitch"}})
-                snapshot_after_first_pick_1 = ws_1.receive_json()
-                snapshot_after_first_pick_2 = ws_2.receive_json()
-                alice_from_bob_view = snapshot_after_first_pick_2["payload"]["players"][0]
-                assert [card["id"] for card in alice_from_bob_view["draft_selected_cards"]] == ["glitch"]
-                assert alice_from_bob_view["active_clan_bonuses"] == []
+                team_ids = _team_ids_with_active_bonus(draft_snapshot_1["payload"]["draft_offer"])
+                for card_id in team_ids:
+                    ws_1.send_json({"type": "select_card", "room_id": room_id, "payload": {"card_id": card_id}})
+                    ws_1.receive_json()
+                    snapshot_after_pick_2 = ws_2.receive_json()
 
-                ws_1.send_json({"type": "select_card", "room_id": room_id, "payload": {"card_id": "pix"}})
-                ws_1.receive_json()
-                snapshot_after_bonus_pick_2 = ws_2.receive_json()
-                alice_from_bob_view = snapshot_after_bonus_pick_2["payload"]["players"][0]
-                assert alice_from_bob_view["active_clan_bonuses"] == ["Pulse 404"]
-                assert all(card["bonus_active"] is True for card in alice_from_bob_view["draft_selected_cards"])
+                alice_from_bob_view = snapshot_after_pick_2["payload"]["players"][0]
+                assert alice_from_bob_view["active_clan_bonuses"]
+                assert all(card["bonus_active"] is True for card in alice_from_bob_view["draft_selected_cards"] if card["clan"] in alice_from_bob_view["active_clan_bonuses"])
 
 
 def test_invalid_star_cap_team_is_rejected_over_websocket() -> None:
     """The server should refuse draft locks that violate the 8-star team cap."""
-    app = create_app(Path(__file__).resolve().parents[1] / "data" / "cards.json")
+    app = create_app(ACTIVE_URBAN2_PATH)
 
     with TestClient(app) as client:
         with client.websocket_connect("/ws") as ws_1:
             ws_1.send_json({"type": "create_room", "payload": {"player_name": "Alice"}})
             room_created = ws_1.receive_json()
             room_id = room_created["room_id"]
-            _configure_room_cards(
-                app,
-                room_id,
-                BALANCED_TEST_ROSTER_IDS,
-            )
             ws_1.receive_json()
 
             with client.websocket_connect("/ws") as ws_2:
                 ws_2.send_json({"type": "join_room", "room_id": room_id, "payload": {"player_name": "Bob"}})
                 ws_2.receive_json()
                 ws_1.receive_json()
-                ws_2.receive_json()
-                ws_1.receive_json()
+                clan_snapshot_2 = ws_2.receive_json()
+                clan_snapshot_1 = ws_1.receive_json()
+                clan_ids = _first_three_clan_ids(clan_snapshot_1["payload"])
 
-                for card_id in ("nova_byte", "atlas", "chene", "hexa"):
+                ws_1.send_json({"type": "select_clans", "room_id": room_id, "payload": {"clan_ids": clan_ids}})
+                ws_1.receive_json()
+                ws_2.receive_json()
+                ws_2.send_json({"type": "select_clans", "room_id": room_id, "payload": {"clan_ids": clan_ids}})
+                ws_2.receive_json()
+                draft_snapshot_1 = ws_1.receive_json()
+
+                for card_id in _first_invalid_star_cap_team_ids(draft_snapshot_1["payload"]["draft_offer"]):
                     ws_1.send_json({"type": "select_card", "room_id": room_id, "payload": {"card_id": card_id}})
                     ws_1.receive_json()
                     ws_2.receive_json()

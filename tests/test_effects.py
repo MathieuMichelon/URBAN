@@ -485,6 +485,91 @@ def test_poison_applies_after_damage_and_ticks_on_following_rounds(card_factory)
     assert state.get_player(2).hit_points == STARTING_HIT_POINTS - 7
 
 
+def test_poison_does_not_stack_or_replace_an_existing_poison(card_factory) -> None:
+    """A second poison should not double, refresh, or upgrade an already poisoned player."""
+    engine = GameEngine()
+    player_1_hand = [
+        card_factory(
+            "venom_2",
+            clan="Wild",
+            power=7,
+            damage=1,
+            power_effects=(EffectDefinition("victory", "opponent", "poison", 2, minimum=4),),
+        ),
+        card_factory(
+            "venom_4",
+            clan="Wild",
+            power=7,
+            damage=1,
+            power_effects=(EffectDefinition("victory", "opponent", "poison", 4, minimum=1),),
+        ),
+        card_factory("p1c3", power=4, damage=1),
+        card_factory("p1c4"),
+    ]
+    player_2_hand = [
+        card_factory("target_1", power=1, damage=1),
+        card_factory("target_2", power=1, damage=1),
+        card_factory("p2c3"),
+        card_factory("p2c4"),
+    ]
+    state = engine.create_game(player_1_hand, player_2_hand)
+
+    engine.play_round(state, RoundSelection("venom_2", 3), RoundSelection("target_1", 0))
+    poison = state.get_player(2).poison
+    assert poison is not None
+    assert (poison.amount, poison.minimum_hit_points) == (2, 4)
+
+    second_result = engine.play_round(state, RoundSelection("venom_4", 3), RoundSelection("target_2", 0))
+
+    poison = state.get_player(2).poison
+    assert poison is not None
+    assert (poison.amount, poison.minimum_hit_points) == (2, 4)
+    assert second_result.life_swing_player_2 == -2
+
+
+def test_regeneration_persists_and_does_not_stack(card_factory) -> None:
+    """A triggered regeneration should heal each round and ignore later regeneration effects."""
+    engine = GameEngine()
+    player_1_hand = [
+        card_factory(
+            "grow_2",
+            clan="Garden",
+            power=7,
+            damage=1,
+            power_effects=(EffectDefinition("victory", "self", "regeneration", 2),),
+        ),
+        card_factory(
+            "grow_5",
+            clan="Garden",
+            power=7,
+            damage=1,
+            power_effects=(EffectDefinition("victory", "self", "regeneration", 5),),
+        ),
+        card_factory("p1c3", power=7, damage=1),
+        card_factory("p1c4"),
+    ]
+    player_2_hand = [
+        card_factory("target_1", power=1, damage=1),
+        card_factory("target_2", power=1, damage=1),
+        card_factory("target_3", power=1, damage=1),
+        card_factory("p2c4"),
+    ]
+    state = engine.create_game(player_1_hand, player_2_hand)
+    state.get_player(1).hit_points = 10
+
+    first_result = engine.play_round(state, RoundSelection("grow_2", 3), RoundSelection("target_1", 0))
+    assert first_result.life_swing_player_1 == 2
+    assert state.get_player(1).hit_points == 12
+    assert state.get_player(1).regeneration is not None
+    assert state.get_player(1).regeneration.amount == 2
+
+    second_result = engine.play_round(state, RoundSelection("grow_5", 3), RoundSelection("target_2", 0))
+    assert second_result.life_swing_player_1 == 2
+    assert state.get_player(1).regeneration is not None
+    assert state.get_player(1).regeneration.amount == 2
+    assert state.get_player(1).hit_points == 14
+
+
 def test_describe_effects_returns_ui_readable_power_and_bonus_text() -> None:
     """Structured effect data should be convertible into readable UI strings."""
     power_text = describe_effects(

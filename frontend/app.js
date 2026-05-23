@@ -10,6 +10,7 @@ const state = {
   snapshot: null,
   interaction: {
     selectedCardId: null,
+    selectedClanIds: [],
     pillsPreview: 0,
     overloadPreview: false,
     confirmEnabled: false,
@@ -42,6 +43,10 @@ const elements = {
   roomStatus: document.querySelector("#room-status"),
   summaryContent: document.querySelector("#summary-content"),
   draftPanel: document.querySelector("#draft-panel"),
+  clanSelectionPanel: document.querySelector("#clan-selection-panel"),
+  clanSelectionStatus: document.querySelector("#clan-selection-status"),
+  clanOptions: document.querySelector("#clan-options"),
+  clanLockButton: document.querySelector("#clan-lock-button"),
   draftStatus: document.querySelector("#draft-status"),
   draftOffer: document.querySelector("#draft-offer"),
   draftTeam: document.querySelector("#draft-team"),
@@ -361,6 +366,17 @@ function getTurnStatusMessage(snapshot, localPlayer, opponent) {
     return { text: "⏳ En attente d'un second joueur.", tone: "waiting" };
   }
 
+  if (matchState === "clan_selection") {
+    const selectedCount = localPlayer?.selected_clans?.length ?? state.interaction.selectedClanIds.length;
+    if (localPlayer?.clan_selection_locked) {
+      return { text: "🔒 Choix validé, en attente de l'autre joueur.", tone: "waiting" };
+    }
+    return {
+      text: `🌐 Sélectionne exactement 3 clans avant le draft (${selectedCount}/3).`,
+      tone: "your-turn",
+    };
+  }
+
   if (matchState === "drafting") {
     const lockedCount = snapshot.draft_locked_player_ids?.length ?? 0;
     return {
@@ -493,7 +509,7 @@ function updatePillsPreview(nextValue) {
 
 function syncInteractionWithSnapshot() {
   const snapshot = state.snapshot;
-  if (!snapshot || snapshot.match_state === "drafting" || snapshot.match_state === "game_over") {
+  if (!snapshot || snapshot.match_state === "clan_selection" || snapshot.match_state === "drafting" || snapshot.match_state === "game_over") {
     resetMatchInteraction();
     return;
   }
@@ -720,15 +736,23 @@ function renderPlayers(targetElement) {
 
 function clanIconFor(clan) {
   const icons = {
-    "Pulse 404": "P4",
-    Verdelune: "VL",
-    "Bastion-9": "B9",
+    "Solaïres": "SO",
+    "Corsaires du Port": "CP",
+    Palmeros: "PA",
+    "Égoutiers": "EG",
+    "Jardiniers de Béton": "JB",
   };
   return icons[clan] ?? clan.slice(0, 2).toUpperCase();
 }
 
 function slugifyClan(clan) {
-  return clan.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  return clan
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[’']/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 function createClanBadge(clan) {
@@ -900,6 +924,62 @@ function renderDraftOffer(localPlayer) {
   selectedCards.forEach((card) => {
     elements.draftTeam.appendChild(createCardNode(card, { selected: true, compact: true }));
   });
+}
+
+function renderClanSelection(localPlayer) {
+  elements.clanOptions.innerHTML = "";
+  if (!state.snapshot || state.snapshot.match_state !== "clan_selection" || !localPlayer) {
+    elements.clanSelectionStatus.textContent = "Choisis 3 clans pour débloquer le draft.";
+    elements.clanLockButton.disabled = true;
+    return;
+  }
+
+  const locked = Boolean(localPlayer.clan_selection_locked);
+  if (locked) {
+    state.interaction.selectedClanIds = [...(localPlayer.selected_clans ?? [])];
+  }
+
+  const selectedIds = new Set(state.interaction.selectedClanIds);
+  elements.clanSelectionStatus.textContent = locked
+    ? "Choix validé — en attente de l'autre joueur."
+    : `Clans sélectionnés : ${selectedIds.size}/3`;
+
+  state.snapshot.clan_options.forEach((clan) => {
+    const selected = selectedIds.has(clan.id);
+    const node = document.createElement("button");
+    node.type = "button";
+    node.className = `clan-option ${selected ? "selected" : ""}`.trim();
+    node.disabled = locked;
+
+    const header = document.createElement("span");
+    header.className = "clan-option-header";
+    const name = document.createElement("strong");
+    name.textContent = clan.name;
+    const stateLabel = document.createElement("span");
+    stateLabel.textContent = selected ? "Sélectionné" : "Non sélectionné";
+    header.append(name, stateLabel);
+
+    const bonus = document.createElement("span");
+    bonus.className = "clan-option-bonus";
+    bonus.textContent = clan.bonus_text;
+
+    const description = document.createElement("span");
+    description.className = "clan-option-description";
+    description.textContent = clan.description || "Description indisponible.";
+
+    node.append(header, bonus, description);
+    node.addEventListener("click", () => {
+      if (selectedIds.has(clan.id)) {
+        state.interaction.selectedClanIds = state.interaction.selectedClanIds.filter((id) => id !== clan.id);
+      } else if (selectedIds.size < 3) {
+        state.interaction.selectedClanIds = [...state.interaction.selectedClanIds, clan.id];
+      }
+      render();
+    });
+    elements.clanOptions.appendChild(node);
+  });
+
+  elements.clanLockButton.disabled = locked || selectedIds.size !== 3;
 }
 
 function selectedCardFor(player) {
@@ -1960,6 +2040,23 @@ function renderSelection() {
     return;
   }
 
+  if (state.snapshot.match_state === "clan_selection") {
+    elements.confirmButton.textContent = "Confirmer";
+    elements.selectionControls.classList.add("hidden");
+    elements.pillsInput.disabled = true;
+    elements.pillsMinusButton.disabled = true;
+    elements.pillsPlusButton.disabled = true;
+    elements.overloadInput.disabled = true;
+    elements.overloadInput.checked = false;
+    elements.overloadMeta.innerHTML = "";
+    elements.confirmButton.disabled = true;
+    elements.selectionInfo.textContent = localPlayer.clan_selection_locked
+      ? "Choix validé — en attente de l'autre joueur."
+      : `Clans sélectionnés : ${state.interaction.selectedClanIds.length}/3`;
+    elements.selectionDetail.innerHTML = "";
+    return;
+  }
+
   if (state.snapshot.match_state === "drafting") {
     elements.confirmButton.textContent = localPlayer.draft_locked ? "Equipe verrouillée" : "Verrouiller l'équipe";
     elements.selectionControls.classList.add("hidden");
@@ -2011,12 +2108,14 @@ function renderSelection() {
 
 function togglePhasePanels() {
   const matchState = state.snapshot?.match_state;
+  const clanSelection = matchState === "clan_selection";
   const drafting = matchState === "drafting";
   const gameOver = matchState === "game_over";
 
+  elements.clanSelectionPanel.classList.toggle("hidden", !clanSelection);
   elements.draftPanel.classList.toggle("hidden", !drafting);
-  elements.matchShell.classList.toggle("hidden", drafting);
-  elements.selectionStage.classList.toggle("hidden", Boolean(gameOver || state.resolution.active));
+  elements.matchShell.classList.toggle("hidden", clanSelection || drafting);
+  elements.selectionStage.classList.toggle("hidden", Boolean(clanSelection || gameOver || state.resolution.active));
   elements.matchEndPanel.classList.toggle("hidden", !gameOver || state.resolution.active);
 }
 
@@ -2029,6 +2128,9 @@ function render() {
 
   if (!state.snapshot) {
     syncMatchSideState(null, null);
+    elements.clanOptions.innerHTML = "";
+    elements.clanSelectionStatus.textContent = "Choisis 3 clans pour débloquer le draft.";
+    elements.clanLockButton.disabled = true;
     elements.draftOffer.innerHTML = "";
     elements.draftTeam.innerHTML = "";
     elements.draftTeamSummary.innerHTML = "";
@@ -2049,8 +2151,9 @@ function render() {
   const localPlayer = state.snapshot.players.find((player) => player.player_id === state.snapshot.local_player_id);
   const opponent = state.snapshot.players.find((player) => player.player_id !== state.snapshot.local_player_id);
   syncMatchSideState(localPlayer, opponent);
+  renderClanSelection(localPlayer);
   renderDraftOffer(localPlayer);
-  if (state.snapshot.match_state !== "drafting") {
+  if (!["clan_selection", "drafting"].includes(state.snapshot.match_state)) {
     renderIdentityPanel(elements.playerIdentity, localPlayer, "Joueur");
     renderIdentityPanel(elements.opponentIdentity, opponent, "Adversaire");
     renderZoneStatus(elements.playerStatus, localPlayer);
@@ -2179,6 +2282,12 @@ elements.joinButton.addEventListener("click", () => {
 elements.requestStateButton.addEventListener("click", () => sendMessage("request_state", {}));
 elements.confirmButton.addEventListener("click", () => sendMessage("confirm_selection", {}));
 elements.draftLockButton.addEventListener("click", () => sendMessage("confirm_selection", {}));
+elements.clanLockButton.addEventListener("click", () => {
+  if (state.interaction.selectedClanIds.length !== 3) {
+    return;
+  }
+  sendMessage("select_clans", { clan_ids: state.interaction.selectedClanIds });
+});
 elements.pingButton.addEventListener("click", () => sendMessage("ping", { nonce: crypto.randomUUID() }));
 elements.resetSelectionButton.addEventListener("click", () => {
   resetMatchInteraction();

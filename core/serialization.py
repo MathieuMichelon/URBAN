@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from core.models import Card, EffectCondition, EffectDefinition, OngoingPoison, RoundResult
+from core.models import Card, EffectCondition, EffectDefinition, OngoingPoison, OngoingRegeneration, RoundResult
 
 
 def serialize_card(card: Card) -> dict[str, object]:
@@ -51,6 +51,13 @@ def serialize_poison(poison: OngoingPoison | None) -> dict[str, int] | None:
         "amount": poison.amount,
         "minimum_hit_points": poison.minimum_hit_points,
     }
+
+
+def serialize_regeneration(regeneration: OngoingRegeneration | None) -> dict[str, int] | None:
+    """Convert a regeneration state into a serializable payload."""
+    if regeneration is None:
+        return None
+    return {"amount": regeneration.amount}
 
 
 def serialize_round_result(result: RoundResult) -> dict[str, object]:

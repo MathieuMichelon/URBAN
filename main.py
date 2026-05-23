@@ -10,7 +10,7 @@ def main() -> None:
     """Launch the Pygame prototype."""
     project_root = Path(__file__).resolve().parent
     window = GameWindow(
-        cards_path=project_root / "data" / "cards.json",
+        cards_path=project_root / "assets" / "data" / "urban2_personnages_base.json",
         ai_provider=HeuristicAIChoiceProvider(),
     )
     window.run()

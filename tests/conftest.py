@@ -12,9 +12,9 @@ from data.card_repository import load_cards
 
 @pytest.fixture()
 def sample_cards() -> list[Card]:
-    """Return the example cards from the repository."""
+    """Return the active Urban 2 roster used by the game."""
     project_root = Path(__file__).resolve().parents[1]
-    return load_cards(project_root / "data" / "cards.json")
+    return load_cards(project_root / "assets" / "data" / "urban2_personnages_base.json")
 
 
 @pytest.fixture()

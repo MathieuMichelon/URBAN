@@ -1,0 +1,1113 @@
+{
+  "metadata": {
+    "project": "Urban 2",
+    "version": "working_base_4_rounds",
+    "generated_at": "2026-05-23T14:57:32",
+    "rules": {
+      "rounds": 4,
+      "starting_hp": 16,
+      "starting_pills": 12,
+      "card_levels": [
+        1,
+        2,
+        3
+      ],
+      "poison_rule": "Actif jusqu'à la fin de la partie lorsqu'il passe ; non cumulable avec un autre poison.",
+      "regeneration_rule": "Active jusqu'à la fin de la partie lorsqu'elle passe ; non cumulable avec une autre régénération."
+    }
+  },
+  "clans": [
+    {
+      "name": "Solaïres",
+      "bonus": "+2 Puissance",
+      "gameplay": "Duel / pression frontale",
+      "description": "Culte solaire bling-bling, énergie photovoltaïque bricolée, arrogance divine.",
+      "palette": "Blanc, ivoire, or, métal brillant, motifs solaires",
+      "illustration_sheet": "lignée_de_chevaliers_solaires.png"
+    },
+    {
+      "name": "Corsaires du Port",
+      "bonus": "Victoire : Vol 1 pill",
+      "gameplay": "Tempo / pillage / bluff",
+      "description": "Pirates méditerranéens post-apo, contrebandiers, dockers, plongeurs et pilleurs de yachts.",
+      "palette": "Bleu marine, rouge rouille, cuir noir, métal usé, turquoise sale",
+      "illustration_sheet": "équipage_pirate_post_apocalyptique_steampunk.png"
+    },
+    {
+      "name": "Palmeros",
+      "bonus": "-2 dégâts adverses, min. 1",
+      "gameplay": "Défense / usure / pièges",
+      "description": "Retraités de luxe, ex-mafieux, anciennes stars et propriétaires de palaces fortifiés.",
+      "palette": "Violet fané, rose, vert palmier, blanc cassé, doré, léopard",
+      "illustration_sheet": "la_mafia_du_luxe_et_ses_alliés.png"
+    },
+    {
+      "name": "Égoutiers",
+      "bonus": "Victoire : Poison 2, min. 4",
+      "gameplay": "Poison / sabotage / contrôle",
+      "description": "Survivants des tunnels, égouts, parkings inondés et anciennes stations techniques.",
+      "palette": "Vert toxique, gris béton, noir humide, jaune lampe frontale, métal rouillé",
+      "illustration_sheet": "crew_de_l_apocalypse_chimique.png"
+    },
+    {
+      "name": "Jardiniers de Béton",
+      "bonus": "Victoire : Régénération 2",
+      "gameplay": "Endurance / régénération / croissance",
+      "description": "Survivalistes végétaux qui contrôlent serres, toits, potagers urbains et réserves d’eau.",
+      "palette": "Vert olive, cactus, terre cuite, beige, bois, métal récupéré, fleurs vives",
+      "illustration_sheet": "guerriers_urbains_et_nature_post_apocalyptiques.png"
+    }
+  ],
+  "characters": [
+    {
+      "id": "SOL_01",
+      "clan": "Solaïres",
+      "name": "Solario",
+      "level": 3,
+      "power": 7,
+      "direct_bonus_power": 2,
+      "effective_power_with_direct_bonus": 9,
+      "damage": 5,
+      "ability": "Victoire : -1 PV adv., min. 2",
+      "role": "Leader offensif",
+      "description": "Chef solaire charismatique en armure blanche et or, sceptre solaire, sourire arrogant.",
+      "illustration_sheet": "lignée_de_chevaliers_solaires.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 1,
+        "position": "R1C1",
+        "order": 1
+      },
+      "notes": "Recalibré pour bonus +2 Puissance"
+    },
+    {
+      "id": "SOL_02",
+      "clan": "Solaïres",
+      "name": "Mira Lux",
+      "level": 2,
+      "power": 6,
+      "direct_bonus_power": 2,
+      "effective_power_with_direct_bonus": 8,
+      "damage": 3,
+      "ability": "-2 puissance adv., min. 4",
+      "role": "Duel / contrôle",
+      "description": "Garde du corps silencieuse en armure de miroirs, bouclier réfléchissant.",
+      "illustration_sheet": "lignée_de_chevaliers_solaires.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 2,
+        "position": "R1C2",
+        "order": 2
+      },
+      "notes": "Recalibré pour bonus +2 Puissance"
+    },
+    {
+      "id": "SOL_03",
+      "clan": "Solaïres",
+      "name": "Padre Hélios",
+      "level": 2,
+      "power": 5,
+      "direct_bonus_power": 2,
+      "effective_power_with_direct_bonus": 7,
+      "damage": 3,
+      "ability": "Défaite : +2 PV",
+      "role": "Sacrifice / sustain",
+      "description": "Gourou de plage devenu prophète solaire, inquiétant, rituel et manipulateur.",
+      "illustration_sheet": "lignée_de_chevaliers_solaires.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 3,
+        "position": "R1C3",
+        "order": 3
+      },
+      "notes": "Recalibré pour bonus +2 Puissance"
+    },
+    {
+      "id": "SOL_04",
+      "clan": "Solaïres",
+      "name": "Naya Brûle-Ciel",
+      "level": 3,
+      "power": 6,
+      "direct_bonus_power": 2,
+      "effective_power_with_direct_bonus": 8,
+      "damage": 5,
+      "ability": "+2 dégâts",
+      "role": "Finisher",
+      "description": "Sniper solaire avec fusil bricolé autour d’une lentille de phare maritime.",
+      "illustration_sheet": "lignée_de_chevaliers_solaires.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 4,
+        "position": "R1C4",
+        "order": 4
+      },
+      "notes": "Recalibré pour bonus +2 Puissance"
+    },
+    {
+      "id": "SOL_05",
+      "clan": "Solaïres",
+      "name": "Corto Ray",
+      "level": 1,
+      "power": 5,
+      "direct_bonus_power": 2,
+      "effective_power_with_direct_bonus": 7,
+      "damage": 2,
+      "ability": "+6 attaque",
+      "role": "Petite pression",
+      "description": "Jeune skateur-duelliste solaire, frimeur, rapide et provocateur.",
+      "illustration_sheet": "lignée_de_chevaliers_solaires.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 5,
+        "position": "R1C5",
+        "order": 5
+      },
+      "notes": "Recalibré pour bonus +2 Puissance"
+    },
+    {
+      "id": "SOL_06",
+      "clan": "Solaïres",
+      "name": "Sœur Celsius",
+      "level": 2,
+      "power": 6,
+      "direct_bonus_power": 2,
+      "effective_power_with_direct_bonus": 8,
+      "damage": 3,
+      "ability": "Victoire : +2 PV",
+      "role": "Soin / tempo",
+      "description": "Infirmière mystique solaire, cautérise les plaies et transforme la douleur en énergie.",
+      "illustration_sheet": "lignée_de_chevaliers_solaires.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 1,
+        "position": "R2C1",
+        "order": 6
+      },
+      "notes": "Recalibré pour bonus +2 Puissance"
+    },
+    {
+      "id": "SOL_07",
+      "clan": "Solaïres",
+      "name": "Apollo Jack",
+      "level": 2,
+      "power": 5,
+      "direct_bonus_power": 2,
+      "effective_power_with_direct_bonus": 7,
+      "damage": 4,
+      "ability": "-8 attaque adv., min. 4",
+      "role": "Perturbation",
+      "description": "Ancien DJ de beach club devenu maître des ondes solaires et des basses aveuglantes.",
+      "illustration_sheet": "lignée_de_chevaliers_solaires.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 2,
+        "position": "R2C2",
+        "order": 7
+      },
+      "notes": "Recalibré pour bonus +2 Puissance"
+    },
+    {
+      "id": "SOL_08",
+      "clan": "Solaïres",
+      "name": "Icarette",
+      "level": 1,
+      "power": 6,
+      "direct_bonus_power": 2,
+      "effective_power_with_direct_bonus": 8,
+      "damage": 1,
+      "ability": "+2 dégâts",
+      "role": "Bluff / burst léger",
+      "description": "Acrobate des toits avec ailes solaires bricolées, spectaculaire et instable.",
+      "illustration_sheet": "lignée_de_chevaliers_solaires.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 3,
+        "position": "R2C3",
+        "order": 8
+      },
+      "notes": "Recalibré pour bonus +2 Puissance"
+    },
+    {
+      "id": "SOL_09",
+      "clan": "Solaïres",
+      "name": "Bronzo",
+      "level": 3,
+      "power": 6,
+      "direct_bonus_power": 2,
+      "effective_power_with_direct_bonus": 8,
+      "damage": 6,
+      "ability": "Défaite : -2 dégâts adv., min. 2",
+      "role": "Tank / gros impact",
+      "description": "Colosse bronzé, ancien videur, couvert d’huile solaire et de plaques réfléchissantes.",
+      "illustration_sheet": "lignée_de_chevaliers_solaires.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 4,
+        "position": "R2C4",
+        "order": 9
+      },
+      "notes": "Recalibré pour bonus +2 Puissance"
+    },
+    {
+      "id": "SOL_10",
+      "clan": "Solaïres",
+      "name": "Lumen Kid",
+      "level": 1,
+      "power": 4,
+      "direct_bonus_power": 2,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 2,
+      "ability": "Victoire : +1 pill",
+      "role": "Tactique / économie",
+      "description": "Enfant prodige qui fabrique des drones solaires avec des pièces de récupération.",
+      "illustration_sheet": "lignée_de_chevaliers_solaires.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 5,
+        "position": "R2C5",
+        "order": 10
+      },
+      "notes": "Recalibré pour bonus +2 Puissance"
+    },
+    {
+      "id": "COR_01",
+      "clan": "Corsaires du Port",
+      "name": "Capitaine Mora",
+      "level": 3,
+      "power": 7,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 7,
+      "damage": 5,
+      "ability": "-2 puissance adv., min. 4",
+      "role": "Leader / contrôle",
+      "description": "Ancien commandant de ferry devenu seigneur du port, manteau marine et vieux mégaphone.",
+      "illustration_sheet": "équipage_pirate_post_apocalyptique_steampunk.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 1,
+        "position": "R1C1",
+        "order": 1
+      },
+      "notes": ""
+    },
+    {
+      "id": "COR_02",
+      "clan": "Corsaires du Port",
+      "name": "Rafa l’Écumeur",
+      "level": 3,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 6,
+      "ability": "+2 dégâts",
+      "role": "Finisher brutal",
+      "description": "Raider charismatique, harpon lourd, cicatrice, regard noir, pilleur de convois côtiers.",
+      "illustration_sheet": "équipage_pirate_post_apocalyptique_steampunk.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 2,
+        "position": "R1C2",
+        "order": 2
+      },
+      "notes": ""
+    },
+    {
+      "id": "COR_03",
+      "clan": "Corsaires du Port",
+      "name": "Tino Container",
+      "level": 3,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 5,
+      "ability": "Défaite : -3 dégâts adv., min. 2",
+      "role": "Tank / brute",
+      "description": "Ancien docker massif, crochet de grue et chaîne d’amarrage.",
+      "illustration_sheet": "équipage_pirate_post_apocalyptique_steampunk.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 3,
+        "position": "R1C3",
+        "order": 3
+      },
+      "notes": ""
+    },
+    {
+      "id": "COR_04",
+      "clan": "Corsaires du Port",
+      "name": "Gavio",
+      "level": 1,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 2,
+      "ability": "Défaite : +1 pill",
+      "role": "Sacrifice / tempo",
+      "description": "Jeune contrebandier en scooter des mers, rapide, nerveux, lunettes cassées.",
+      "illustration_sheet": "équipage_pirate_post_apocalyptique_steampunk.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 4,
+        "position": "R1C4",
+        "order": 4
+      },
+      "notes": ""
+    },
+    {
+      "id": "COR_05",
+      "clan": "Corsaires du Port",
+      "name": "La Méduse",
+      "level": 2,
+      "power": 7,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 7,
+      "damage": 3,
+      "ability": "Stop pouvoir adv.",
+      "role": "Duel / neutralisation",
+      "description": "Plongeuse silencieuse, combinaison noire, masque fissuré, couteaux et filets.",
+      "illustration_sheet": "équipage_pirate_post_apocalyptique_steampunk.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 5,
+        "position": "R1C5",
+        "order": 5
+      },
+      "notes": ""
+    },
+    {
+      "id": "COR_06",
+      "clan": "Corsaires du Port",
+      "name": "Mako",
+      "level": 2,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 4,
+      "ability": "Victoire : -2 PV adv., min. 3",
+      "role": "Offensif",
+      "description": "Chasseur sous-marin sauvage, trophées de requin, fusil-harpon monstrueux.",
+      "illustration_sheet": "équipage_pirate_post_apocalyptique_steampunk.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 1,
+        "position": "R2C1",
+        "order": 6
+      },
+      "notes": ""
+    },
+    {
+      "id": "COR_07",
+      "clan": "Corsaires du Port",
+      "name": "Nina Balise",
+      "level": 2,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 3,
+      "ability": "-8 attaque adv., min. 4",
+      "role": "Contrôle attaque",
+      "description": "Technicienne maritime, brouilleurs, vieux radars et drones-bouées.",
+      "illustration_sheet": "équipage_pirate_post_apocalyptique_steampunk.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 2,
+        "position": "R2C2",
+        "order": 7
+      },
+      "notes": ""
+    },
+    {
+      "id": "COR_08",
+      "clan": "Corsaires du Port",
+      "name": "Jo le Chalut",
+      "level": 2,
+      "power": 5,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 5,
+      "damage": 4,
+      "ability": "Défaite : +2 pills",
+      "role": "Fourbe / économie",
+      "description": "Vieux pêcheur trafiquant, filet rempli de pièges et couteau toujours caché.",
+      "illustration_sheet": "équipage_pirate_post_apocalyptique_steampunk.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 3,
+        "position": "R2C3",
+        "order": 8
+      },
+      "notes": ""
+    },
+    {
+      "id": "COR_09",
+      "clan": "Corsaires du Port",
+      "name": "Sierra Rouge",
+      "level": 1,
+      "power": 5,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 5,
+      "damage": 3,
+      "ability": "+2 dégâts",
+      "role": "Petite menace",
+      "description": "Canonnier du clan, vieux canon de yacht modifié, lunettes de tir, bras mécanique.",
+      "illustration_sheet": "équipage_pirate_post_apocalyptique_steampunk.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 4,
+        "position": "R2C4",
+        "order": 9
+      },
+      "notes": ""
+    },
+    {
+      "id": "COR_10",
+      "clan": "Corsaires du Port",
+      "name": "P’tit Kraken",
+      "level": 1,
+      "power": 5,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 5,
+      "damage": 2,
+      "ability": "Victoire : +1 pill",
+      "role": "Tactique / vol",
+      "description": "Enfant des docks, voleur de containers, gadgets crabes et poulpes mécaniques.",
+      "illustration_sheet": "équipage_pirate_post_apocalyptique_steampunk.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 5,
+        "position": "R2C5",
+        "order": 10
+      },
+      "notes": ""
+    },
+    {
+      "id": "PAL_01",
+      "clan": "Palmeros",
+      "name": "Mamie Palma",
+      "level": 3,
+      "power": 7,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 7,
+      "damage": 4,
+      "ability": "Défaite : -2 PV adv., min. 2",
+      "role": "Leader / punition",
+      "description": "Matriarche élégante, lunettes violettes, sac blindé, canne électrifiée.",
+      "illustration_sheet": "la_mafia_du_luxe_et_ses_alliés.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 1,
+        "position": "R1C1",
+        "order": 1
+      },
+      "notes": ""
+    },
+    {
+      "id": "PAL_02",
+      "clan": "Palmeros",
+      "name": "Gino Transat",
+      "level": 3,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 6,
+      "ability": "Victoire : +2 PV",
+      "role": "Tank offensif",
+      "description": "Ancien parrain de plage, peignoir, cigare, chaînes en or, calme menaçant.",
+      "illustration_sheet": "la_mafia_du_luxe_et_ses_alliés.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 2,
+        "position": "R1C2",
+        "order": 2
+      },
+      "notes": ""
+    },
+    {
+      "id": "PAL_03",
+      "clan": "Palmeros",
+      "name": "Suzette 357",
+      "level": 3,
+      "power": 7,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 7,
+      "damage": 5,
+      "ability": "Stop pouvoir adv.",
+      "role": "Tir précis",
+      "description": "Ancienne championne de tir, tailleur rose, revolver caché dans son panier.",
+      "illustration_sheet": "la_mafia_du_luxe_et_ses_alliés.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 3,
+        "position": "R1C3",
+        "order": 3
+      },
+      "notes": ""
+    },
+    {
+      "id": "PAL_04",
+      "clan": "Palmeros",
+      "name": "Jean-Pool",
+      "level": 2,
+      "power": 7,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 7,
+      "damage": 2,
+      "ability": "-8 attaque adv., min. 4",
+      "role": "Défense / contrôle",
+      "description": "Ancien maître-nageur devenu chef de sécurité des piscines fortifiées.",
+      "illustration_sheet": "la_mafia_du_luxe_et_ses_alliés.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 4,
+        "position": "R1C4",
+        "order": 4
+      },
+      "notes": ""
+    },
+    {
+      "id": "PAL_05",
+      "clan": "Palmeros",
+      "name": "Dona Rita",
+      "level": 2,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 4,
+      "ability": "Victoire : Poison 1, min. 6",
+      "role": "Poison léger",
+      "description": "Ancienne propriétaire d’hôtel de luxe, éventail tranchant et parfum toxique.",
+      "illustration_sheet": "la_mafia_du_luxe_et_ses_alliés.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 5,
+        "position": "R1C5",
+        "order": 5
+      },
+      "notes": ""
+    },
+    {
+      "id": "PAL_06",
+      "clan": "Palmeros",
+      "name": "Bichon",
+      "level": 1,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 1,
+      "ability": "Victoire : Poison 1, min. 8",
+      "role": "Mascotte pénible",
+      "description": "Petit chien de luxe dressé comme une arme de guerre, collier doré et morsure sale.",
+      "illustration_sheet": "la_mafia_du_luxe_et_ses_alliés.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 1,
+        "position": "R2C1",
+        "order": 6
+      },
+      "notes": ""
+    },
+    {
+      "id": "PAL_07",
+      "clan": "Palmeros",
+      "name": "Marcel Jackpot",
+      "level": 2,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 3,
+      "ability": "Victoire : +1 pill",
+      "role": "Tempo / bluff",
+      "description": "Ancien croupier de casino, costume blanc, gants noirs, jetons tranchants.",
+      "illustration_sheet": "la_mafia_du_luxe_et_ses_alliés.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 2,
+        "position": "R2C2",
+        "order": 7
+      },
+      "notes": ""
+    },
+    {
+      "id": "PAL_08",
+      "clan": "Palmeros",
+      "name": "Tata Brigitte",
+      "level": 1,
+      "power": 5,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 5,
+      "damage": 2,
+      "ability": "Stop bonus adv.",
+      "role": "Utilitaire",
+      "description": "Commère de résidence, bigoudis, jumelles, talkie-walkie et pièges de balcon.",
+      "illustration_sheet": "la_mafia_du_luxe_et_ses_alliés.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 3,
+        "position": "R2C3",
+        "order": 8
+      },
+      "notes": ""
+    },
+    {
+      "id": "PAL_09",
+      "clan": "Palmeros",
+      "name": "Oscar Riviera",
+      "level": 1,
+      "power": 5,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 5,
+      "damage": 3,
+      "ability": "-2 puissance adv., min. 5",
+      "role": "Petite pression",
+      "description": "Ancienne star de cinéma oubliée, projecteur aveuglant et robe de chambre en soie.",
+      "illustration_sheet": "la_mafia_du_luxe_et_ses_alliés.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 4,
+        "position": "R2C4",
+        "order": 9
+      },
+      "notes": ""
+    },
+    {
+      "id": "PAL_10",
+      "clan": "Palmeros",
+      "name": "Madame Solange",
+      "level": 2,
+      "power": 5,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 5,
+      "damage": 4,
+      "ability": "Victoire : -2 PV adv., min. 3",
+      "role": "Drain / menace",
+      "description": "Veuve richissime empoisonneuse, cocktail glacé, perles et fioles cachées.",
+      "illustration_sheet": "la_mafia_du_luxe_et_ses_alliés.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 5,
+        "position": "R2C5",
+        "order": 10
+      },
+      "notes": ""
+    },
+    {
+      "id": "EGO_01",
+      "clan": "Égoutiers",
+      "name": "Mère Canal",
+      "level": 3,
+      "power": 7,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 7,
+      "damage": 4,
+      "ability": "-2 puissance adv., min. 4",
+      "role": "Leader / contrôle",
+      "description": "Matriarche voûtée, imperméable noir, voile plastique, lunettes rondes, autorité monstrueuse.",
+      "illustration_sheet": "crew_de_l_apocalypse_chimique.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 1,
+        "position": "R1C1",
+        "order": 1
+      },
+      "notes": ""
+    },
+    {
+      "id": "EGO_02",
+      "clan": "Égoutiers",
+      "name": "Ratiche",
+      "level": 1,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 1,
+      "ability": "Victoire : +1 pill",
+      "role": "Petite carte rentable",
+      "description": "Petit mutant nerveux, bandages, meute de rats, coupe les câbles et vole les objets.",
+      "illustration_sheet": "crew_de_l_apocalypse_chimique.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 2,
+        "position": "R1C2",
+        "order": 2
+      },
+      "notes": ""
+    },
+    {
+      "id": "EGO_03",
+      "clan": "Égoutiers",
+      "name": "Nox",
+      "level": 3,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 5,
+      "ability": "Victoire : -2 PV adv., min. 2",
+      "role": "Toxique offensif",
+      "description": "Ancien technicien d’assainissement devenu chimiste, bonbonnes toxiques dans le dos.",
+      "illustration_sheet": "crew_de_l_apocalypse_chimique.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 3,
+        "position": "R1C3",
+        "order": 3
+      },
+      "notes": ""
+    },
+    {
+      "id": "EGO_04",
+      "clan": "Égoutiers",
+      "name": "Boue-Boue",
+      "level": 3,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 5,
+      "ability": "Défaite : -3 dégâts adv., min. 2",
+      "role": "Tank / mur",
+      "description": "Colosse difforme des canalisations, couvert de vase, tuyaux et plaques rouillées.",
+      "illustration_sheet": "crew_de_l_apocalypse_chimique.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 4,
+        "position": "R1C4",
+        "order": 4
+      },
+      "notes": ""
+    },
+    {
+      "id": "EGO_05",
+      "clan": "Égoutiers",
+      "name": "Luma",
+      "level": 1,
+      "power": 5,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 5,
+      "damage": 2,
+      "ability": "Défaite : +1 pill",
+      "role": "Sacrifice / esquive",
+      "description": "Enfant des souterrains, lampe frontale trop grande et cape faite de bâches.",
+      "illustration_sheet": "crew_de_l_apocalypse_chimique.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 5,
+        "position": "R1C5",
+        "order": 5
+      },
+      "notes": ""
+    },
+    {
+      "id": "EGO_06",
+      "clan": "Égoutiers",
+      "name": "Docteur Moisi",
+      "level": 2,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 3,
+      "ability": "Victoire : +2 PV",
+      "role": "Soin sale",
+      "description": "Médecin de fortune, blouse tachée, masque noirci, seringues et outils rouillés.",
+      "illustration_sheet": "crew_de_l_apocalypse_chimique.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 1,
+        "position": "R2C1",
+        "order": 6
+      },
+      "notes": ""
+    },
+    {
+      "id": "EGO_07",
+      "clan": "Égoutiers",
+      "name": "Gluon",
+      "level": 2,
+      "power": 7,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 7,
+      "damage": 2,
+      "ability": "-8 attaque adv., min. 4",
+      "role": "Poseur de poison",
+      "description": "Créature semi-mutante des eaux stagnantes, peau luisante, bras trop longs, yeux jaunes.",
+      "illustration_sheet": "crew_de_l_apocalypse_chimique.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 2,
+        "position": "R2C2",
+        "order": 7
+      },
+      "notes": ""
+    },
+    {
+      "id": "EGO_08",
+      "clan": "Égoutiers",
+      "name": "Madame Fuite",
+      "level": 2,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 3,
+      "ability": "Victoire : -1 pill adv., min. 1",
+      "role": "Sabotage",
+      "description": "Ancienne technicienne du réseau, contrôle vannes, pressions et inondations.",
+      "illustration_sheet": "crew_de_l_apocalypse_chimique.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 3,
+        "position": "R2C3",
+        "order": 8
+      },
+      "notes": ""
+    },
+    {
+      "id": "EGO_09",
+      "clan": "Égoutiers",
+      "name": "Le Fossoyeur",
+      "level": 2,
+      "power": 5,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 5,
+      "damage": 4,
+      "ability": "Stop pouvoir adv.",
+      "role": "Anti-pouvoir",
+      "description": "Gardien des tunnels condamnés, masque de soudeur, pelle, chaînes et long manteau.",
+      "illustration_sheet": "crew_de_l_apocalypse_chimique.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 4,
+        "position": "R2C4",
+        "order": 9
+      },
+      "notes": ""
+    },
+    {
+      "id": "EGO_10",
+      "clan": "Égoutiers",
+      "name": "Triplure",
+      "level": 1,
+      "power": 5,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 5,
+      "damage": 2,
+      "ability": "Stop bonus adv.",
+      "role": "Utilitaire malsain",
+      "description": "Trois petits êtres cousus dans un même manteau, outils, couteaux et lampes partout.",
+      "illustration_sheet": "crew_de_l_apocalypse_chimique.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 5,
+        "position": "R2C5",
+        "order": 10
+      },
+      "notes": ""
+    },
+    {
+      "id": "JAR_01",
+      "clan": "Jardiniers de Béton",
+      "name": "Oliva",
+      "level": 3,
+      "power": 7,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 7,
+      "damage": 5,
+      "ability": "Stop bonus adv.",
+      "role": "Leader / fiable",
+      "description": "Guerrière calme, armure de bois d’olivier, feuilles épaisses et métal rouillé.",
+      "illustration_sheet": "guerriers_urbains_et_nature_post_apocalyptiques.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 1,
+        "position": "R1C1",
+        "order": 1
+      },
+      "notes": ""
+    },
+    {
+      "id": "JAR_02",
+      "clan": "Jardiniers de Béton",
+      "name": "Marius Compost",
+      "level": 1,
+      "power": 5,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 5,
+      "damage": 2,
+      "ability": "-2 puissance adv., min. 4",
+      "role": "Contrôle léger",
+      "description": "Vieux survivaliste secoué, salopette sale et sac de compost toxique.",
+      "illustration_sheet": "guerriers_urbains_et_nature_post_apocalyptiques.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 2,
+        "position": "R1C2",
+        "order": 2
+      },
+      "notes": ""
+    },
+    {
+      "id": "JAR_03",
+      "clan": "Jardiniers de Béton",
+      "name": "Figa",
+      "level": 2,
+      "power": 7,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 7,
+      "damage": 3,
+      "ability": "Stop pouvoir adv.",
+      "role": "Assassine / duel",
+      "description": "Assassine camouflée dans les figuiers et serres, cape de feuilles, deux serpes.",
+      "illustration_sheet": "guerriers_urbains_et_nature_post_apocalyptiques.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 3,
+        "position": "R1C3",
+        "order": 3
+      },
+      "notes": ""
+    },
+    {
+      "id": "JAR_04",
+      "clan": "Jardiniers de Béton",
+      "name": "Abeille",
+      "level": 3,
+      "power": 7,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 7,
+      "damage": 4,
+      "ability": "Victoire : Poison 1, min. 6",
+      "role": "Pression durée",
+      "description": "Apicultrice de guerre, combinaison jaune-verte, fumoir modifié, essaim agressif.",
+      "illustration_sheet": "guerriers_urbains_et_nature_post_apocalyptiques.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 4,
+        "position": "R1C4",
+        "order": 4
+      },
+      "notes": ""
+    },
+    {
+      "id": "JAR_05",
+      "clan": "Jardiniers de Béton",
+      "name": "Tomate-Killer",
+      "level": 1,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 2,
+      "ability": "Victoire : -1 PV adv., min. 4",
+      "role": "Petite agression",
+      "description": "Gamin des potagers urbains, lance-graines bricolé et tomates acides.",
+      "illustration_sheet": "guerriers_urbains_et_nature_post_apocalyptiques.png",
+      "sheet_position": {
+        "row": 1,
+        "column": 5,
+        "position": "R1C5",
+        "order": 5
+      },
+      "notes": ""
+    },
+    {
+      "id": "JAR_06",
+      "clan": "Jardiniers de Béton",
+      "name": "Cactus Joe",
+      "level": 1,
+      "power": 5,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 5,
+      "damage": 3,
+      "ability": "Défaite : -2 dégâts adv., min. 1",
+      "role": "Défense",
+      "description": "Gardien des serres sèches, poncho vert, masse couverte de cactus et aiguilles.",
+      "illustration_sheet": "guerriers_urbains_et_nature_post_apocalyptiques.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 1,
+        "position": "R2C1",
+        "order": 6
+      },
+      "notes": ""
+    },
+    {
+      "id": "JAR_07",
+      "clan": "Jardiniers de Béton",
+      "name": "Rose-Marie",
+      "level": 2,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 3,
+      "ability": "Victoire : +2 PV",
+      "role": "Sustain",
+      "description": "Herboriste inquiétante, panier de plantes, sécateur doré, douceur toxique.",
+      "illustration_sheet": "guerriers_urbains_et_nature_post_apocalyptiques.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 2,
+        "position": "R2C2",
+        "order": 7
+      },
+      "notes": ""
+    },
+    {
+      "id": "JAR_08",
+      "clan": "Jardiniers de Béton",
+      "name": "Bambou",
+      "level": 2,
+      "power": 5,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 5,
+      "damage": 4,
+      "ability": "-8 attaque adv., min. 4",
+      "role": "Agilité / attaque",
+      "description": "Ancien grimpeur urbain, perches, cordes, échafaudages et armure de bambou.",
+      "illustration_sheet": "guerriers_urbains_et_nature_post_apocalyptiques.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 3,
+        "position": "R2C3",
+        "order": 8
+      },
+      "notes": ""
+    },
+    {
+      "id": "JAR_09",
+      "clan": "Jardiniers de Béton",
+      "name": "Gaïa Mécano",
+      "level": 2,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 4,
+      "ability": "Victoire : +1 pill",
+      "role": "Tempo / tech",
+      "description": "Ingénieure des serres automatisées, bras mécanique, arrosoir sous pression, tuyaux.",
+      "illustration_sheet": "guerriers_urbains_et_nature_post_apocalyptiques.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 4,
+        "position": "R2C4",
+        "order": 9
+      },
+      "notes": ""
+    },
+    {
+      "id": "JAR_10",
+      "clan": "Jardiniers de Béton",
+      "name": "Mandragor",
+      "level": 3,
+      "power": 6,
+      "direct_bonus_power": 0,
+      "effective_power_with_direct_bonus": 6,
+      "damage": 6,
+      "ability": "Défaite : -3 dégâts adv., min. 2",
+      "role": "Tank / régénération",
+      "description": "Mutant végétal fusionné avec des racines, peau écorcée, bras comme des branches.",
+      "illustration_sheet": "guerriers_urbains_et_nature_post_apocalyptiques.png",
+      "sheet_position": {
+        "row": 2,
+        "column": 5,
+        "position": "R2C5",
+        "order": 10
+      },
+      "notes": ""
+    }
+  ]
+}

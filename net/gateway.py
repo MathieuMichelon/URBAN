@@ -17,6 +17,7 @@ from net.protocol import (
     ClientRequestRematchMessage,
     ClientRequestStateMessage,
     ClientSelectCardMessage,
+    ClientSelectClansMessage,
     ClientSetOverloadMessage,
     ClientSetPillsMessage,
     ErrorPayload,
@@ -177,6 +178,9 @@ class WebSocketGateway:
         if isinstance(message, ClientJoinRoomMessage):
             await self._handle_join_room(connection, message)
             return
+        if isinstance(message, ClientSelectClansMessage):
+            await self._handle_select_clans(connection, message)
+            return
         if isinstance(message, ClientSelectCardMessage):
             await self._handle_select_card(connection, message)
             return
@@ -293,6 +297,12 @@ class WebSocketGateway:
             return
 
         await self._send_state_snapshot(connection, await self._room_manager.snapshot_for(room.room_id, player_id=player.player_id))
+
+    async def _handle_select_clans(self, connection: ClientConnection, message: ClientSelectClansMessage) -> None:
+        """Authoritatively lock the caller clan selection."""
+        room_id, player_id = self._require_bound_player(connection, message.room_id, message.player_id)
+        room = await self._room_manager.select_clans(room_id, player_id=player_id, clan_ids=message.payload.clan_ids)
+        await self._broadcast_state_snapshots(room.room_id, player_ids=sorted(room.players))
 
     async def _handle_select_card(self, connection: ClientConnection, message: ClientSelectCardMessage) -> None:
         """Authoritatively update the caller draft card."""
