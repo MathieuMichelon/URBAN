@@ -1297,6 +1297,8 @@ function createMatchCardNode(card, options = {}) {
   const cardNode = document.createElement("article");
   cardNode.className = [
     "match-card",
+    "card-postapo-frame",
+    bonusActive ? "bonus-active" : "bonus-inactive",
     localPlayer ? "local-card" : "opponent-card",
     `clan-${slugifyClan(card.clan)}`,
     selected ? "selected" : "",
@@ -1363,7 +1365,7 @@ function createSelectionDetailNode(card) {
   const bonusActive = card.bonus_active ?? false;
   const stateMeta = cardStateLabel({ selected: true, bonusActive });
   const detail = document.createElement("div");
-  detail.className = `selection-card-detail clan-${slugifyClan(card.clan)}`;
+  detail.className = `selection-card-detail card-postapo-frame ${bonusActive ? "bonus-active" : "bonus-inactive"} clan-${slugifyClan(card.clan)}`;
 
   const content = document.createElement("div");
   content.className = "selection-card-content";
@@ -1529,7 +1531,13 @@ function buildBattleOutcomeMessage(roundResult, player1Card, player2Card) {
 function createBattleCard(card, options) {
   const { playerLabel, playerId, pills, attack, overload, outcomeClass, lifeSwing = 0 } = options;
   const cardNode = document.createElement("article");
-  cardNode.className = ["battle-card", outcomeClass, `clan-${slugifyClan(card.clan)}`].filter(Boolean).join(" ");
+  cardNode.className = [
+    "battle-card",
+    "card-postapo-frame",
+    card.bonus_active ? "bonus-active" : "bonus-inactive",
+    outcomeClass,
+    `clan-${slugifyClan(card.clan)}`,
+  ].filter(Boolean).join(" ");
 
   const heading = document.createElement("div");
   heading.className = "battle-card-heading";
@@ -2253,7 +2261,15 @@ function createCardNode(card, options = {}) {
     bonusActive = card.bonus_active ?? false,
   } = options;
   const cardNode = document.createElement("article");
-  cardNode.className = `card ${selected ? "selected" : ""} ${played ? "played" : ""} ${compact ? "compact-card" : ""}`.trim();
+  cardNode.className = [
+    "card",
+    "card-postapo-frame",
+    bonusActive ? "bonus-active" : "bonus-inactive",
+    selected ? "selected" : "",
+    played ? "played" : "",
+    buttonLabel && buttonDisabled ? "disabled" : "",
+    compact ? "compact-card" : "",
+  ].filter(Boolean).join(" ");
 
   const media = document.createElement("div");
   media.className = "card-media";

@@ -3383,6 +3383,423 @@ button:disabled {
   filter: grayscale(0.55) brightness(0.78);
 }
 
+.card-postapo-frame {
+  --card-width: clamp(230px, 18vw, 320px);
+  --card-height: calc(var(--card-width) * 1.5);
+  --card-padding: clamp(18px, 1.55vw, 26px);
+  --card-media-top: 8.5%;
+  --card-media-height: 42%;
+  --card-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.86);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-width: min(100%, var(--card-width));
+  min-height: var(--card-height);
+  aspect-ratio: 2 / 3;
+  padding: var(--card-padding);
+  border: 0;
+  border-radius: 18px;
+  background-color: rgba(5, 10, 18, 0.96);
+  background-image: url("/assets/ui/card_frame_postapo.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  color: #f6f8ff;
+  box-shadow:
+    0 18px 38px rgba(0, 0, 0, 0.38),
+    0 0 0 1px rgba(79, 209, 255, 0.1);
+  transition: transform 160ms ease, filter 160ms ease, box-shadow 160ms ease;
+}
+
+.card-postapo-frame::before {
+  content: "";
+  position: absolute;
+  inset: 6.2% 5.8%;
+  z-index: -1;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(247, 232, 205, 0.1), transparent 35%),
+    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.08), transparent 28%);
+  pointer-events: none;
+}
+
+.card-postapo-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0;
+  background:
+    linear-gradient(135deg, rgba(85, 223, 255, 0.16), transparent 28%),
+    radial-gradient(circle at 82% 8%, rgba(255, 212, 93, 0.16), transparent 8rem);
+  transition: opacity 160ms ease;
+}
+
+.card-postapo-frame:hover {
+  transform: translateY(-5px);
+  box-shadow:
+    0 26px 56px rgba(0, 0, 0, 0.46),
+    0 0 28px rgba(85, 223, 255, 0.22),
+    0 0 0 1px rgba(255, 212, 93, 0.16);
+}
+
+.card-postapo-frame:hover::after,
+.card-postapo-frame.selected::after {
+  opacity: 1;
+}
+
+.card-postapo-frame.selected {
+  transform: translateY(-4px);
+  filter: saturate(1.1) brightness(1.04);
+  box-shadow:
+    0 0 0 2px rgba(85, 223, 255, 0.42),
+    0 0 36px rgba(255, 212, 93, 0.28),
+    0 24px 54px rgba(0, 0, 0, 0.5);
+}
+
+.card-postapo-frame.disabled,
+.card-postapo-frame.played {
+  opacity: 0.62;
+  filter: grayscale(0.65) saturate(0.6);
+}
+
+.card-postapo-frame.bonus-active .card-bonus.active,
+.card-postapo-frame.bonus-active .bonus-on-stat,
+.card-postapo-frame.bonus-active .match-card-section.bonus-active,
+.card-postapo-frame.bonus-active .selection-card-section.bonus-active {
+  box-shadow: 0 0 18px rgba(143, 240, 191, 0.16);
+}
+
+.card-postapo-frame.bonus-inactive .card-bonus.inactive,
+.card-postapo-frame.bonus-inactive .bonus-off-stat,
+.card-postapo-frame.bonus-inactive .match-card-section.bonus-inactive,
+.card-postapo-frame.bonus-inactive .selection-card-section.bonus-inactive {
+  filter: saturate(0.75);
+  opacity: 0.86;
+}
+
+.card.card-postapo-frame,
+.match-card.card-postapo-frame {
+  grid-template-columns: 1fr;
+  grid-template-rows: 43% auto auto minmax(0, 1fr);
+  gap: clamp(6px, 0.65vw, 10px);
+  align-content: start;
+  padding: clamp(20px, 1.55vw, 28px) clamp(17px, 1.35vw, 24px) clamp(24px, 1.8vw, 32px);
+  background-image: url("/assets/ui/card_frame_postapo.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.card.card-postapo-frame {
+  min-width: min(100%, 250px);
+}
+
+.card.compact-card.card-postapo-frame {
+  --card-width: 230px;
+  --card-height: 345px;
+}
+
+.selection-card-detail.card-postapo-frame,
+.battle-card.card-postapo-frame {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 43% auto auto minmax(0, 1fr);
+  gap: clamp(7px, 0.8vw, 11px);
+  padding: clamp(22px, 1.8vw, 30px) clamp(18px, 1.45vw, 26px) clamp(26px, 2vw, 34px);
+  max-width: 380px;
+  margin-inline: auto;
+  background-image: url("/assets/ui/card_frame_postapo.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.selection-card-detail.card-postapo-frame {
+  min-height: min(760px, 78vh);
+}
+
+.battle-card.card-postapo-frame {
+  min-height: clamp(560px, 58vw, 700px);
+}
+
+.card-postapo-frame .card-side-badge {
+  top: 5.8%;
+  right: 7.4%;
+  z-index: 9;
+  max-width: 18%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-color: rgba(85, 223, 255, 0.5);
+  background: rgba(3, 11, 18, 0.9);
+  box-shadow: 0 0 16px rgba(85, 223, 255, 0.16);
+}
+
+.card-postapo-frame .card-media,
+.card-postapo-frame .match-card-media,
+.card-postapo-frame .selection-card-media,
+.card-postapo-frame .battle-card-media {
+  position: relative;
+  z-index: 1;
+  align-self: stretch;
+  min-height: 0;
+  border-radius: 13px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255, 242, 222, 0.22), transparent 48%),
+    #efe5d5;
+}
+
+.card-postapo-frame .card-media img,
+.card-postapo-frame .match-card-media img,
+.card-postapo-frame .selection-card-media img,
+.card-postapo-frame .battle-card-media img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  object-fit: cover;
+  object-position: center 18%;
+  transform: scale(1.12);
+  border: 0;
+  border-radius: 0;
+  background: #efe5d5;
+  box-shadow: none;
+}
+
+.card-postapo-frame .card-bonus-state,
+.card-postapo-frame .match-card-badge,
+.card-postapo-frame .selection-card-badge {
+  left: 8px;
+  bottom: 8px;
+  z-index: 2;
+  background: rgba(5, 11, 20, 0.84);
+  text-shadow: var(--card-text-shadow);
+}
+
+.card-postapo-frame .card-bonus-state.active {
+  color: #8ff0bf;
+}
+
+.card-postapo-frame .card-bonus-state.inactive {
+  color: #ffbd9d;
+}
+
+.card.card-postapo-frame .card-title-row {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-radius: 11px;
+  background: rgba(5, 13, 22, 0.78);
+  text-shadow: var(--card-text-shadow);
+}
+
+.card.card-postapo-frame .card-title-stack {
+  gap: 4px;
+}
+
+.card.card-postapo-frame .card-name {
+  color: #fbfdff;
+  font-size: clamp(0.98rem, 1.15vw, 1.32rem);
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow: var(--card-text-shadow);
+}
+
+.card.card-postapo-frame .card-stars {
+  color: #ffd45d;
+  font-size: clamp(1rem, 1.2vw, 1.35rem);
+  text-shadow: 0 0 12px rgba(255, 212, 93, 0.45), var(--card-text-shadow);
+}
+
+.card-postapo-frame .match-card-content,
+.card-postapo-frame .selection-card-content {
+  display: contents;
+}
+
+.card-postapo-frame .match-card-header,
+.card-postapo-frame .selection-card-header,
+.card-postapo-frame .battle-card-heading {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-radius: 11px;
+  background: rgba(5, 13, 22, 0.78);
+  text-shadow: var(--card-text-shadow);
+}
+
+.card-postapo-frame .battle-card-heading {
+  grid-template-columns: 1fr;
+  min-height: 68px;
+}
+
+.card-postapo-frame .battle-card-heading .clan-badge {
+  width: fit-content;
+}
+
+.card-postapo-frame .match-card-name,
+.card-postapo-frame .selection-card-name,
+.card-postapo-frame .battle-card-heading h3 {
+  margin: 0;
+  color: #fbfdff;
+  font-size: clamp(0.98rem, 1.15vw, 1.32rem);
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: -0.035em;
+  text-shadow: var(--card-text-shadow);
+}
+
+.card-postapo-frame .match-card-clan-row,
+.card-postapo-frame .selection-card-clan-row {
+  margin-top: 4px;
+}
+
+.card-postapo-frame .match-card-stars-wrap,
+.card-postapo-frame .selection-card-stars-wrap {
+  min-width: 62px;
+}
+
+.card-postapo-frame .match-card-stars,
+.card-postapo-frame .selection-card-stars {
+  color: #ffd45d;
+  font-size: clamp(1rem, 1.2vw, 1.35rem);
+  letter-spacing: 0.03em;
+  text-shadow: 0 0 12px rgba(255, 212, 93, 0.45), var(--card-text-shadow);
+}
+
+.card-postapo-frame .match-card-stars-label,
+.card-postapo-frame .selection-card-stars-label {
+  color: #bac5da;
+  font-size: 0.56rem;
+}
+
+.card.card-postapo-frame .card-stat-row,
+.card-postapo-frame .match-card-stats,
+.card-postapo-frame .selection-card-stats,
+.card-postapo-frame .battle-card-stats {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.card-postapo-frame .card-stat-chip,
+.card-postapo-frame .scan-stat-chip,
+.card-postapo-frame .battle-stat {
+  min-height: 58px;
+  padding: 9px 10px;
+  border-radius: 12px;
+  background: rgba(4, 14, 24, 0.86);
+  border-color: rgba(85, 223, 255, 0.36);
+  text-shadow: var(--card-text-shadow);
+}
+
+.card-postapo-frame .card-stat-chip:nth-child(2),
+.card-postapo-frame .scan-stat-chip.damage,
+.card-postapo-frame .battle-stat:nth-child(2) {
+  border-color: rgba(255, 177, 64, 0.4);
+}
+
+.card-postapo-frame .card-stat-value,
+.card-postapo-frame .scan-stat-value,
+.card-postapo-frame .battle-stat strong {
+  color: #8fc0ff;
+  font-size: clamp(1.28rem, 1.65vw, 1.72rem);
+}
+
+.card-postapo-frame .card-stat-chip:nth-child(2) .card-stat-value,
+.card-postapo-frame .scan-stat-chip.damage .scan-stat-value,
+.card-postapo-frame .battle-stat:nth-child(2) strong {
+  color: #ffd45d;
+}
+
+.card.card-postapo-frame .card-details,
+.card-postapo-frame .match-card-copy,
+.card-postapo-frame .selection-card-copy,
+.card-postapo-frame .battle-card-text {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 7px;
+}
+
+.card-postapo-frame .card-detail-row {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(4, 11, 20, 0.82);
+  border: 1px solid rgba(143, 169, 221, 0.16);
+  text-shadow: var(--card-text-shadow);
+}
+
+.card-postapo-frame .card-detail-label {
+  color: #98a8c4;
+}
+
+.card-postapo-frame .card-detail-value {
+  color: #f3f7ff;
+  font-size: clamp(0.78rem, 0.88vw, 0.92rem);
+}
+
+.card-postapo-frame .card-bonus.active,
+.card-postapo-frame .bonus-on-stat {
+  background: rgba(7, 47, 30, 0.86);
+  border-color: rgba(143, 240, 191, 0.4);
+}
+
+.card-postapo-frame .card-bonus.inactive,
+.card-postapo-frame .bonus-off-stat {
+  background: rgba(28, 33, 36, 0.82);
+}
+
+.card-postapo-frame .match-card-footer,
+.card-postapo-frame .card-footer-row,
+.card-postapo-frame .selection-card-footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: end;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.card.card-postapo-frame .card-action-button {
+  position: relative;
+  z-index: 1;
+  min-height: 38px;
+  margin-top: 0;
+  border-radius: 12px;
+}
+
+.card-postapo-frame .badge,
+.card-postapo-frame .clan-badge {
+  text-shadow: var(--card-text-shadow);
+  background: rgba(5, 11, 20, 0.78);
+}
+
+.battle-card.card-postapo-frame .battle-stat {
+  min-height: 54px;
+}
+
+.battle-card.card-postapo-frame .battle-card-stats {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.battle-card.card-postapo-frame .battle-card-text {
+  align-content: start;
+}
+
 .match-end-panel {
   border-color: rgba(255, 212, 93, 0.22);
   background:
