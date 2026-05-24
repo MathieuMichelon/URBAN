@@ -577,6 +577,300 @@ button:disabled {
   align-items: start;
 }
 
+.clan-selection-panel {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(16px, 2vw, 28px);
+  border-color: rgba(255, 212, 93, 0.22);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255, 212, 93, 0.13), transparent 24rem),
+    radial-gradient(circle at 88% 12%, rgba(85, 223, 255, 0.12), transparent 26rem),
+    radial-gradient(circle at 50% 100%, rgba(143, 240, 191, 0.1), transparent 28rem),
+    linear-gradient(180deg, rgba(13, 21, 38, 0.92), rgba(5, 9, 18, 0.96));
+}
+
+.clan-selection-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg, transparent 0 18%, rgba(255, 255, 255, 0.055) 19%, transparent 20% 52%, rgba(255, 255, 255, 0.035) 53%, transparent 54%),
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.045), transparent 34rem);
+  opacity: 0.72;
+}
+
+.clan-selection-hero {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.clan-selection-hero h2 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 4.6rem);
+  line-height: 0.92;
+  text-transform: uppercase;
+  text-shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
+}
+
+.clan-selection-hero p {
+  max-width: 760px;
+  margin: 10px 0 0;
+  color: #b7c5e5;
+  font-size: clamp(0.94rem, 1.2vw, 1.08rem);
+  line-height: 1.45;
+}
+
+.clan-selection-status {
+  flex: 0 0 auto;
+  min-width: 230px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 212, 93, 0.32);
+  background:
+    radial-gradient(circle at top left, rgba(255, 212, 93, 0.22), transparent 9rem),
+    rgba(8, 13, 24, 0.76);
+  color: #fff1bd;
+  font-weight: 900;
+  text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 16px 36px rgba(0, 0, 0, 0.22);
+}
+
+.clan-grid {
+  display: grid;
+  gap: clamp(12px, 1.4vw, 18px);
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.clan-option {
+  --clan-accent: #ffd45d;
+  --clan-accent-soft: rgba(255, 212, 93, 0.18);
+  --clan-accent-strong: rgba(255, 212, 93, 0.56);
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(190px, 0.95fr) auto;
+  gap: 12px;
+  min-height: 440px;
+  padding: 14px;
+  overflow: hidden;
+  text-align: left;
+  border-radius: 24px;
+  color: var(--text-main);
+  border: 1px solid rgba(143, 169, 221, 0.2);
+  background:
+    radial-gradient(circle at 50% 8%, var(--clan-accent-soft), transparent 15rem),
+    linear-gradient(180deg, rgba(18, 27, 45, 0.95), rgba(7, 12, 22, 0.98));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.055),
+    0 18px 38px rgba(0, 0, 0, 0.24);
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+}
+
+.clan-option::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 26%),
+    linear-gradient(135deg, transparent 0 52%, var(--clan-accent-soft));
+  opacity: 0.64;
+}
+
+.clan-option:hover:not(:disabled) {
+  transform: translateY(-4px);
+  border-color: var(--clan-accent-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 24px 52px rgba(0, 0, 0, 0.32),
+    0 0 34px var(--clan-accent-soft);
+}
+
+.clan-option.selected {
+  border-color: var(--clan-accent);
+  box-shadow:
+    0 0 0 2px var(--clan-accent-soft),
+    0 0 38px var(--clan-accent-soft),
+    0 22px 54px rgba(0, 0, 0, 0.34);
+}
+
+.clan-option.unavailable:not(.selected) {
+  opacity: 0.46;
+  filter: grayscale(0.45) saturate(0.65);
+}
+
+.clan-option.locked {
+  cursor: default;
+}
+
+.clan-option-media,
+.clan-option-content {
+  position: relative;
+  z-index: 1;
+}
+
+.clan-option-media {
+  display: grid;
+  place-items: center;
+  min-height: 210px;
+  padding: 10px;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.08), transparent 58%),
+    rgba(4, 8, 16, 0.36);
+  border: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.clan-option-glow {
+  position: absolute;
+  width: 68%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: var(--clan-accent);
+  opacity: 0.15;
+  filter: blur(30px);
+}
+
+.clan-option-media img {
+  position: relative;
+  width: min(100%, 250px);
+  max-height: 245px;
+  object-fit: contain;
+  filter: drop-shadow(0 22px 24px rgba(0, 0, 0, 0.42));
+}
+
+.clan-option-fallback {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 126px;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  color: #0b1020;
+  background: var(--clan-accent);
+  font-size: 2rem;
+  font-weight: 950;
+}
+
+.clan-option-content {
+  display: grid;
+  gap: 10px;
+}
+
+.clan-option-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.clan-option-header strong {
+  font-size: clamp(1.18rem, 1.7vw, 1.55rem);
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.clan-option-state {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  color: #aebde1;
+  background: rgba(8, 13, 24, 0.74);
+  border: 1px solid rgba(143, 169, 221, 0.22);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.clan-option.selected .clan-option-state {
+  color: #07101d;
+  background: var(--clan-accent);
+  border-color: transparent;
+}
+
+.clan-option-bonus {
+  display: grid;
+  gap: 4px;
+  padding: 11px 12px;
+  border-radius: 16px;
+  background: rgba(5, 10, 20, 0.72);
+  border: 1px solid var(--clan-accent-soft);
+}
+
+.clan-option-bonus span {
+  color: #8fa0c1;
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.clan-option-bonus strong {
+  color: #f5f8ff;
+  font-size: 0.98rem;
+  line-height: 1.18;
+}
+
+.clan-option-description {
+  color: #b5c2df;
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+.clan-option-footer {
+  color: var(--clan-accent);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clan-selection-actions {
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.clan-selection-actions #clan-lock-button {
+  min-width: 220px;
+  border-radius: 18px;
+}
+
+.clan-option.clan-solaires {
+  --clan-accent: #ffd45d;
+  --clan-accent-soft: rgba(255, 212, 93, 0.2);
+  --clan-accent-strong: rgba(255, 212, 93, 0.64);
+}
+
+.clan-option.clan-corsaires-du-port {
+  --clan-accent: #69d8ff;
+  --clan-accent-soft: rgba(105, 216, 255, 0.18);
+  --clan-accent-strong: rgba(105, 216, 255, 0.6);
+}
+
+.clan-option.clan-palmeros {
+  --clan-accent: #d79af0;
+  --clan-accent-soft: rgba(215, 154, 240, 0.19);
+  --clan-accent-strong: rgba(215, 154, 240, 0.58);
+}
+
+.clan-option.clan-egoutiers {
+  --clan-accent: #b4f15d;
+  --clan-accent-soft: rgba(180, 241, 93, 0.17);
+  --clan-accent-strong: rgba(180, 241, 93, 0.56);
+}
+
+.clan-option.clan-jardiniers-de-beton {
+  --clan-accent: #81d978;
+  --clan-accent-soft: rgba(129, 217, 120, 0.17);
+  --clan-accent-strong: rgba(129, 217, 120, 0.56);
+}
+
 .match-shell {
   display: grid;
   grid-template-rows: minmax(210px, auto) minmax(310px, 1fr) minmax(230px, auto);
@@ -3196,6 +3490,16 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
+  .clan-selection-hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .clan-selection-status {
+    width: 100%;
+    text-align: left;
+  }
+
   .card-grid,
   .compact-grid,
   .team-summary-roster {
@@ -3228,6 +3532,45 @@ button:disabled {
   .panel {
     padding: 10px;
     border-radius: 14px;
+  }
+
+  .clan-selection-panel {
+    padding: 12px;
+  }
+
+  .clan-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .clan-option {
+    grid-template-columns: minmax(108px, 34%) minmax(0, 1fr);
+    grid-template-rows: none;
+    min-height: 0;
+    padding: 10px;
+    border-radius: 18px;
+  }
+
+  .clan-option-media {
+    min-height: 150px;
+    padding: 6px;
+  }
+
+  .clan-option-media img {
+    max-height: 150px;
+  }
+
+  .clan-option-header {
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .clan-option-description {
+    font-size: 0.78rem;
+  }
+
+  .clan-selection-actions,
+  .clan-selection-actions #clan-lock-button {
+    width: 100%;
   }
 
   .topbar h1 {
@@ -3337,6 +3680,14 @@ button:disabled {
 
   .match-card {
     grid-template-columns: 1fr;
+  }
+
+  .clan-option {
+    grid-template-columns: 1fr;
+  }
+
+  .clan-option-media {
+    min-height: 180px;
   }
 
   .match-card-media img {

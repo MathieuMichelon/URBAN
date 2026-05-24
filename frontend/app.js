@@ -1,6 +1,13 @@
 const SESSION_STORAGE_KEY = "urban_duel_session";
 const OVERLOAD_PILL_COST = 2;
 const OVERLOAD_DAMAGE_BONUS = 3;
+const CLAN_LOGOS = {
+  solaires: "/assets/clans/logos/solaires.png",
+  corsaires_du_port: "/assets/clans/logos/corsaires_du_port.png",
+  palmeros: "/assets/clans/logos/palmeros.png",
+  egoutiers: "/assets/clans/logos/egoutiers.png",
+  jardiniers_de_beton: "/assets/clans/logos/jardiniers_de_beton.png",
+};
 
 const state = {
   socket: null,
@@ -755,6 +762,10 @@ function slugifyClan(clan) {
     .replace(/^-+|-+$/g, "");
 }
 
+function logoForClan(clan) {
+  return CLAN_LOGOS[clan.id] ?? CLAN_LOGOS[slugifyClan(clan.name).replace(/-/g, "_")] ?? null;
+}
+
 function createClanBadge(clan) {
   const badge = document.createElement("span");
   badge.className = `clan-badge clan-${slugifyClan(clan)}`;
@@ -946,28 +957,78 @@ function renderClanSelection(localPlayer) {
 
   state.snapshot.clan_options.forEach((clan) => {
     const selected = selectedIds.has(clan.id);
+    const unavailable = !selected && selectedIds.size >= 3;
     const node = document.createElement("button");
     node.type = "button";
-    node.className = `clan-option ${selected ? "selected" : ""}`.trim();
+    node.className = [
+      "clan-option",
+      `clan-${slugifyClan(clan.name)}`,
+      selected ? "selected" : "",
+      unavailable ? "unavailable" : "",
+      locked ? "locked" : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
     node.disabled = locked;
+    node.setAttribute("aria-pressed", selected ? "true" : "false");
+
+    const media = document.createElement("span");
+    media.className = "clan-option-media";
+
+    const glow = document.createElement("span");
+    glow.className = "clan-option-glow";
+
+    const logo = logoForClan(clan);
+    if (logo) {
+      const image = document.createElement("img");
+      image.src = logo;
+      image.alt = `Emblème ${clan.name}`;
+      image.loading = "lazy";
+      image.addEventListener("error", () => {
+        image.remove();
+        const fallback = document.createElement("span");
+        fallback.className = "clan-option-fallback";
+        fallback.textContent = clanIconFor(clan.name);
+        media.appendChild(fallback);
+      });
+      media.append(glow, image);
+    } else {
+      const fallback = document.createElement("span");
+      fallback.className = "clan-option-fallback";
+      fallback.textContent = clanIconFor(clan.name);
+      media.append(glow, fallback);
+    }
+
+    const content = document.createElement("span");
+    content.className = "clan-option-content";
 
     const header = document.createElement("span");
     header.className = "clan-option-header";
     const name = document.createElement("strong");
     name.textContent = clan.name;
     const stateLabel = document.createElement("span");
+    stateLabel.className = "clan-option-state";
     stateLabel.textContent = selected ? "Sélectionné" : "Non sélectionné";
     header.append(name, stateLabel);
 
     const bonus = document.createElement("span");
     bonus.className = "clan-option-bonus";
-    bonus.textContent = clan.bonus_text;
+    const bonusLabel = document.createElement("span");
+    bonusLabel.textContent = "Bonus";
+    const bonusText = document.createElement("strong");
+    bonusText.textContent = clan.bonus_text;
+    bonus.append(bonusLabel, bonusText);
 
     const description = document.createElement("span");
     description.className = "clan-option-description";
     description.textContent = clan.description || "Description indisponible.";
 
-    node.append(header, bonus, description);
+    const footer = document.createElement("span");
+    footer.className = "clan-option-footer";
+    footer.textContent = selected ? "Dans ton line-up de clans" : unavailable ? "3 clans déjà choisis" : "Cliquer pour recruter";
+
+    content.append(header, bonus, description, footer);
+    node.append(media, content);
     node.addEventListener("click", () => {
       if (selectedIds.has(clan.id)) {
         state.interaction.selectedClanIds = state.interaction.selectedClanIds.filter((id) => id !== clan.id);

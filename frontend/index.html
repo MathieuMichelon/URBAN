@@ -66,11 +66,17 @@
 
     <section id="game-view" class="view hidden">
       <div class="game-grid">
-        <article id="clan-selection-panel" class="panel full-width hidden">
-          <h2>Sélection des clans</h2>
-          <div id="clan-selection-status" class="muted">Choisis 3 clans pour débloquer le draft.</div>
+        <article id="clan-selection-panel" class="panel full-width clan-selection-panel hidden">
+          <div class="clan-selection-hero">
+            <div>
+              <span class="eyebrow">Avant le draft</span>
+              <h2>Sélection des clans</h2>
+              <p>Choisis exactement trois factions. Ton draft ne proposera que les personnages de ces clans.</p>
+            </div>
+            <div id="clan-selection-status" class="clan-selection-status">Choisis 3 clans pour débloquer le draft.</div>
+          </div>
           <div id="clan-options" class="clan-grid"></div>
-          <div class="button-row">
+          <div class="button-row clan-selection-actions">
             <button id="clan-lock-button" type="button" disabled>Valider les clans</button>
           </div>
         </article>
