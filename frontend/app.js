@@ -1297,7 +1297,6 @@ function createMatchCardNode(card, options = {}) {
   const cardNode = document.createElement("article");
   cardNode.className = [
     "match-card",
-    "card-postapo-frame",
     bonusActive ? "bonus-active" : "bonus-inactive",
     localPlayer ? "local-card" : "opponent-card",
     `clan-${slugifyClan(card.clan)}`,
@@ -1365,7 +1364,7 @@ function createSelectionDetailNode(card) {
   const bonusActive = card.bonus_active ?? false;
   const stateMeta = cardStateLabel({ selected: true, bonusActive });
   const detail = document.createElement("div");
-  detail.className = `selection-card-detail card-postapo-frame ${bonusActive ? "bonus-active" : "bonus-inactive"} clan-${slugifyClan(card.clan)}`;
+  detail.className = `selection-card-detail ${bonusActive ? "bonus-active" : "bonus-inactive"} clan-${slugifyClan(card.clan)}`;
 
   const content = document.createElement("div");
   content.className = "selection-card-content";
@@ -1533,7 +1532,6 @@ function createBattleCard(card, options) {
   const cardNode = document.createElement("article");
   cardNode.className = [
     "battle-card",
-    "card-postapo-frame",
     card.bonus_active ? "bonus-active" : "bonus-inactive",
     outcomeClass,
     `clan-${slugifyClan(card.clan)}`,
@@ -2263,7 +2261,6 @@ function createCardNode(card, options = {}) {
   const cardNode = document.createElement("article");
   cardNode.className = [
     "card",
-    "card-postapo-frame",
     bonusActive ? "bonus-active" : "bonus-inactive",
     selected ? "selected" : "",
     played ? "played" : "",
