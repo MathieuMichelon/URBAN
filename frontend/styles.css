@@ -3800,6 +3800,396 @@ button:disabled {
   align-content: start;
 }
 
+/* Safer post-apo pass: the artwork is now a border overlay only.
+   The card internals intentionally keep the proven pre-frame layout. */
+.card-postapo-frame {
+  --card-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.82);
+  --postapo-frame-bleed: 6px;
+  --postapo-frame-radius: 18px;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: auto;
+  isolation: isolate;
+  overflow: visible;
+  border-radius: var(--postapo-frame-radius);
+  background-image: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.055),
+    0 16px 28px rgba(3, 8, 18, 0.22);
+}
+
+.card-postapo-frame::before {
+  content: "";
+  position: absolute;
+  inset: calc(var(--postapo-frame-bleed) * -1);
+  z-index: 5;
+  pointer-events: none;
+  border: clamp(12px, 1.05vw, 17px) solid transparent;
+  border-image-source: url("/assets/ui/card_frame_postapo_border.png");
+  border-image-slice: 128 112 118 112;
+  border-image-repeat: stretch;
+  background: none;
+  opacity: 0.98;
+}
+
+.card-postapo-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(85, 223, 255, 0.1), transparent 28%),
+    radial-gradient(circle at 82% 8%, rgba(255, 212, 93, 0.1), transparent 8rem);
+  opacity: 0.35;
+  transition: opacity 160ms ease;
+}
+
+.card-postapo-frame > * {
+  z-index: 1;
+}
+
+.card.card-postapo-frame {
+  gap: 10px;
+  min-width: 0;
+  min-height: 100%;
+  padding: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: none;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(92, 146, 255, 0.18), transparent 14rem),
+    linear-gradient(180deg, rgba(24, 38, 66, 0.97), rgba(10, 16, 30, 0.99)),
+    #16233b;
+  border: 1px solid #4c608b;
+}
+
+.match-card.card-postapo-frame {
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+  padding: 10px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: none;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(119, 157, 255, 0.16), transparent 12rem),
+    linear-gradient(180deg, rgba(23, 35, 60, 0.98), rgba(7, 12, 23, 0.995)),
+    #11192a;
+  border: 1px solid rgba(88, 119, 178, 0.54);
+}
+
+.selection-card-detail.card-postapo-frame {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(170px, 220px) minmax(0, 1fr);
+  grid-template-rows: none;
+  min-height: 0;
+  max-width: none;
+  margin-inline: 0;
+  padding: 12px;
+  background:
+    radial-gradient(circle at 14% 0%, rgba(144, 114, 255, 0.22), transparent 18rem),
+    linear-gradient(180deg, rgba(17, 25, 42, 0.97), rgba(8, 13, 25, 0.99));
+  border: 1px solid rgba(102, 84, 190, 0.52);
+}
+
+.battle-card.card-postapo-frame {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: none;
+  min-height: 0;
+  max-width: none;
+  margin-inline: 0;
+  padding: 12px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(110, 156, 255, 0.15), transparent 14rem),
+    linear-gradient(180deg, rgba(17, 27, 48, 0.98), rgba(6, 11, 21, 0.99)),
+    #101827;
+  border: 1px solid rgba(117, 150, 216, 0.54);
+}
+
+.match-card.card-postapo-frame.clan-solaires,
+.selection-card-detail.card-postapo-frame.clan-solaires {
+  border-color: rgba(243, 201, 88, 0.58);
+}
+
+.match-card.card-postapo-frame.clan-corsaires-du-port,
+.selection-card-detail.card-postapo-frame.clan-corsaires-du-port {
+  border-color: rgba(88, 170, 214, 0.56);
+}
+
+.match-card.card-postapo-frame.clan-palmeros,
+.selection-card-detail.card-postapo-frame.clan-palmeros {
+  border-color: rgba(190, 124, 196, 0.56);
+}
+
+.match-card.card-postapo-frame.clan-egoutiers,
+.selection-card-detail.card-postapo-frame.clan-egoutiers {
+  border-color: rgba(133, 190, 86, 0.54);
+}
+
+.match-card.card-postapo-frame.clan-jardiniers-de-beton,
+.selection-card-detail.card-postapo-frame.clan-jardiniers-de-beton {
+  border-color: rgba(92, 182, 112, 0.54);
+}
+
+.card-postapo-frame:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 20px 42px rgba(0, 0, 0, 0.36),
+    0 0 22px rgba(85, 223, 255, 0.16);
+}
+
+.card-postapo-frame:hover::after,
+.card-postapo-frame.selected::after {
+  opacity: 0.72;
+}
+
+.card-postapo-frame.selected {
+  transform: translateY(-3px);
+  filter: saturate(1.06) brightness(1.03);
+  box-shadow:
+    0 0 0 2px rgba(85, 223, 255, 0.26),
+    0 0 30px rgba(255, 212, 93, 0.2),
+    0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.card-postapo-frame.disabled,
+.card-postapo-frame.played {
+  opacity: 0.66;
+  filter: grayscale(0.58) saturate(0.68);
+}
+
+.card-postapo-frame.bonus-active .card-bonus.active,
+.card-postapo-frame.bonus-active .bonus-on-stat,
+.card-postapo-frame.bonus-active .match-card-section.bonus-active,
+.card-postapo-frame.bonus-active .selection-card-section.bonus-active {
+  box-shadow: 0 0 15px rgba(143, 240, 191, 0.14);
+}
+
+.card-postapo-frame.bonus-inactive .card-bonus.inactive,
+.card-postapo-frame.bonus-inactive .bonus-off-stat,
+.card-postapo-frame.bonus-inactive .match-card-section.bonus-inactive,
+.card-postapo-frame.bonus-inactive .selection-card-section.bonus-inactive {
+  opacity: 0.86;
+  filter: saturate(0.76);
+}
+
+.card-postapo-frame .card-side-badge {
+  top: 8px;
+  right: 8px;
+  z-index: 7;
+  max-width: none;
+}
+
+.card-postapo-frame .card-media,
+.card-postapo-frame .match-card-media,
+.card-postapo-frame .selection-card-media,
+.card-postapo-frame .battle-card-media {
+  position: relative;
+  z-index: 1;
+  align-self: auto;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.battle-card.card-postapo-frame .battle-card-media {
+  min-height: 150px;
+}
+
+.card-postapo-frame .card-media img,
+.card-postapo-frame .match-card-media img,
+.card-postapo-frame .selection-card-media img,
+.card-postapo-frame .battle-card-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  object-position: center 19%;
+  transform: scale(1.045);
+  transform-origin: center 22%;
+  border-radius: 14px;
+  background: #080d18;
+}
+
+.card.card-postapo-frame .card-media img {
+  aspect-ratio: 3 / 4;
+}
+
+.match-card.card-postapo-frame .match-card-media img {
+  aspect-ratio: 4 / 3;
+}
+
+.selection-card-detail.card-postapo-frame .selection-card-media img {
+  aspect-ratio: 3 / 4;
+}
+
+.battle-card.card-postapo-frame .battle-card-media img {
+  aspect-ratio: 16 / 11;
+}
+
+.card-postapo-frame .card-bonus-state,
+.card-postapo-frame .match-card-badge,
+.card-postapo-frame .selection-card-badge {
+  z-index: 2;
+  text-shadow: var(--card-text-shadow);
+}
+
+.card.card-postapo-frame .card-title-row {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.card.card-postapo-frame .card-title-stack {
+  gap: 8px;
+}
+
+.card.card-postapo-frame .card-name {
+  color: inherit;
+  font-size: clamp(1.02rem, 1.2vw, 1.24rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+.card.card-postapo-frame .card-stars {
+  color: #f4c44c;
+  font-size: 1.08rem;
+}
+
+.card-postapo-frame .match-card-content,
+.card-postapo-frame .selection-card-content {
+  display: grid;
+  gap: 7px;
+  position: relative;
+  z-index: 1;
+}
+
+.card-postapo-frame .selection-card-content {
+  gap: 9px;
+}
+
+.card-postapo-frame .match-card-header,
+.card-postapo-frame .selection-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 7px;
+  min-height: 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.card-postapo-frame .selection-card-header {
+  gap: 10px;
+}
+
+.card-postapo-frame .battle-card-heading {
+  display: grid;
+  gap: 5px;
+  min-height: 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.card-postapo-frame .match-card-stars-wrap,
+.card-postapo-frame .selection-card-stars-wrap {
+  min-width: 0;
+}
+
+.card.card-postapo-frame .card-stat-row,
+.card-postapo-frame .match-card-stats,
+.card-postapo-frame .selection-card-stats,
+.card-postapo-frame .battle-card-stats {
+  gap: 7px;
+}
+
+.card-postapo-frame .selection-card-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.card-postapo-frame .card-stat-chip,
+.card-postapo-frame .scan-stat-chip,
+.card-postapo-frame .battle-stat {
+  min-height: 0;
+  padding: 8px 9px;
+  border-radius: 13px;
+}
+
+.card-postapo-frame .card-stat-value {
+  font-size: 1.36rem;
+}
+
+.card-postapo-frame .scan-stat-value {
+  font-size: clamp(1.25rem, 1.38vw, 1.7rem);
+}
+
+.card-postapo-frame .battle-stat strong {
+  font-size: 1rem;
+}
+
+.card-postapo-frame .battle-stat.important strong,
+.card-postapo-frame .battle-stat.attack-stat strong {
+  font-size: clamp(1.2rem, 2vw, 1.62rem);
+}
+
+.card.card-postapo-frame .card-details,
+.card-postapo-frame .match-card-copy,
+.card-postapo-frame .selection-card-copy,
+.card-postapo-frame .battle-card-text {
+  display: grid;
+  gap: 6px;
+}
+
+.card-postapo-frame .card-detail-row {
+  padding: 6px 8px;
+  border-radius: 11px;
+}
+
+.card-postapo-frame .card-detail-value {
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.card-postapo-frame .match-ability-row .card-detail-value {
+  font-size: clamp(0.72rem, 0.72vw, 0.82rem);
+  line-height: 1.28;
+}
+
+.card-postapo-frame .selection-ability-row .card-detail-value,
+.card-postapo-frame .selection-bonus-row .card-detail-value {
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.card-postapo-frame .match-card-footer,
+.card-postapo-frame .card-footer-row,
+.card-postapo-frame .selection-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 0;
+}
+
+.card.card-postapo-frame .card-action-button {
+  min-height: 0;
+  margin-top: auto;
+}
+
+.battle-card.card-postapo-frame .battle-card-text {
+  align-content: initial;
+}
+
 .match-end-panel {
   border-color: rgba(255, 212, 93, 0.22);
   background:
