@@ -49,6 +49,55 @@ def _last_three_clan_ids(snapshot_payload: dict[str, object]) -> list[str]:
     return [clan["id"] for clan in snapshot_payload["clan_options"][2:5]]
 
 
+def test_matchmaking_pairs_two_waiting_players() -> None:
+    """Two clients in matchmaking should be placed into a normal two-player room."""
+    app = create_app(ACTIVE_URBAN2_PATH)
+
+    with TestClient(app) as client:
+        with client.websocket_connect("/ws") as ws_1:
+            ws_1.send_json({"type": "find_match", "payload": {"player_name": "Alice"}})
+            waiting = ws_1.receive_json()
+            assert waiting["type"] == "matchmaking_waiting"
+
+            with client.websocket_connect("/ws") as ws_2:
+                ws_2.send_json({"type": "find_match", "payload": {"player_name": "Bob"}})
+
+                room_created = ws_1.receive_json()
+                room_joined = ws_2.receive_json()
+                assert room_created["type"] == "room_created"
+                assert room_joined["type"] == "room_joined"
+                assert room_created["room_id"] == room_joined["room_id"]
+                assert room_created["player_id"] == 1
+                assert room_joined["player_id"] == 2
+
+                player_joined = ws_1.receive_json()
+                assert player_joined["type"] == "player_joined"
+                assert player_joined["payload"]["joined_player_name"] == "Bob"
+
+                snapshot_1 = ws_1.receive_json()
+                snapshot_2 = ws_2.receive_json()
+                assert snapshot_1["type"] == "state_snapshot"
+                assert snapshot_2["type"] == "state_snapshot"
+                assert snapshot_1["payload"]["match_state"] == "clan_selection"
+                assert snapshot_2["payload"]["match_state"] == "clan_selection"
+                assert [player["name"] for player in snapshot_1["payload"]["players"]] == ["Alice", "Bob"]
+
+
+def test_matchmaking_can_be_cancelled() -> None:
+    """A waiting client can leave the matchmaking queue without creating a room."""
+    app = create_app(ACTIVE_URBAN2_PATH)
+
+    with TestClient(app) as client:
+        with client.websocket_connect("/ws") as ws:
+            ws.send_json({"type": "find_match", "payload": {"player_name": "Alice"}})
+            assert ws.receive_json()["type"] == "matchmaking_waiting"
+
+            ws.send_json({"type": "cancel_matchmaking", "payload": {}})
+            cancelled = ws.receive_json()
+            assert cancelled["type"] == "matchmaking_cancelled"
+            assert "annulée" in cancelled["payload"]["message"]
+
+
 def test_two_players_can_select_clans_draft_and_resolve_one_round() -> None:
     """The backend should run clan selection, private draft, match start, and one full round."""
     app = create_app(ACTIVE_URBAN2_PATH)

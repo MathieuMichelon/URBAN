@@ -156,6 +156,10 @@ class JoinRoomPayload(PlayerIdentityPayload):
     """Payload used to join an existing room."""
 
 
+class FindMatchPayload(PlayerIdentityPayload):
+    """Payload used to enter the simple matchmaking queue."""
+
+
 class SelectCardPayload(ProtocolModel):
     """Payload used to update the drafted card."""
 
@@ -188,6 +192,19 @@ class PingPayload(ProtocolModel):
     """Optional heartbeat ping payload."""
 
     nonce: str | None = None
+
+
+class MatchmakingWaitingPayload(ProtocolModel):
+    """Acknowledgement sent while a player waits for an opponent."""
+
+    queue_position: int = Field(ge=1)
+    message: str = "Recherche d'un adversaire en cours."
+
+
+class MatchmakingCancelledPayload(ProtocolModel):
+    """Acknowledgement sent when the caller leaves matchmaking."""
+
+    message: str = "Recherche annulée."
 
 
 class RoomCreatedPayload(ProtocolModel):
@@ -273,6 +290,25 @@ class ClientJoinRoomMessage(MessageEnvelope):
     type: Literal["join_room"]
     payload: JoinRoomPayload
     room_id: str
+    player_id: int | None = None
+
+
+class ClientFindMatchMessage(MessageEnvelope):
+    """`find_match` command."""
+
+    type: Literal["find_match"]
+    payload: FindMatchPayload
+    timestamp: datetime | None = None
+    room_id: None = None
+    player_id: int | None = None
+
+
+class ClientCancelMatchmakingMessage(MessageEnvelope):
+    """`cancel_matchmaking` command."""
+
+    type: Literal["cancel_matchmaking"]
+    payload: EmptyPayload = Field(default_factory=EmptyPayload)
+    room_id: str | None = None
     player_id: int | None = None
 
 
@@ -378,6 +414,26 @@ class ServerPlayerJoinedMessage(MessageEnvelope):
     player_id: int
 
 
+class ServerMatchmakingWaitingMessage(MessageEnvelope):
+    """`matchmaking_waiting` event."""
+
+    type: Literal["matchmaking_waiting"] = "matchmaking_waiting"
+    payload: MatchmakingWaitingPayload
+    timestamp: datetime = Field(default_factory=utc_now)
+    room_id: str | None = None
+    player_id: int | None = None
+
+
+class ServerMatchmakingCancelledMessage(MessageEnvelope):
+    """`matchmaking_cancelled` event."""
+
+    type: Literal["matchmaking_cancelled"] = "matchmaking_cancelled"
+    payload: MatchmakingCancelledPayload = Field(default_factory=MatchmakingCancelledPayload)
+    timestamp: datetime = Field(default_factory=utc_now)
+    room_id: str | None = None
+    player_id: int | None = None
+
+
 class ServerGameStartedMessage(MessageEnvelope):
     """`game_started` event."""
 
@@ -462,6 +518,8 @@ ClientMessage = Annotated[
     (
         ClientCreateRoomMessage
         | ClientJoinRoomMessage
+        | ClientFindMatchMessage
+        | ClientCancelMatchmakingMessage
         | ClientSelectClansMessage
         | ClientSelectCardMessage
         | ClientSetPillsMessage
@@ -478,6 +536,8 @@ ServerMessage = (
     ServerRoomCreatedMessage
     | ServerRoomJoinedMessage
     | ServerPlayerJoinedMessage
+    | ServerMatchmakingWaitingMessage
+    | ServerMatchmakingCancelledMessage
     | ServerGameStartedMessage
     | ServerStateSnapshotMessage
     | ServerPlayerReadyMessage

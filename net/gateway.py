@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 
 from fastapi import WebSocket
@@ -10,7 +11,9 @@ from pydantic import ValidationError
 from core.errors import GameError
 from net.protocol import (
     ClientConfirmSelectionMessage,
+    ClientCancelMatchmakingMessage,
     ClientCreateRoomMessage,
+    ClientFindMatchMessage,
     ClientJoinRoomMessage,
     ClientMessage,
     ClientPingMessage,
@@ -23,6 +26,8 @@ from net.protocol import (
     ErrorPayload,
     GameFinishedPayload,
     GameStartedPayload,
+    MatchmakingCancelledPayload,
+    MatchmakingWaitingPayload,
     OpponentDisconnectedPayload,
     PlayerJoinedPayload,
     PlayerReadyPayload,
@@ -33,6 +38,8 @@ from net.protocol import (
     ServerErrorMessage,
     ServerGameFinishedMessage,
     ServerGameStartedMessage,
+    ServerMatchmakingCancelledMessage,
+    ServerMatchmakingWaitingMessage,
     ServerMessage,
     ServerOpponentDisconnectedMessage,
     ServerPlayerJoinedMessage,
@@ -106,6 +113,8 @@ class WebSocketGateway:
         """Create the gateway with its authoritative backend services."""
         self._room_manager = room_manager
         self._hub = ConnectionHub()
+        self._matchmaking_waiters: list[ClientConnection] = []
+        self._matchmaking_lock = asyncio.Lock()
 
     async def handle_raw_message(self, connection: ClientConnection, raw_payload: object) -> None:
         """Parse and dispatch one incoming JSON frame."""
@@ -122,6 +131,7 @@ class WebSocketGateway:
 
     async def handle_disconnect(self, connection: ClientConnection) -> None:
         """Cleanup one disconnected client and notify the remaining opponent."""
+        await self._remove_from_matchmaking(connection)
         if connection.room_id is None or connection.player_id is None:
             return
 
@@ -178,6 +188,12 @@ class WebSocketGateway:
         if isinstance(message, ClientJoinRoomMessage):
             await self._handle_join_room(connection, message)
             return
+        if isinstance(message, ClientFindMatchMessage):
+            await self._handle_find_match(connection, message)
+            return
+        if isinstance(message, ClientCancelMatchmakingMessage):
+            await self._handle_cancel_matchmaking(connection)
+            return
         if isinstance(message, ClientSelectClansMessage):
             await self._handle_select_clans(connection, message)
             return
@@ -210,6 +226,7 @@ class WebSocketGateway:
         if connection.room_id is not None:
             raise RoomClosedError("Connection already belongs to a room.")
 
+        await self._remove_from_matchmaking(connection)
         room, player = await self._room_manager.create_room(message.payload.player_name)
         connection.room_id = room.room_id
         connection.player_id = player.player_id
@@ -232,6 +249,7 @@ class WebSocketGateway:
         if connection.room_id is not None:
             raise RoomClosedError("Connection already belongs to a room.")
 
+        await self._remove_from_matchmaking(connection)
         room, outcome = await self._room_manager.join_room(
             message.room_id,
             player_name=message.payload.player_name,
@@ -297,6 +315,117 @@ class WebSocketGateway:
             return
 
         await self._send_state_snapshot(connection, await self._room_manager.snapshot_for(room.room_id, player_id=player.player_id))
+
+    async def _handle_find_match(self, connection: ClientConnection, message: ClientFindMatchMessage) -> None:
+        """Enter matchmaking or pair with the oldest waiting player."""
+        if connection.room_id is not None:
+            raise RoomClosedError("Connection already belongs to a room.")
+
+        connection.player_name = message.payload.player_name
+        async with self._matchmaking_lock:
+            self._matchmaking_waiters = [
+                waiter
+                for waiter in self._matchmaking_waiters
+                if waiter.room_id is None and waiter is not connection
+            ]
+            if self._matchmaking_waiters:
+                opponent = self._matchmaking_waiters.pop(0)
+            else:
+                self._matchmaking_waiters.append(connection)
+                await self._hub.send(
+                    connection.websocket,
+                    ServerMatchmakingWaitingMessage(
+                        payload=MatchmakingWaitingPayload(queue_position=1),
+                    ),
+                )
+                return
+
+        await self._create_matchmaking_room(opponent, connection)
+
+    async def _handle_cancel_matchmaking(self, connection: ClientConnection) -> None:
+        """Remove the caller from the matchmaking queue."""
+        removed = await self._remove_from_matchmaking(connection)
+        await self._hub.send(
+            connection.websocket,
+            ServerMatchmakingCancelledMessage(
+                payload=MatchmakingCancelledPayload(
+                    message="Recherche annulée." if removed else "Aucune recherche en cours.",
+                ),
+            ),
+        )
+
+    async def _create_matchmaking_room(self, player_one_connection: ClientConnection, player_two_connection: ClientConnection) -> None:
+        """Create a room for two matched waiting sockets and send normal room events."""
+        player_one_name = player_one_connection.player_name or "Player 1"
+        player_two_name = player_two_connection.player_name or "Player 2"
+        room, player_one = await self._room_manager.create_room(player_one_name)
+        room, join_outcome = await self._room_manager.join_room(room.room_id, player_name=player_two_name)
+        player_two = join_outcome.player
+
+        for target_connection, player in (
+            (player_one_connection, player_one),
+            (player_two_connection, player_two),
+        ):
+            target_connection.room_id = room.room_id
+            target_connection.player_id = player.player_id
+            target_connection.player_name = player.name
+            target_connection.session_token = player.session_token
+            self._hub.bind(room_id=room.room_id, player_id=player.player_id, websocket=target_connection.websocket)
+
+        await self._hub.send(
+            player_one_connection.websocket,
+            ServerRoomCreatedMessage(
+                room_id=room.room_id,
+                player_id=player_one.player_id,
+                payload=RoomCreatedPayload(player_name=player_one.name, session_token=player_one.session_token),
+            ),
+        )
+        await self._hub.send(
+            player_two_connection.websocket,
+            ServerRoomJoinedMessage(
+                room_id=room.room_id,
+                player_id=player_two.player_id,
+                payload=RoomJoinedPayload(
+                    player_name=player_two.name,
+                    session_token=player_two.session_token,
+                    resumed=False,
+                ),
+            ),
+        )
+        await self._hub.send_to_player(
+            room_id=room.room_id,
+            player_id=player_one.player_id,
+            message=ServerPlayerJoinedMessage(
+                room_id=room.room_id,
+                player_id=player_one.player_id,
+                payload=PlayerJoinedPayload(
+                    joined_player_id=player_two.player_id,
+                    joined_player_name=player_two.name,
+                ),
+            ),
+        )
+
+        for target_player_id in sorted(room.players):
+            snapshot = await self._room_manager.snapshot_for(room.room_id, player_id=target_player_id)
+            if join_outcome.game_started:
+                await self._hub.send_to_player(
+                    room_id=room.room_id,
+                    player_id=target_player_id,
+                    message=ServerGameStartedMessage(
+                        room_id=room.room_id,
+                        player_id=target_player_id,
+                        payload=GameStartedPayload(state=snapshot),
+                    ),
+                )
+            await self._hub.send_to_player(
+                room_id=room.room_id,
+                player_id=target_player_id,
+                message=ServerStateSnapshotMessage(
+                    room_id=room.room_id,
+                    player_id=target_player_id,
+                    payload=snapshot,
+                ),
+            )
 
     async def _handle_select_clans(self, connection: ClientConnection, message: ClientSelectClansMessage) -> None:
         """Authoritatively lock the caller clan selection."""
@@ -441,6 +570,15 @@ class WebSocketGateway:
             raise PlayerNotInRoomError("player_id does not match the authenticated connection.")
 
         return connection.room_id, connection.player_id
+
+    async def _remove_from_matchmaking(self, connection: ClientConnection) -> bool:
+        """Remove a socket from the in-memory matchmaking queue."""
+        async with self._matchmaking_lock:
+            initial_count = len(self._matchmaking_waiters)
+            self._matchmaking_waiters = [
+                waiter for waiter in self._matchmaking_waiters if waiter is not connection
+            ]
+            return len(self._matchmaking_waiters) != initial_count
 
     async def _send_state_snapshot(self, connection: ClientConnection, snapshot: StateSnapshotPayload) -> None:
         """Send one authoritative state snapshot to the current connection."""

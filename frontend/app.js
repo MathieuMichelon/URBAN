@@ -15,6 +15,7 @@ const state = {
   playerId: null,
   sessionToken: null,
   snapshot: null,
+  matchmakingSearching: false,
   interaction: {
     selectedCardId: null,
     selectedClanIds: [],
@@ -37,6 +38,7 @@ const elements = {
   connectButton: document.querySelector("#connect-button"),
   createButton: document.querySelector("#create-button"),
   joinButton: document.querySelector("#join-button"),
+  matchmakingButton: document.querySelector("#matchmaking-button"),
   requestStateButton: document.querySelector("#request-state-button"),
   confirmButton: document.querySelector("#confirm-button"),
   pingButton: document.querySelector("#ping-button"),
@@ -208,6 +210,20 @@ function loadPersistedSession() {
 function clearPersistedSession() {
   sessionStorage.removeItem(SESSION_STORAGE_KEY);
   localStorage.removeItem(SESSION_STORAGE_KEY);
+}
+
+function syncHomeActions() {
+  const connected = state.socket?.readyState === WebSocket.OPEN;
+  const boundToRoom = Boolean(state.roomId || state.snapshot);
+  elements.createButton.disabled = !connected || state.matchmakingSearching || boundToRoom;
+  elements.joinButton.disabled = !connected || state.matchmakingSearching || boundToRoom;
+  elements.matchmakingButton.disabled = !connected || boundToRoom;
+  elements.matchmakingButton.textContent = state.matchmakingSearching
+    ? "Annuler la recherche"
+    : "Recherche joueur";
+  elements.roomStatus.textContent = state.matchmakingSearching
+    ? "Matchmaking | en recherche"
+    : elements.roomStatus.textContent;
 }
 
 function resetMatchInteraction() {
@@ -581,6 +597,7 @@ function connectSocket() {
     elements.connectionStatus.textContent = "Connecté";
     elements.createButton.disabled = false;
     elements.joinButton.disabled = false;
+    elements.matchmakingButton.disabled = false;
     elements.requestStateButton.disabled = false;
     elements.pingButton.disabled = false;
     addLog("Connexion WebSocket ouverte.");
@@ -613,9 +630,11 @@ function connectSocket() {
     elements.connectionStatus.textContent = "Déconnecté";
     elements.createButton.disabled = true;
     elements.joinButton.disabled = true;
+    elements.matchmakingButton.disabled = true;
     elements.requestStateButton.disabled = true;
     elements.confirmButton.disabled = true;
     elements.pingButton.disabled = true;
+    state.matchmakingSearching = false;
     state.snapshot = null;
     clearRoundResolutionAnimation();
     addLog("Connexion WebSocket fermée.");
@@ -637,14 +656,24 @@ function handleServerMessage(message) {
 
   switch (type) {
     case "room_created":
+      state.matchmakingSearching = false;
       state.sessionToken = payload.session_token;
       persistSession();
       addLog(`Room créée: ${roomId}`);
       break;
     case "room_joined":
+      state.matchmakingSearching = false;
       state.sessionToken = payload.session_token;
       persistSession();
       addLog(payload.resumed ? `Session reprise dans ${roomId}.` : `Room rejointe: ${roomId}`);
+      break;
+    case "matchmaking_waiting":
+      state.matchmakingSearching = true;
+      addLog(payload.message ?? "Recherche d'un adversaire en cours.");
+      break;
+    case "matchmaking_cancelled":
+      state.matchmakingSearching = false;
+      addLog(payload.message ?? "Recherche annulée.");
       break;
     case "player_joined":
       addLog(`${payload.joined_player_name} a rejoint la room.`);
@@ -2191,6 +2220,7 @@ function render() {
   updateViewVisibility();
   togglePhasePanels();
   renderSummary();
+  syncHomeActions();
   renderBanner();
 
   if (!state.snapshot) {
@@ -2343,15 +2373,25 @@ function createCardNode(card, options = {}) {
 elements.connectButton.addEventListener("click", connectSocket);
 elements.createButton.addEventListener("click", () => {
   clearPersistedSession();
+  state.matchmakingSearching = false;
   sendMessage("create_room", { player_name: elements.playerName.value }, { room_id: null, player_id: null });
 });
 elements.joinButton.addEventListener("click", () => {
+  state.matchmakingSearching = false;
   const savedSession = loadPersistedSession();
   const payload = { player_name: elements.playerName.value };
   if (savedSession?.roomId === elements.roomId.value && savedSession?.sessionToken) {
     payload.session_token = savedSession.sessionToken;
   }
   sendMessage("join_room", payload, { room_id: elements.roomId.value, player_id: null });
+});
+elements.matchmakingButton.addEventListener("click", () => {
+  if (state.matchmakingSearching) {
+    sendMessage("cancel_matchmaking", {}, { room_id: null, player_id: null });
+    return;
+  }
+  clearPersistedSession();
+  sendMessage("find_match", { player_name: elements.playerName.value }, { room_id: null, player_id: null });
 });
 elements.requestStateButton.addEventListener("click", () => sendMessage("request_state", {}));
 elements.confirmButton.addEventListener("click", () => sendMessage("confirm_selection", {}));
