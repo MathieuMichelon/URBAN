@@ -569,6 +569,10 @@ def test_regeneration_persists_and_does_not_stack(card_factory) -> None:
     assert state.get_player(1).regeneration.amount == 2
     assert state.get_player(1).hit_points == 14
 
+    third_result = engine.play_round(state, RoundSelection("p1c3", 3), RoundSelection("target_3", 0))
+    assert third_result.life_swing_player_1 == 0
+    assert state.get_player(1).hit_points == 14
+
 
 def test_describe_effects_returns_ui_readable_power_and_bonus_text() -> None:
     """Structured effect data should be convertible into readable UI strings."""

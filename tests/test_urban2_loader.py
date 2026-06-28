@@ -62,7 +62,7 @@ def test_urban2_clan_bonuses_map_to_supported_effects() -> None:
         "Solaïres": (("passive", "self", "power_modifier", 2, None),),
         "Corsaires du Port": (("victory", "opponent", "pill_steal", 1, None),),
         "Palmeros": (("passive", "opponent", "damage_modifier", -2, 1),),
-        "Égoutiers": (("victory", "opponent", "poison", 2, 4),),
+        "Égoutiers": (("victory", "opponent", "poison", 2, 7),),
         "Jardiniers de Béton": (("victory", "self", "regeneration", 2, None),),
     }
 

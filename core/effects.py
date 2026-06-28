@@ -8,6 +8,8 @@ from dataclasses import dataclass, field
 from core.enums import RoundOutcome
 from core.models import Card, EffectDefinition, GameState, OngoingPoison, OngoingRegeneration, PlayerState
 
+REGENERATION_MAX_HIT_POINTS = 14
+
 PRE_FIGHT_RESOLUTION_ORDER = (
     "collect_pre_fight_sources",
     "apply_protections",
@@ -263,8 +265,11 @@ def _apply_end_of_round_persistent_effects(state: GameState, ledger: PostRoundLe
 
         regeneration = player.regeneration
         if regeneration is not None:
-            player.hit_points += regeneration.amount
-            ledger.life_swing[player_id] += regeneration.amount
+            next_hit_points = min(REGENERATION_MAX_HIT_POINTS, player.hit_points + regeneration.amount)
+            healing = max(0, next_hit_points - player.hit_points)
+            if healing > 0:
+                player.hit_points = next_hit_points
+                ledger.life_swing[player_id] += healing
 
 
 def _collect_effect_sources(

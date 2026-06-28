@@ -292,6 +292,12 @@ button:disabled {
   color: var(--bonus-green);
 }
 
+.badge.initiative {
+  background: rgba(255, 212, 93, 0.2);
+  color: #ffe680;
+  border-color: rgba(255, 212, 93, 0.4);
+}
+
 .badge.offline {
   background: rgba(122, 48, 68, 0.58);
   color: #ff9caf;
@@ -1143,7 +1149,9 @@ button:disabled {
 }
 
 .round-panel-chip strong {
-  font-size: 1.18rem;
+  font-size: clamp(0.92rem, 1.08vw, 1.18rem);
+  line-height: 1.15;
+  text-align: right;
 }
 
 .round-history {
@@ -1331,6 +1339,38 @@ button:disabled {
   box-shadow: 0 0 0 1px rgba(144, 114, 255, 0.14), 0 20px 42px rgba(3, 8, 18, 0.24);
   position: relative;
   overflow: hidden;
+}
+
+.selection-focus-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.selection-focus-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(9, 15, 27, 0.78);
+  border: 1px solid rgba(143, 169, 221, 0.28);
+  color: #dbe6ff;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.selection-focus-pill.initiative {
+  background: rgba(255, 212, 93, 0.18);
+  border-color: rgba(255, 212, 93, 0.42);
+  color: #ffe680;
+}
+
+.selection-focus-pill.selected-card {
+  background: rgba(85, 223, 255, 0.13);
+  border-color: rgba(85, 223, 255, 0.38);
+  color: #bdf3ff;
 }
 
 .selection-card-detail::before,

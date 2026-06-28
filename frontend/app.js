@@ -1082,6 +1082,19 @@ function selectedCardFor(player) {
   return player.hand.find((card) => card.id === selectedCardId) ?? null;
 }
 
+function firstPickerLabel(snapshot = state.snapshot) {
+  if (!snapshot?.initiative_player_id) {
+    return "-";
+  }
+  return snapshot.initiative_player_id === snapshot.local_player_id
+    ? "Toi - tu choisis en premier"
+    : "Adversaire - choisit en premier";
+}
+
+function playerHasInitiative(player, snapshot = state.snapshot) {
+  return Boolean(player && snapshot?.initiative_player_id === player.player_id);
+}
+
 function formatClanBonuses(player) {
   if (!player?.active_clan_bonuses?.length) {
     return "Aucun bonus actif";
@@ -1120,6 +1133,9 @@ function renderIdentityPanel(container, player, roleLabel) {
 
   const meta = document.createElement("div");
   meta.className = "identity-meta";
+  if (playerHasInitiative(player)) {
+    meta.appendChild(makeBadge("Choisit en premier", "initiative"));
+  }
   meta.append(
     makeBadge(player.ready ? "Choix verrouillé" : "En attente", player.ready ? "ready" : "state"),
     makeBadge(`${player.played_card_ids?.length ?? 0}/4 jouées`),
@@ -1153,8 +1169,10 @@ function renderZoneStatus(container, player, { opponent = false } = {}) {
   body.className = "zone-status-body";
 
   if (opponent && !player.ready) {
-    title.textContent = "En attente";
-    body.textContent = "L'adversaire n'a pas encore verrouillé sa sélection.";
+    title.textContent = playerHasInitiative(player) ? "Adversaire en premier" : "En attente";
+    body.textContent = playerHasInitiative(player)
+      ? "L'adversaire choisit en premier pour ce round."
+      : "L'adversaire n'a pas encore verrouillé sa sélection.";
     panel.classList.add("waiting");
   } else if (opponent && selectedCard) {
     title.textContent = "Carte révélée";
@@ -1167,8 +1185,10 @@ function renderZoneStatus(container, player, { opponent = false } = {}) {
       : "Ton choix est confirmé. Attente de la résolution officielle.";
     panel.classList.add(opponent ? "opponent-ready" : "waiting");
   } else {
-    title.textContent = "Ton tour";
-    body.textContent = "Clique sur une carte puis choisis le nombre de pills.";
+    title.textContent = playerHasInitiative(player) ? "A toi en premier" : "Ton tour";
+    body.textContent = playerHasInitiative(player)
+      ? "Tu choisis la premiere carte du round, puis tu engages tes pills."
+      : "Clique sur une carte puis choisis le nombre de pills.";
     panel.classList.add("your-turn");
   }
 
@@ -1412,6 +1432,28 @@ function createSelectionDetailNode(card) {
   return detail;
 }
 
+function createSelectionFocusBanner(localPlayer, card) {
+  const banner = document.createElement("div");
+  banner.className = "selection-focus-banner";
+
+  const initiative = document.createElement("span");
+  initiative.className = "selection-focus-pill initiative";
+  initiative.textContent = firstPickerLabel();
+
+  const selected = document.createElement("span");
+  selected.className = "selection-focus-pill selected-card";
+  selected.textContent = card ? `Carte selectionnee : ${card.name}` : "Aucune carte selectionnee";
+
+  const pills = document.createElement("span");
+  pills.className = "selection-focus-pill";
+  pills.textContent = card
+    ? `Pills engagees : ${state.interaction.pillsPreview}/${localPlayer?.pills ?? 0}`
+    : "Choisis une carte";
+
+  banner.append(initiative, selected, pills);
+  return banner;
+}
+
 function handleLocalCardSelection(localPlayer, card) {
   if (localPlayer.player_state !== "selecting") {
     return;
@@ -1476,6 +1518,7 @@ function renderSelectionDetail(localPlayer) {
   }
 
   const card = selectedCardFor(localPlayer);
+  elements.selectionDetail.appendChild(createSelectionFocusBanner(localPlayer, card));
   if (!card) {
     const empty = document.createElement("div");
     empty.className = "selection-empty-state";
@@ -1941,14 +1984,14 @@ function renderSummary() {
   const selectedCard = selectedCardFor(localPlayer);
   normalizeSelectionInteraction(localPlayer, selectedCard);
   const projection = buildSelectionProjection(localPlayer, selectedCard);
-  const initiativeLabel = snapshot.initiative_player_id === snapshot.local_player_id ? "Toi" : "Adversaire";
   elements.roomStatus.textContent = `Room ${state.roomId ?? "-"} | ${snapshot.match_state}`;
   elements.lobbyRoomId.textContent = state.roomId ?? "-";
   elements.lobbyMatchState.textContent = snapshot.match_state;
   elements.roundValue.textContent = snapshot.current_round ?? "-";
-  elements.initiativeValue.textContent = snapshot.initiative_player_id ? initiativeLabel : "-";
+  elements.initiativeValue.textContent = firstPickerLabel(snapshot);
   elements.matchStateValue.textContent = snapshot.match_state;
   elements.summaryContent.textContent = [
+    `Premier choix : ${firstPickerLabel(snapshot)}`,
     `Carte sélectionnée : ${projection.selectedName}`,
     `Attaque prévue : ${projection.projectedAttack}`,
     `Dégâts prévus : ${projection.projectedDamage}`,
@@ -2197,8 +2240,8 @@ function renderSelection() {
   elements.resetSelectionButton.disabled = !showControls;
 
   elements.selectionInfo.textContent = selectedCard
-    ? `${selectedCard.name} · ${selectedCard.clan} · ${selectedCard.bonus_active ? "Bonus actif" : "Bonus inactif"}`
-    : "Click a card to choose pills.";
+    ? `Carte selectionnee : ${selectedCard.name} | ${selectedCard.clan} | ${selectedCard.bonus_active ? "Bonus actif" : "Bonus inactif"}`
+    : `${firstPickerLabel()} | Selectionne une carte pour choisir tes pills.`;
   renderSelectionDetail(localPlayer);
 }
 

@@ -68,14 +68,14 @@ def test_load_card_set_keeps_clan_bonus_data_consistent_per_clan() -> None:
         "Solaïres": {"+2 Puissance"},
         "Corsaires du Port": {"Victoire : Vol 1 pill"},
         "Palmeros": {"-2 dégâts adverses, min. 1"},
-        "Égoutiers": {"Victoire : Poison 2, min. 4"},
+        "Égoutiers": {"Victoire : Poison 2, min. 7"},
         "Jardiniers de Béton": {"Victoire : Régénération 2"},
     }
     assert bonus_effect_signatures_by_clan == {
         "Solaïres": {(("passive", "self", "power_modifier", 2, None),)},
         "Corsaires du Port": {(("victory", "opponent", "pill_steal", 1, None),)},
         "Palmeros": {(("passive", "opponent", "damage_modifier", -2, 1),)},
-        "Égoutiers": {(("victory", "opponent", "poison", 2, 4),)},
+        "Égoutiers": {(("victory", "opponent", "poison", 2, 7),)},
         "Jardiniers de Béton": {(("victory", "self", "regeneration", 2, None),)},
     }
 
